@@ -238,7 +238,13 @@ class DeliverabilityScorer
         'guaranteed', '100% guaranteed', 'satisfaction guaranteed',
         'no obligation', 'this is not spam', 'as seen on',
         'be your own boss', 'all natural',
-        '50% off', '$$$', '€€€',
+        // Round 356 : '$$$'/'€€€' (3 caractères) étaient en-dessous du seuil
+        // minimal de 4 caractères (triggerMeetsMinLength() ci-dessous, script
+        // non-CJK) — jamais détectés ni dans score() ni dans
+        // getSubjectSpamTriggers(), déclencheurs classiques rendus inertes
+        // par construction sans aucune indication de cette incohérence.
+        // Répétition étendue à 4 symboles pour franchir le seuil.
+        '50% off', '$$$$', '€€€€',
 
         // ── ALLEMAND ─────────────────────────────────────────────
         'kostenlos', 'gratis', 'umsonst', 'kostenfrei',
@@ -395,22 +401,18 @@ class DeliverabilityScorer
     private static ?array $dnsCache = null;
 
     /**
-     * Point d'entrée principal : analyse un email et retourne le score.
+     * Round 356 : ce docblock documentait score() (paramètres
+     * $htmlContent/$subject, contrat de retour) mais était physiquement
+     * collé à getSubjectSpamTriggers() (qui ne prend aucun argument et
+     * retourne un tableau plat de chaînes) — trompeur pour tout IDE/outil
+     * d'autocomplétion s'appuyant sur ce docblock plutôt que sur le corps
+     * réel de la méthode. Retiré d'ici, réellement placé sur score()
+     * ci-dessous.
      *
-     * Le dictionnaire anti-spam ($spamTriggers/$subjectSpamTriggers) couvre
-     * volontairement toutes les langues à la fois dans un seul tableau plat
-     * (un email en français peut aussi contenir des déclencheurs anglais) —
-     * il n'existe donc aucun sous-ensemble par langue à sélectionner ici.
-     * Un paramètre $lang était accepté sans jamais être utilisé dans le
-     * corps de la méthode (AdminTranslator::t() résout déjà les libellés
-     * dans la langue de l'admin BO, pas dans celle de l'email analysé) —
-     * retiré pour ne pas laisser croire à un scoring contextualisé par
-     * langue qui n'existe pas.
-     *
-     * @param string $htmlContent HTML complet de l'email rendu
-     * @param string $subject     Sujet de l'email
-     * @return array {score:int, grade:string, color:string, label:string,
-     *               criteria:array, recommendations:array}
+     * Liste brute des déclencheurs de sujet filtrés par longueur minimale —
+     * même filtre que score(), pour rester cohérent avec ce qui est
+     * effectivement détecté dans le score réel (cf. triggerMeetsMinLength()
+     * juste en dessous).
      */
     public function getSubjectSpamTriggers(): array
     {
@@ -445,6 +447,24 @@ class DeliverabilityScorer
         return mb_strlen($trigger) >= $minLen;
     }
 
+    /**
+     * Point d'entrée principal : analyse un email et retourne le score.
+     *
+     * Le dictionnaire anti-spam ($spamTriggers/$subjectSpamTriggers) couvre
+     * volontairement toutes les langues à la fois dans un seul tableau plat
+     * (un email en français peut aussi contenir des déclencheurs anglais) —
+     * il n'existe donc aucun sous-ensemble par langue à sélectionner ici.
+     * Un paramètre $lang était accepté sans jamais être utilisé dans le
+     * corps de la méthode (AdminTranslator::t() résout déjà les libellés
+     * dans la langue de l'admin BO, pas dans celle de l'email analysé) —
+     * retiré pour ne pas laisser croire à un scoring contextualisé par
+     * langue qui n'existe pas.
+     *
+     * @param string $htmlContent HTML complet de l'email rendu
+     * @param string $subject     Sujet de l'email
+     * @return array {score:int, grade:string, color:string, label:string,
+     *               criteria:array, recommendations:array}
+     */
     public function score(string $htmlContent, string $subject): array
     {
         $score    = 100;
@@ -659,9 +679,15 @@ class DeliverabilityScorer
         }
 
         // ── Critère 8 : domaine de la boutique présent (−3) ──────
+        // Round 356 : comparaison normalisée en casse (mb_strtolower), comme
+        // les critères 2/4/5 de ce même fichier (round 322 documenté plus
+        // haut) — sans elle, un PS_SHOP_DOMAIN stocké dans une casse
+        // différente de celle utilisée dans le HTML généré (migration,
+        // saisie manuelle) faisait signaler à tort "domaine absent" alors
+        // qu'il est bien présent.
         $shopDomain = (string) Configuration::get('PS_SHOP_DOMAIN');
         $cDomain = $this->t('score.criterion_domain');
-        if ($shopDomain !== '' && !str_contains($htmlContent, $shopDomain)) {
+        if ($shopDomain !== '' && !str_contains($htmlContentLower, mb_strtolower($shopDomain))) {
             $score -= 3;
             $criteria[] = $this->criterion('warning', $cDomain, $this->t('score.detail_absent'), -3);
             $recs[]     = ['type' => 'info', 'message' => $this->t('score.rec_no_domain', ['domain' => $shopDomain])];
@@ -689,7 +715,25 @@ class DeliverabilityScorer
             ? rtrim(trim(explode('@', $fromEmail)[1]), "<>\"' \t\n\r\0\x0B")
             : '';
 
-        if ($sendingDomain !== '') {
+        if ($sendingDomain === '') {
+            // Round 356 : jusqu'ici, aucune ligne de critère n'était produite
+            // pour SPF/DMARC/DKIM quand aucune adresse d'expédition valide
+            // n'était configurée (PS_MAIL_EMAIL_MESSAGE_FROM ET PS_SHOP_EMAIL
+            // vides ou sans '@') — les 24 points de ces 3 critères
+            // disparaissaient silencieusement du score au lieu d'être
+            // pénalisés ou signalés, contrairement au cas $dns['timed_out']
+            // ci-dessous qui, lui, affiche explicitement un avertissement
+            // neutre. Une boutique sans AUCUNE configuration email (pire
+            // situation opérationnelle : aucun email ne peut légitimement
+            // s'authentifier) obtenait ainsi un meilleur score qu'une
+            // boutique avec un domaine réel mais mal configuré, sans jamais
+            // recevoir la moindre recommandation pour corriger la cause
+            // racine (absence de configuration email).
+            $criteria[] = $this->criterion('warning', $this->t('score.criterion_spf'), $this->t('score.detail_no_sending_domain'), 0);
+            $criteria[] = $this->criterion('warning', $this->t('score.criterion_dmarc'), $this->t('score.detail_no_sending_domain'), 0);
+            $criteria[] = $this->criterion('warning', $this->t('score.criterion_dkim'), $this->t('score.detail_no_sending_domain'), 0);
+            $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_no_sending_domain')];
+        } else {
             $dns = $this->getDnsStatus($sendingDomain);
 
             // Round 151 : une vérification DNS interrompue par une panne

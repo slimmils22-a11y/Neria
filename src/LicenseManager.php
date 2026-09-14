@@ -379,7 +379,36 @@ class LicenseManager
         // Hors round (12/09/2026, suite round 341) : déchiffrement — $key
         // est transmise à callLicenseApi() ('validate') via
         // validateLicenseLocked(), le serveur a besoin de la clé en clair.
-        $key = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_KEY));
+        $rawKey = (string) \Configuration::get(self::CONFIG_KEY);
+        $key    = \CryptoManager::decrypt($rawKey);
+
+        // Round 356 : le test ci-dessous (valeur brute non vide, mais
+        // déchiffrée vide) — même idiome que SearchConsoleManager/
+        // PostmasterManager (round 353) — distingue un
+        // échec de déchiffrement RÉEL (clé de chiffrement du module altérée
+        // sur ce shop/worker, valeur ENC:... corrompue, openssl indisponible)
+        // d'une licence jamais activée (CONFIG_KEY réellement vide). Avant
+        // ce correctif, les deux cas tombaient dans le même bloc ci-dessous
+        // et purgeaient CONFIG_LAST_CHECK/TOKEN/REVOKED_AT/EXPIRES/PLAN/
+        // SOURCE/EXPIRY_WARNED_FOR — sur un client payant frappé par un
+        // simple accroc de déchiffrement local (PAS une panne du serveur de
+        // licences), cette purge faisait perdre le jeton en cache et la
+        // fenêtre de grâce de 90 jours (lastCheck), retombant sur la grâce
+        // "jamais activé" de 30 jours (NERIA_INSTALLED_AT) qui expire
+        // nécessairement pour une boutique en prod ancienne — exactement le
+        // type d'incident que le principe fondateur de ce fichier (ligne 9)
+        // interdit. Traité ici comme une panne technique locale, avec la
+        // même tolérance que l'indisponibilité réseau (docblock ci-dessus) :
+        // ni purge, ni bascule, juste un avertissement Watchdog et un retour
+        // anticipé sans toucher au cache.
+        if ($rawKey !== '' && $key === '') {
+            $this->wd()->warning(
+                \WatchdogManager::i18nMsg('watchdog.license_key_decrypt_failed'),
+                '', 'LicenseManager'
+            );
+            return;
+        }
+
         if ($key === '') {
             // Round 160 : si CONFIG_KEY est vide mais qu'un CONFIG_LAST_CHECK
             // d'une activation antérieure traîne encore (ex. clé effacée
@@ -640,9 +669,15 @@ class LicenseManager
     {
         // Hors round (12/09/2026, suite round 341) : déchiffrement — voir
         // le commentaire détaillé sur storeToken().
-        $key   = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_KEY));
+        $rawKeyDisplay = (string) \Configuration::get(self::CONFIG_KEY);
+        $key   = \CryptoManager::decrypt($rawKeyDisplay);
         $token = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_TOKEN));
         $valid = $this->isEmailSendingAllowed();
+        // Round 356 : même distinction que validateLicense() — une clé
+        // enregistrée mais illisible (échec de déchiffrement local) ne doit
+        // pas être confondue avec une licence jamais activée pour le calcul
+        // des jours de grâce ci-dessous (voir $keyDecryptFailed plus bas).
+        $keyDecryptFailed = $rawKeyDisplay !== '' && $key === '';
 
         $expires = (int) \Configuration::get(self::CONFIG_EXPIRES);
         $revokedAt = (int) \Configuration::get(self::CONFIG_REVOKED_AT);
@@ -669,7 +704,7 @@ class LicenseManager
             // Blocage à raison par mismatch de domaine — isEmailSendingAllowed()
             // refuse explicitement tout repli sur la grâce dans ce cas
             // (round 206), donc aucun grace_days_left n'a de sens ici.
-        } elseif ($key === '') {
+        } elseif ($key === '' && !$keyDecryptFailed) {
             $installedAt = (int) strtotime((string) \Configuration::get('NERIA_INSTALLED_AT'));
             if ($installedAt > 0) {
                 $graceDaysLeft = max(0, self::GRACE_NEVER_ACTIVATED_DAYS - (int) floor((time() - $installedAt) / 86400));

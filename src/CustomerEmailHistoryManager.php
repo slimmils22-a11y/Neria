@@ -380,6 +380,43 @@ class CustomerEmailHistoryManager
             return ['ok' => false, 'message_key' => 'history.resend_no_customer_email', 'vars' => []];
         }
 
+        // Round 356 : GET_LOCK() autour du contrôle cooldown/blacklist/
+        // préférences jusqu'à Mail::Send() — même motif que
+        // StatsManager::recordOpen()/recordClick() (check-then-act sans
+        // verrou). Un employé BO double-cliquant sur « Renvoyer » (ou deux
+        // onglets ouverts sur la même fiche client) déclenchait 2 requêtes
+        // quasi simultanées : les deux lisaient « pas de doublon récent »
+        // via CooldownManager::isDuplicate() avant qu'aucune des deux
+        // n'ait déclenché l'enregistrement de l'évènement 'sent' associé
+        // (fait plus tard côté StatsManager, hors de cette méthode), donc
+        // les deux passaient le contrôle et 2 emails identiques partaient
+        // malgré le Mode Silence actif. Fail-safe : si le verrou n'est pas
+        // obtenu (2s), on renonce plutôt que de risquer un envoi en double.
+        $resendLockKey = 'neria_resend_' . $idStat;
+        $gotResendLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($resendLockKey) . "', 2)", false);
+        if (!$gotResendLock) {
+            if (class_exists('WatchdogManager')) {
+                (new \WatchdogManager($this->module))->warning(
+                    \WatchdogManager::i18nMsg('watchdog.history_resend_lock_failed', ['id_stat' => $idStat]),
+                    $email['template'] ?? '', 'CustomerEmailHistoryManager'
+                );
+            }
+            return ['ok' => false, 'message_key' => 'history.resend_blocked', 'vars' => ['email' => $customer->email]];
+        }
+
+        try {
+            return $this->resendLocked($idCustomer, $email, $customer);
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($resendLockKey) . "')");
+        }
+    }
+
+    /**
+     * Corps réel de resend(), exécuté sous GET_LOCK() — voir resend().
+     */
+    private function resendLocked(int $idCustomer, array $email, \Customer $customer): array
+    {
+
         $vars = $this->decodeSnapshot($email['rendered_vars'] ?? null);
 
         $templateVars = [];
