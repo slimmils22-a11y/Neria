@@ -684,9 +684,27 @@ class PostmasterManager
             return null;
         }
 
+        // Round 353 : même correctif que SearchConsoleManager — le résultat
+        // de decrypt() sur client_secret n'était jamais vérifié, contrairement
+        // à $refresh juste au-dessus. Voir commentaire détaillé dans
+        // SearchConsoleManager::refreshAccessToken().
+        $rawClientSecret = (string) $this->cfgGlobal(self::CONFIG_CLIENT_SECRET);
+        $clientSecret    = \CryptoManager::decrypt($rawClientSecret);
+        if ($clientSecret === '' && $rawClientSecret !== '') {
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, 'decrypt_failed: client secret unreadable');
+            if (!$this->cfgGlobal(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(
+                \WatchdogManager::i18nMsg('watchdog.postmaster_client_secret_unreadable'),
+                '', 'PostmasterManager'
+            );
+            return null;
+        }
+
         $response = $this->httpPost(self::TOKEN_URL, [
             'client_id'     => (string) $this->cfgGlobal(self::CONFIG_CLIENT_ID),
-            'client_secret' => \CryptoManager::decrypt((string) $this->cfgGlobal(self::CONFIG_CLIENT_SECRET)),
+            'client_secret' => $clientSecret,
             'refresh_token' => $refresh,
             'grant_type'    => 'refresh_token',
         ]);

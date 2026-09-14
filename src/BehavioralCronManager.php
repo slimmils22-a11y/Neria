@@ -155,7 +155,7 @@ class BehavioralCronManager
                 $this->runStep('sendCheckoutAbandonment',        fn () => $this->sendCheckoutAbandonment());
                 $this->runStep('sendQuoteExpiryReminders',       fn () => $this->sendQuoteExpiryReminders());
                 $this->runStep('sendRefundReconciliations',      fn () => $this->sendRefundReconciliations());
-                $this->runStep('sendLifespanReminders',          fn () => $this->sendLifespanReminders());
+                $this->runStep('sendLifespanReminders',          fn () => $this->sendLifespanReminders((int) $idShop));
                 $this->runStep('sendPostPurchase(care)',         fn () => $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS));
                 $this->runStep('sendPostPurchase(review)',       fn () => $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS));
                 $this->runStep('sendShippedDelayAlerts',         fn () => $this->sendShippedDelayAlerts());
@@ -1732,7 +1732,9 @@ class BehavioralCronManager
         }
     }
 
-    private function sendLifespanReminders(): void
+    // Round 353 : $idShop explicite, transmis par run() — voir commentaire
+    // sur la clause WHERE ajoutée ci-dessous.
+    private function sendLifespanReminders(int $idShop): void
     {
         if (!\Configuration::getGlobalValue('NERIA_LIFESPAN_ENABLED')) {
             return;
@@ -1745,6 +1747,18 @@ class BehavioralCronManager
         // n'est pas installée/active sur cette boutique.
         $defaultLang = (int) \Configuration::get('PS_LANG_DEFAULT') ?: 1;
 
+        // Round 353 : WHERE pl.id_shop = $idShop ajouté — cette méthode est
+        // appelée UNE FOIS PAR BOUTIQUE par run() (boucle multi-boutique),
+        // mais chargeait jusqu'ici les produits configurés de TOUTES les
+        // boutiques à chaque itération. La déduplication (neria_behavioral_sent)
+        // empêchait tout doublon d'envoi réel, mais le travail était refait
+        // N fois (N = nb de boutiques actives) pour rien, et surtout le
+        // budget partagé $totalSentThisRun ci-dessous était consommé par des
+        // produits hors-scope avant même d'atteindre ceux de la boutique
+        // réellement traitée — sur une install multi-boutiques à fort
+        // volume, les rappels d'une boutique pouvaient être "affamés" par
+        // ceux d'une autre, alors qu'ils auraient été envoyés normalement
+        // sur une installation mono-boutique.
         $table    = $this->prefix . 'neria_product_lifespan';
         $products = $this->db->executeS(
             "SELECT pl.id_product, pl.id_shop, pl.lifespan_days, pl.alert_days,
@@ -1752,7 +1766,8 @@ class BehavioralCronManager
              FROM `{$table}` pl
              JOIN `{$this->prefix}product` p ON p.id_product = pl.id_product
              LEFT JOIN `{$this->prefix}product_lang` pl2
-                  ON pl2.id_product = pl.id_product AND pl2.id_lang = {$defaultLang} AND pl2.id_shop = pl.id_shop"
+                  ON pl2.id_product = pl.id_product AND pl2.id_lang = {$defaultLang} AND pl2.id_shop = pl.id_shop
+             WHERE pl.id_shop = {$idShop}"
         ) ?: [];
 
         if (empty($products)) {

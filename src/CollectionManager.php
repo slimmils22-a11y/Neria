@@ -412,7 +412,18 @@ class CollectionManager
             // affichait un prix HT plein tarif dans l'email "il ne vous
             // manque que X", différent de celui réellement affiché sur la
             // fiche produit au clic.
-            $productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer);
+            // Round 353 : la disponibilité ci-dessus est volontairement
+            // agrégée sur TOUTES les déclinaisons (round 167/184/215), mais
+            // le prix était jusqu'ici systématiquement celui de la
+            // COMBINAISON PAR DÉFAUT (3e argument null de getPriceStatic()
+            // plus bas) — si cette combinaison précise est épuisée alors
+            // qu'une AUTRE a du stock, le produit passe le test de
+            // disponibilité et l'email part, mais le client arrive sur la
+            // fiche produit avec la déclinaison présélectionnée (la
+            // combinaison par défaut) affichée en rupture, incohérent avec
+            // l'email qui vient de lui promettre ce produit disponible.
+            $inStockAttrId = $this->resolveInStockAttributeId($missingId, $idShop);
+            $productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer, $inStockAttrId);
 
             $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
 
@@ -579,6 +590,44 @@ class CollectionManager
         );
     }
 
+    /**
+     * Round 353 : détermine quelle déclinaison utiliser pour le PRIX
+     * affiché — la combinaison par défaut du produit tant qu'elle a du
+     * stock (comportement historique, retour null = laisse getPriceStatic()
+     * résoudre lui-même la combinaison par défaut), sinon la première
+     * déclinaison ayant du stock réel, pour rester cohérent avec la fiche
+     * produit sur laquelle le client atterrira au clic.
+     */
+    private function resolveInStockAttributeId(int $idProduct, int $idShop): ?int
+    {
+        $shop        = new \Shop($idShop);
+        $shareStock  = (bool) $shop->getGroup()->share_stock;
+        $stockWhere  = $shareStock
+            ? ' AND id_shop = 0 AND id_shop_group = ' . (int) $shop->id_shop_group
+            : ' AND id_shop = ' . $idShop . ' AND id_shop_group = 0';
+
+        $defaultAttrId = (int) $this->db->getValue(
+            'SELECT id_product_attribute FROM `' . $this->prefix . 'product_attribute`
+             WHERE id_product = ' . $idProduct . ' AND default_on = 1'
+        );
+        $defaultQty = (int) $this->db->getValue(
+            'SELECT COALESCE(SUM(quantity), 0) FROM `' . $this->prefix . 'stock_available`
+             WHERE id_product = ' . $idProduct . ' AND id_product_attribute = ' . $defaultAttrId . $stockWhere
+        );
+        if ($defaultQty > 0) {
+            return null; // combinaison par défaut disponible — comportement inchangé
+        }
+
+        $firstInStockAttrId = (int) $this->db->getValue(
+            'SELECT id_product_attribute FROM `' . $this->prefix . 'stock_available`
+             WHERE id_product = ' . $idProduct . ' AND id_product_attribute > 0
+               AND quantity > 0' . $stockWhere . '
+             ORDER BY id_product_attribute ASC'
+        );
+
+        return $firstInStockAttrId > 0 ? $firstInStockAttrId : null;
+    }
+
     private function resolveLang(\Customer $customer): int
     {
         if (!empty($customer->id_lang)) {
@@ -599,7 +648,9 @@ class CollectionManager
      * sur le montant calculé (piège identifié round 305 dans les 2 classes
      * jumelles ci-dessus, corrigé ici dès la première version).
      */
-    private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float
+    // Round 353 : $idProductAttribute optionnel — voir resolveInStockAttributeId()
+    // et son appelant ci-dessus.
+    private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0, ?int $idProductAttribute = null): float
     {
         $ctx     = \Context::getContext();
         $hadCart = \Validate::isLoadedObject($ctx->cart);
@@ -622,7 +673,7 @@ class CollectionManager
         }
 
         try {
-            return (float) \Product::getPriceStatic($idProduct, true, null, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
+            return (float) \Product::getPriceStatic($idProduct, true, $idProductAttribute, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
         } finally {
             if (!$hadCart) {
                 $ctx->cart = null;

@@ -679,9 +679,33 @@ class SearchConsoleManager
             return null;
         }
 
+        // Round 353 : contrairement à $refresh juste au-dessus, le résultat
+        // de decrypt() sur client_secret n'était jamais vérifié — si
+        // NERIA_ENCRYPTION_KEY est corrompue/rotée ou si client_secret est
+        // tronqué en base indépendamment de la clé (migration, édition
+        // manuelle), decrypt() retourne '' silencieusement et la requête
+        // OAuth partait quand même avec un client_secret vide, produisant
+        // un 'invalid_client' générique côté Google sans que la vraie
+        // cause (secret illisible) ne soit jamais distinguée ni journalisée
+        // — contrairement à tous les autres secrets du module, qui
+        // vérifient systématiquement ce retour avant tout usage sensible.
+        $rawClientSecret = (string) $this->cfgGlobal(self::CONFIG_CLIENT_SECRET);
+        $clientSecret    = \CryptoManager::decrypt($rawClientSecret);
+        if ($clientSecret === '' && $rawClientSecret !== '') {
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, 'decrypt_failed: client secret unreadable');
+            if (!$this->cfgGlobal(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(
+                \WatchdogManager::i18nMsg('watchdog.search_console_client_secret_unreadable'),
+                '', 'SearchConsoleManager'
+            );
+            return null;
+        }
+
         $response = $this->httpPost(self::TOKEN_URL, [
             'client_id'     => (string) $this->cfgGlobal(self::CONFIG_CLIENT_ID),
-            'client_secret' => \CryptoManager::decrypt((string) $this->cfgGlobal(self::CONFIG_CLIENT_SECRET)),
+            'client_secret' => $clientSecret,
             'refresh_token' => $refresh,
             'grant_type'    => 'refresh_token',
         ]);
