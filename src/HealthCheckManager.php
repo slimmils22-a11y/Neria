@@ -5531,6 +5531,32 @@ class HealthCheckManager
             $offenders[] = "SignatureGenerator::generate() n'alerte plus le Watchdog sur un échec imagepng() — régression du bug corrigé le 09/08/2026 (round 160)";
         }
 
+        // Hors round (14/09/2026) : SignatureGenerator::delete() doit
+        // comparer $excludePath via basename(), pas realpath() — generate()
+        // (seul appelant réel, neria.php) retourne un chemin RELATIF,
+        // jamais résolu par realpath() qui dépend du CWD du process PHP.
+        if ($sgSrc160 === ''
+            || strpos($sgSrc160, '$excludeBasename = $excludePath !== \'\' ? basename($excludePath) : \'\';') === false
+            || substr_count($sgSrc160, 'basename($excludePath)') < 1
+            || substr_count($sgSrc160, 'basename($path) === $excludeBasename') < 1
+            || substr_count($sgSrc160, 'basename($file) === $excludeBasename') < 1
+        ) {
+            $offenders[] = "SignatureGenerator::delete() ne compare plus \$excludePath via basename() — régression du bug corrigé le 14/09/2026 (round 354) : la signature fraîchement générée serait de nouveau supprimée par son propre nettoyage (realpath() sur un chemin relatif ne correspond jamais au fichier réel)";
+        }
+
+        // Hors round (14/09/2026) : SeoApiManager::fetchSemrush() doit
+        // résoudre le paramètre 'database' via la configuration (repli
+        // 'us'), pas le coder en dur sur 'fr' — décision produit confirmée
+        // (module vendu à des commerçants du monde entier).
+        $seoSrcHR = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        if ($seoSrcHR === ''
+            || strpos($seoSrcHR, "'database'       => 'fr',") !== false
+            || strpos($seoSrcHR, "const CONFIG_SEMRUSH_DATABASE = 'NERIA_SEMRUSH_DATABASE';") === false
+            || substr_count($seoSrcHR, "'database'       => \$semrushDb,") < 2
+        ) {
+            $offenders[] = "SeoApiManager::fetchSemrush() code de nouveau 'database' en dur sur 'fr' — régression du bug corrigé le 14/09/2026 (round 354) : tout marchand hors zone francophone recevrait de nouveau un rapport SEO quasi vide/faussé sans indication de la cause";
+        }
+
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
         // throttle réseau indépendant, son verrou, sa distinction de
         // révocation, et la purge de l'état résiduel quand CONFIG_KEY est vide.
@@ -10951,7 +10977,7 @@ class HealthCheckManager
         // Semrush ne contient AUCUNE des colonnes attendues.
         $seoSrc335 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
         $posSemrush335 = $seoSrc335 !== '' ? strpos($seoSrc335, 'private function fetchSemrush(string $domain): ?array') : false;
-        $semrushBody335 = $posSemrush335 !== false ? substr($seoSrc335, $posSemrush335, 7000) : '';
+        $semrushBody335 = $posSemrush335 !== false ? substr($seoSrc335, $posSemrush335, 7800) : '';
         if ($semrushBody335 === ''
             || strpos($semrushBody335, "\$this->recordError(\\AdminTranslator::t('msg.semrush_unexpected_columns'))") === false
         ) {
