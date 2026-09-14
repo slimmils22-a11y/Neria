@@ -471,7 +471,18 @@ class LookCompletionManager
                 // produit en promo affichait son prix plein tarif dans
                 // l'email, différent de celui réellement affiché sur la
                 // fiche produit au clic.
-                $realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer);
+                // Hors round (14/09/2026) : la disponibilité ci-dessus est
+                // agrégée sur TOUTES les déclinaisons (round 184), mais le
+                // prix restait celui de la COMBINAISON PAR DÉFAUT — même
+                // correctif que CollectionManager::processCollection()
+                // (round 353) : si cette combinaison précise est épuisée
+                // alors qu'une autre a du stock, le produit passe le test de
+                // disponibilité et le bloc "complétez votre look" part avec
+                // le prix par défaut, mais le client arrive sur la fiche
+                // produit avec la déclinaison présélectionnée affichée en
+                // rupture.
+                $inStockAttrId = $this->resolveInStockAttributeId($pid, $idShop);
+                $realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer, $inStockAttrId);
                 $blocks[] = [
                     'name'  => $product->name,
                     'url'   => $productUrl,
@@ -486,13 +497,54 @@ class LookCompletionManager
     }
 
     /**
+     * Hors round (14/09/2026) : détermine quelle déclinaison utiliser pour
+     * le PRIX affiché — la combinaison par défaut tant qu'elle a du stock
+     * (comportement historique, retour null = laisse getPriceStatic()
+     * résoudre lui-même la combinaison par défaut), sinon la première
+     * déclinaison ayant du stock réel — même méthode que
+     * CollectionManager::resolveInStockAttributeId() (round 353).
+     */
+    private function resolveInStockAttributeId(int $idProduct, int $idShop): ?int
+    {
+        $shop       = new \Shop($idShop);
+        $shareStock = (bool) $shop->getGroup()->share_stock;
+        $stockWhere = $shareStock
+            ? ' AND id_shop = 0 AND id_shop_group = ' . (int) $shop->id_shop_group
+            : ' AND id_shop = ' . $idShop . ' AND id_shop_group = 0';
+
+        $defaultAttrId = (int) $this->db->getValue(
+            'SELECT id_product_attribute FROM `' . $this->prefix . 'product_attribute`
+             WHERE id_product = ' . $idProduct . ' AND default_on = 1'
+        );
+        $defaultQty = (int) $this->db->getValue(
+            'SELECT COALESCE(SUM(quantity), 0) FROM `' . $this->prefix . 'stock_available`
+             WHERE id_product = ' . $idProduct . ' AND id_product_attribute = ' . $defaultAttrId . $stockWhere
+        );
+        if ($defaultQty > 0) {
+            return null;
+        }
+
+        $firstInStockAttrId = (int) $this->db->getValue(
+            'SELECT id_product_attribute FROM `' . $this->prefix . 'stock_available`
+             WHERE id_product = ' . $idProduct . ' AND id_product_attribute > 0
+               AND quantity > 0' . $stockWhere . '
+             ORDER BY id_product_attribute ASC'
+        );
+
+        return $firstInStockAttrId > 0 ? $firstInStockAttrId : null;
+    }
+
+    /**
      * Round 184 : prix réel (taxe + specific_price/promo appliqués), même
      * logique que UpsellManager::safeProductPrice() — Product::getPriceStatic()
      * peut nécessiter un panier en contexte pour résoudre certaines règles
      * de taxe ; ce fichier tourne typiquement depuis un cron sans panier
      * actif, d'où le panier temporaire ci-dessous.
      */
-    private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float
+    // Hors round (14/09/2026) : $idProductAttribute optionnel — voir
+    // resolveInStockAttributeId() et son appelant ci-dessus, même correctif
+    // que CollectionManager::safeProductPrice() (round 353).
+    private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0, ?int $idProductAttribute = null): float
     {
         $ctx     = \Context::getContext();
         $hadCart = \Validate::isLoadedObject($ctx->cart);
@@ -558,7 +610,7 @@ class LookCompletionManager
             // VRAI groupe du client destinataire — un client B2B avec une
             // remise groupe négociée voyait le prix public plein tarif
             // dans son email "complétez votre look".
-            return (float) \Product::getPriceStatic($idProduct, true, null, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
+            return (float) \Product::getPriceStatic($idProduct, true, $idProductAttribute, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
         } finally {
             if (!$hadCart) {
                 $ctx->cart = null;

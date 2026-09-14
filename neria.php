@@ -2079,6 +2079,14 @@ class Neria extends Module
                             // filtre id_shop sur sa sélection).
                             $originalShopWebhook = \Context::getContext()->shop;
                             $shopsWebhook = \Shop::getShops(true, null, true) ?: [(int) $originalShopWebhook->id];
+                            // Hors round (14/09/2026) : compte les échecs
+                            // PAR boutique — jusqu'ici le heartbeat plus bas
+                            // était posté 'ok' inconditionnellement même si
+                            // TOUTES les boutiques avaient échoué dans la
+                            // boucle ci-dessous (même pattern "toujours ok"
+                            // déjà corrigé pour le cron comportemental,
+                            // round 352).
+                            $webhookFailCount = 0;
                             try {
                                 foreach ($shopsWebhook as $idShopWebhook) {
                                     try {
@@ -2089,6 +2097,7 @@ class Neria extends Module
                                         // l'une (y compris l'instanciation \Shop()
                                         // elle-même, round 347) ne doit pas empêcher
                                         // le traitement des autres.
+                                        $webhookFailCount++;
                                     }
                                 }
                             } finally {
@@ -2102,7 +2111,7 @@ class Neria extends Module
                             }
                             $ran['webhook'] = true;
                             if (class_exists('WatchdogManager')) {
-                                (new WatchdogManager($this))->cronHeartbeat('webhook');
+                                (new WatchdogManager($this))->cronHeartbeat('webhook', $webhookFailCount > 0 ? 'error' : 'ok', $webhookFailCount);
                             }
                         }
                     } catch (\Throwable $e) {
@@ -2127,6 +2136,12 @@ class Neria extends Module
             // avec leur propre id_shop.
             $originalShopCalendar = \Context::getContext()->shop;
             $shopsCalendar = \Shop::getShops(true, null, true) ?: [(int) $originalShopCalendar->id];
+            // Hors round (14/09/2026) : compte les échecs PAR boutique —
+            // jusqu'ici le heartbeat plus bas était posté 'ok' dès qu'UNE
+            // SEULE boutique réussissait, masquant les échecs des autres —
+            // même pattern "toujours ok" déjà corrigé pour le cron
+            // comportemental (round 352).
+            $calendarFailCount = 0;
             try {
                 foreach ($shopsCalendar as $idShopCalendar) {
                     try {
@@ -2137,13 +2152,14 @@ class Neria extends Module
                     } catch (\Throwable $e) {
                         // best-effort — ne bloque jamais le front, ni les jobs
                         // suivants (y compris si new \Shop() lève, round 347)
+                        $calendarFailCount++;
                     }
                 }
             } finally {
                 \Context::getContext()->shop = $originalShopCalendar;
             }
-            if (isset($ran['calendar']) && class_exists('WatchdogManager')) {
-                (new WatchdogManager($this))->cronHeartbeat('calendar');
+            if ((isset($ran['calendar']) || $calendarFailCount > 0) && class_exists('WatchdogManager')) {
+                (new WatchdogManager($this))->cronHeartbeat('calendar', $calendarFailCount > 0 ? 'error' : 'ok', $calendarFailCount);
             }
         }
 
@@ -2174,6 +2190,11 @@ class Neria extends Module
             // blacklisting).
             $originalShopDR = \Context::getContext()->shop;
             $shopsDR = \Shop::getShops(true, null, true) ?: [(int) $originalShopDR->id];
+            // Hors round (14/09/2026) : aucun cronHeartbeat() n'était posté
+            // pour ce job — même manque déjà identifié pour queue/webhook/
+            // calendar (round 352 pour behavioral), le marchand n'avait
+            // aucune visibilité Watchdog sur ce cron, réussite ou échec.
+            $domainReputationFailCount = 0;
             try {
                 foreach ($shopsDR as $idShopDR) {
                     try {
@@ -2183,10 +2204,14 @@ class Neria extends Module
                     } catch (\Throwable $e) {
                         // best-effort par boutique — ne bloque jamais le front
                         // (y compris si new \Shop() lève, round 347)
+                        $domainReputationFailCount++;
                     }
                 }
             } finally {
                 \Context::getContext()->shop = $originalShopDR;
+            }
+            if ((isset($ran['domain_reputation']) || $domainReputationFailCount > 0) && class_exists('WatchdogManager')) {
+                (new WatchdogManager($this))->cronHeartbeat('domain_reputation', $domainReputationFailCount > 0 ? 'error' : 'ok', $domainReputationFailCount);
             }
         }
 
@@ -2264,19 +2289,27 @@ class Neria extends Module
                                 // pas d'appel en boucle nécessaire ici pour elle).
                                 $originalShopSeasonal = \Context::getContext()->shop;
                                 $shopsSeasonal = \Shop::getShops(true, null, true) ?: [(int) $originalShopSeasonal->id];
+                                // Hors round (14/09/2026) : même pattern
+                                // "toujours ok" corrigé ci-dessus pour
+                                // calendar/domain_reputation — le heartbeat
+                                // posté plus bas ignorait les échecs
+                                // individuels dès qu'UNE boutique réussissait.
+                                $seasonalFailCount = 0;
                                 try {
                                     foreach ($shopsSeasonal as $idShopSeasonal) {
                                         try {
                                             \Context::getContext()->shop = new \Shop((int) $idShopSeasonal);
                                             (new SeasonalCampaignManager($this))->runDueCampaigns();
                                             $ran['seasonal_campaigns'] = true;
-                                        } catch (\Throwable $e) {}
+                                        } catch (\Throwable $e) {
+                                            $seasonalFailCount++;
+                                        }
                                     }
                                 } finally {
                                     \Context::getContext()->shop = $originalShopSeasonal;
                                 }
-                                if (isset($ran['seasonal_campaigns']) && class_exists('WatchdogManager')) {
-                                    (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns');
+                                if ((isset($ran['seasonal_campaigns']) || $seasonalFailCount > 0) && class_exists('WatchdogManager')) {
+                                    (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns', $seasonalFailCount > 0 ? 'error' : 'ok', $seasonalFailCount);
                                 }
                             }
                         }
@@ -2304,6 +2337,9 @@ class Neria extends Module
             // indéfiniment.
             $originalShopDigest = \Context::getContext()->shop;
             $shopsDigest = \Shop::getShops(true, null, true) ?: [(int) $originalShopDigest->id];
+            // Hors round (14/09/2026) : aucun cronHeartbeat() n'était posté
+            // pour ce job — même manque que domain_reputation ci-dessus.
+            $digestFailCount = 0;
             try {
                 foreach ($shopsDigest as $idShopDigest) {
                     try {
@@ -2313,10 +2349,14 @@ class Neria extends Module
                     } catch (\Throwable $e) {
                         // best-effort par boutique — ne bloque jamais le front
                         // (y compris si new \Shop() lève, round 347)
+                        $digestFailCount++;
                     }
                 }
             } finally {
                 \Context::getContext()->shop = $originalShopDigest;
+            }
+            if (isset($ran['watchdog_digest']) || $digestFailCount > 0) {
+                (new WatchdogManager($this))->cronHeartbeat('watchdog_digest', $digestFailCount > 0 ? 'error' : 'ok', $digestFailCount);
             }
         }
 

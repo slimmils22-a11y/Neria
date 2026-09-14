@@ -998,13 +998,30 @@ class OrderTriggersManager
             }
 
             // ── Planifier la séquence de réconciliation (J+1/J+3/J+7) ──
-            // Une seule séquence par commande (UNIQUE KEY uniq_order).
-            // INSERT IGNORE évite les doublons si l'admin crée plusieurs avoirs.
+            // Une seule séquence ACTIVE par commande (UNIQUE KEY uniq_order,
+            // conservée pour dédupliquer les avoirs multiples créés pour le
+            // MÊME événement de remboursement — l'admin qui crée 2 avoirs
+            // coup sur coup pour un même retour ne doit générer qu'une seule
+            // séquence).
+            //
+            // Hors round (14/09/2026) : INSERT IGNORE bloquait aussi un
+            // second remboursement INDÉPENDANT et légitime sur la même
+            // commande (ex. un retour supplémentaire des mois plus tard),
+            // silencieusement, dès qu'une ligne existait déjà — peu importe
+            // que sa séquence précédente soit 'cancelled' (recommande
+            // entre-temps) ou entièrement terminée (sent_1=sent_2=sent_3=1,
+            // cf. BehavioralCronManager::sendRefundReconciliations() qui ne
+            // sélectionne plus jamais une telle ligne). ON DUPLICATE KEY
+            // UPDATE ré-ouvre la séquence UNIQUEMENT si le cycle précédent
+            // est terminé (annulé ou totalement envoyé) — une séquence
+            // encore réellement 'active' et en cours reste inchangée,
+            // préservant la déduplication d'origine pour le cas des avoirs
+            // multiples sur un même remboursement.
             if (\Configuration::getGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED')) {
                 $db = \Db::getInstance();
                 $db->execute(
-                    'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_reconciliation`
-                     (id_order, id_customer, id_shop, send_1_date, send_2_date, send_3_date, date_add)
+                    'INSERT INTO `' . _DB_PREFIX_ . 'neria_reconciliation`
+                     (id_order, id_customer, id_shop, send_1_date, send_2_date, send_3_date, sent_1, sent_2, sent_3, status, date_add)
                      VALUES (
                          ' . (int) $order->id . ',
                          ' . (int) $customer->id . ',
@@ -1012,8 +1029,17 @@ class OrderTriggersManager
                          DATE_ADD(CURDATE(), INTERVAL 1 DAY),
                          DATE_ADD(CURDATE(), INTERVAL 3 DAY),
                          DATE_ADD(CURDATE(), INTERVAL 7 DAY),
-                         NOW()
-                     )'
+                         0, 0, 0, \'active\', NOW()
+                     )
+                     ON DUPLICATE KEY UPDATE
+                         send_1_date = IF(status <> \'active\' OR sent_3 = 1, VALUES(send_1_date), send_1_date),
+                         send_2_date = IF(status <> \'active\' OR sent_3 = 1, VALUES(send_2_date), send_2_date),
+                         send_3_date = IF(status <> \'active\' OR sent_3 = 1, VALUES(send_3_date), send_3_date),
+                         sent_1      = IF(status <> \'active\' OR sent_3 = 1, 0, sent_1),
+                         sent_2      = IF(status <> \'active\' OR sent_3 = 1, 0, sent_2),
+                         sent_3      = IF(status <> \'active\' OR sent_3 = 1, 0, sent_3),
+                         status      = IF(status <> \'active\' OR sent_3 = 1, \'active\', status),
+                         date_add    = IF(status <> \'active\' OR sent_3 = 1, VALUES(date_add), date_add)'
                 );
             }
         } catch (\Throwable $e) {
