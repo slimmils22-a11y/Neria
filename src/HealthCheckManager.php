@@ -2250,7 +2250,7 @@ class HealthCheckManager
         $bounceSrc = $this->readModuleSrc($bounceFile);
         if ($bounceSrc === '') {
             $offenders[] = 'BounceManager.php introuvable';
-        } elseif (!preg_match('/function reactivateBounce[\s\S]{0,1400}?bounce_count\` = 0/', $bounceSrc)) {
+        } elseif (!preg_match('/function reactivateBounce[\s\S]{0,2500}?bounce_count\` = 0/', $bounceSrc)) {
             $offenders[] = 'BounceManager : reactivateBounce() ne remet plus bounce_count à 0 — la réactivation manuelle redeviendrait pratiquement inopérante pour toute adresse au-dessus du seuil';
         }
 
@@ -5681,6 +5681,34 @@ class HealthCheckManager
             || strpos($invalidGrantBody357, 'deleteByName(self::CONFIG_TOKEN_EXPIRY)') === false
         ) {
             $offenders[] = "SearchConsoleManager::refreshAccessToken() ne purge plus CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY sur 'invalid_grant' — régression du bug corrigé le 14/09/2026 (round 357) : un access token révoqué resterait servi en cache jusqu'à son expiration naturelle";
+        }
+
+        // Round 358 (14/09/2026) : BounceManager::reactivateBounce() doit
+        // remettre 'type' à 'soft' — sinon un hard bounce reste bloqué
+        // après "réactivation" (isBounced() ignore bounce_count pour un
+        // hard bounce actif).
+        $bmSrc358 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($bmSrc358 === '' || strpos($bmSrc358, "SET `status` = \\'active\\', `bounce_count` = 0, `type` = \\'soft\\'") === false) {
+            $offenders[] = "BounceManager::reactivateBounce() ne remet plus 'type' à 'soft' — régression du bug corrigé le 14/09/2026 (round 358) : le bouton BO 'Réactiver' redeviendrait inopérant pour un hard bounce, malgré un message de succès affiché au marchand";
+        }
+
+        // Round 358 (14/09/2026) : DomainReputationManager::getSenderDomain()
+        // doit lire shop_url via une requête SQL scopée par $this->idShop,
+        // pas \Tools::getShopDomainSsl() (cache statique du cœur clé
+        // toujours 0, fuite cross-boutique dans une boucle multi-boutique).
+        // checkSpf() doit extraire le mécanisme 'all' comme un jeton isolé,
+        // et distinguer 'permissive' ('+all') noté 0/25.
+        $drmSrc358 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc358 === ''
+            || strpos($drmSrc358, "WHERE `id_shop` = ' . (int) \$this->idShop . ' AND `main` = 1 AND `active` = 1") === false
+        ) {
+            $offenders[] = "DomainReputationManager::getSenderDomain() n'utilise plus une lecture SQL scopée par \$this->idShop pour son 3e repli — régression du bug corrigé le 14/09/2026 (round 358) : \\Tools::getShopDomainSsl() réintroduirait une fuite cross-boutique via le cache statique du cœur PrestaShop";
+        }
+        if ($drmSrc358 === ''
+            || strpos($drmSrc358, "preg_match('/(?:^|\\s)([+\\-~?]?)all(?:\\s|\$)/i', \$txt, \$mAll)") === false
+            || strpos($drmSrc358, "'permissive' => 0") === false
+        ) {
+            $offenders[] = "DomainReputationManager::checkSpf()/computeScore() ne parsent/notent plus correctement le mécanisme SPF 'all' — régression du bug corrigé le 14/09/2026 (round 358)";
         }
 
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
