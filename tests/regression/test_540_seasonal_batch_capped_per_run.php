@@ -33,6 +33,14 @@
  * emails de test (même contrainte que test_417/test_492) — vérifie que
  * le plafonnement (avec log Watchdog informatif) est bien appliqué
  * APRÈS getEligibleCustomers() et AVANT la boucle d'envoi/réservation.
+ *
+ * Round 359 : le slice utilise désormais `$remainingBudget` (le budget
+ * RESTANT, cumulé sur toute l'exécution — voir test_764) plutôt que la
+ * constante fixe `self::MAX_BATCH_PER_RUN` directement, afin que
+ * plusieurs campagnes dues le même jour partagent un plafond global de
+ * 500 au lieu de 500 chacune. Ce test est mis à jour pour refléter ce
+ * changement légitime, sans re-tester le mécanisme cumulé lui-même
+ * (couvert par test_764).
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -55,8 +63,8 @@ function run_test(): array
     $between = substr($src, $posGet, $posLoop - $posGet);
 
     neria_assert(
-        strpos($between, 'array_slice($customers, 0, self::MAX_BATCH_PER_RUN)') !== false,
-        "SeasonalCampaignManager::runDueCampaigns() ne plafonne plus le lot consommé via array_slice(MAX_BATCH_PER_RUN) — régression du bug corrigé le 03/09/2026 (round 289) : un ciblage large redeviendrait exposé à une fenêtre de crash prolongée, avec réservation orpheline possible pour le reste de l'année"
+        strpos($between, 'array_slice($customers, 0, $remainingBudget)') !== false,
+        "SeasonalCampaignManager::runDueCampaigns() ne plafonne plus le lot consommé via array_slice(\$remainingBudget) — régression du bug corrigé le 03/09/2026 (round 289) / raffiné le 14/09/2026 (round 359) : un ciblage large redeviendrait exposé à une fenêtre de crash prolongée, avec réservation orpheline possible pour le reste de l'année"
     );
     neria_assert(
         strpos($between, "watchdog.seasonal_batch_capped") !== false,
