@@ -4587,7 +4587,11 @@ class HealthCheckManager
             // Round 289 : 4700→5800 — l'ajout du plafonnement de lot
             // (MAX_BATCH_PER_RUN, garde-fou round 289 dédié plus bas) a
             // repoussé claimSend() plus loin encore.
-            $runBody = $posRun !== false ? substr($seasSrc143, $posRun, 5800) : '';
+            // Round 359 : 5800→6500 — le plafond cumulé par exécution
+            // ($remainingBudget, garde-fou round 359 dédié plus bas) a
+            // repoussé claimSend() plus loin encore (distance mesurée :
+            // 6327 caractères).
+            $runBody = $posRun !== false ? substr($seasSrc143, $posRun, 6500) : '';
             if ($posRun === false || strpos($runBody, 'if (!$this->claimSend($idCustomer, $sentKey, $year)) {') === false) {
                 $offenders[] = "SeasonalCampaignManager::runDueCampaigns() n'appelle plus claimSend() avant l'envoi — régression du bug corrigé le 09/08/2026 (round 143)";
             }
@@ -5709,6 +5713,58 @@ class HealthCheckManager
             || strpos($drmSrc358, "'permissive' => 0") === false
         ) {
             $offenders[] = "DomainReputationManager::checkSpf()/computeScore() ne parsent/notent plus correctement le mécanisme SPF 'all' — régression du bug corrigé le 14/09/2026 (round 358)";
+        }
+
+        // Round 359 (14/09/2026) : PostmasterManager (fichier jumeau de
+        // SearchConsoleManager, même défaut round 357) doit purger
+        // CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY en plus de
+        // CONFIG_REFRESH_TOKEN sur 'invalid_grant'.
+        $pmSrc359 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        $invalidGrantPos359 = $pmSrc359 !== '' ? strpos($pmSrc359, "if (\$errCode === 'invalid_grant') {") : false;
+        $invalidGrantBody359 = $invalidGrantPos359 !== false ? substr($pmSrc359, $invalidGrantPos359, 400) : '';
+        if ($pmSrc359 === ''
+            || $invalidGrantPos359 === false
+            || strpos($invalidGrantBody359, 'deleteByName(self::CONFIG_ACCESS_TOKEN)') === false
+            || strpos($invalidGrantBody359, 'deleteByName(self::CONFIG_TOKEN_EXPIRY)') === false
+        ) {
+            $offenders[] = "PostmasterManager ne purge plus CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY sur 'invalid_grant' — régression du bug corrigé le 14/09/2026 (round 359) : un access token révoqué resterait servi en cache jusqu'à son expiration naturelle";
+        }
+
+        // Round 359 (14/09/2026) : GdprAuditManager::purgeCustomerData()
+        // doit scoper la purge de neria_log par id_shop quand $idShop > 0
+        // est transmis — cette table possède bien sa propre colonne
+        // id_shop (sql/install.sql), contrairement à ce qu'affirmait le
+        // commentaire round 330 initialement écarté sur une fausse
+        // prémisse.
+        $gdprSrc359 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc359 === ''
+            || strpos($gdprSrc359, "SELECT `id_log`, `id_shop`, `message`, `context` FROM `{\$fullLog}`") === false
+            || strpos($gdprSrc359, "if (\$matches && \$idShop > 0) {\n                            \$matches = (int) \$row['id_shop'] === \$idShop;") === false
+        ) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne scope plus la purge de neria_log par id_shop — régression du bug corrigé le 14/09/2026 (round 359) : la purge RGPD d'un client d'une boutique effacerait à tort les logs d'un client homonyme d'une autre boutique";
+        }
+
+        // Round 359 (14/09/2026) : SeasonalCampaignManager::create()/
+        // update() doivent valider annual_date via normalizeAnnualDate()
+        // (format + calendrier réel), et runDueCampaigns() doit appliquer
+        // MAX_BATCH_PER_RUN comme un plafond cumulé sur toute l'exécution
+        // (pas par campagne individuelle).
+        $scmSrc359 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        // substr_count : normalizeAnnualDate() doit être appelée par create()
+        // ET update() — vérifier la seule présence (>= 1) laisserait passer
+        // une régression qui la retirerait d'un seul des deux appelants.
+        if ($scmSrc359 === ''
+            || strpos($scmSrc359, 'private static function normalizeAnnualDate(string $raw): string') === false
+            || substr_count($scmSrc359, 'self::normalizeAnnualDate((string) ($data[\'annual_date\'] ?? \'01-01\'))') < 2
+        ) {
+            $offenders[] = "SeasonalCampaignManager::create()/update() ne valident plus annual_date via normalizeAnnualDate() — régression du bug corrigé le 14/09/2026 (round 359) : une date calendairement impossible ('04-31', '02-30'...) serait de nouveau persistée silencieusement, empêchant la campagne de se déclencher indéfiniment";
+        }
+        if ($scmSrc359 === ''
+            || strpos($scmSrc359, '$remainingBudget = self::MAX_BATCH_PER_RUN;') === false
+            || strpos($scmSrc359, 'if ($remainingBudget <= 0) {') === false
+            || strpos($scmSrc359, '$remainingBudget -= count($customers);') === false
+        ) {
+            $offenders[] = "SeasonalCampaignManager::runDueCampaigns() n'applique plus MAX_BATCH_PER_RUN comme un plafond cumulé sur toute l'exécution — régression du bug corrigé le 14/09/2026 (round 359) : plusieurs campagnes dues le même jour pourraient de nouveau consommer chacune jusqu'à 500 clients, au lieu de 500 au total";
         }
 
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
@@ -9282,7 +9338,12 @@ class HealthCheckManager
             || strpos($seaSrc289, 'const MAX_BATCH_PER_RUN = 500;') === false
             || $seaGetPos289 === false
             || $seaLoopPos289 === false
-            || strpos($seaBetween289, 'array_slice($customers, 0, self::MAX_BATCH_PER_RUN)') === false
+            // Round 359 : le slice utilise désormais $remainingBudget (le
+            // budget RESTANT, cumulé sur toute l'exécution) plutôt que la
+            // constante fixe self::MAX_BATCH_PER_RUN — changement légitime,
+            // pas une régression (voir garde-fou round 359 dédié plus bas
+            // pour la vérification du mécanisme cumulé lui-même).
+            || strpos($seaBetween289, 'array_slice($customers, 0, $remainingBudget)') === false
         ) {
             $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne plafonne plus le lot consommé par passage (MAX_BATCH_PER_RUN) — régression du bug corrigé le 03/09/2026 (round 289) : un ciblage large redeviendrait exposé à une fenêtre de crash prolongée, avec réservation orpheline possible pour le reste de l'année civile en cas de dépassement memory_limit/max_execution_time pendant l'envoi";
         }
