@@ -9657,8 +9657,8 @@ class HealthCheckManager
         // ici.
         $colSrc305 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
         if ($colSrc305 === ''
-            || strpos($colSrc305, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float') === false
-            || strpos($colSrc305, '$productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer);') === false
+            || strpos($colSrc305, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0, ?int $idProductAttribute = null): float') === false
+            || strpos($colSrc305, '$productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer, $inStockAttrId);') === false
         ) {
             $offenders[] = "CollectionManager ne résout plus {missing_price} via safeProductPrice()/Product::getPriceStatic() — régression du bug corrigé le 05/09/2026 (round 305) : un produit manquant en promotion afficherait de nouveau son prix HT plein tarif dans l'email";
         }
@@ -11615,6 +11615,44 @@ class HealthCheckManager
             || strpos($bcmSrc352, 'private function runStep(string $label, callable $fn): bool') === false
         ) {
             $offenders[] = "BehavioralCronManager::run() ne reflète plus les échecs réels dans le heartbeat Watchdog — régression du bug corrigé le 14/09/2026 (round 352) : le widget Watchdog afficherait de nouveau 'OK' même si les 19 tâches comportementales ont toutes échoué";
+        }
+
+        // Round 353 : CollectionManager doit dériver le prix de {missing_price}
+        // d'une déclinaison RÉELLEMENT en stock (pas systématiquement la
+        // combinaison par défaut) quand celle-ci est épuisée — décision
+        // produit confirmée le 14/09/2026 (module vendu à de multiples
+        // commerçants).
+        $colSrc353 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        if ($colSrc353 === ''
+            || strpos($colSrc353, 'private function resolveInStockAttributeId(int $idProduct, int $idShop): ?int') === false
+            || strpos($colSrc353, '$inStockAttrId = $this->resolveInStockAttributeId($missingId, $idShop);') === false
+            || strpos($colSrc353, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0, ?int $idProductAttribute = null): float') === false
+        ) {
+            $offenders[] = "CollectionManager ne résout plus le prix via une déclinaison réellement en stock — régression du bug corrigé le 14/09/2026 (round 353) : un produit dont la combinaison par défaut est épuisée afficherait de nouveau le prix de cette déclinaison hors-stock, incohérent avec la fiche produit au clic";
+        }
+
+        // Round 353 : SearchConsoleManager/PostmasterManager::refreshAccessToken()
+        // doivent vérifier le résultat de decrypt() sur client_secret avant
+        // usage, comme déjà fait pour le refresh token.
+        $scmSrc353 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($scmSrc353 === '' || strpos($scmSrc353, "if (\$clientSecret === '' && \$rawClientSecret !== '') {") === false) {
+            $offenders[] = "SearchConsoleManager::refreshAccessToken() ne vérifie plus le résultat de decrypt() sur client_secret — régression du bug corrigé le 14/09/2026 (round 353)";
+        }
+        $pmSrc353 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc353 === '' || strpos($pmSrc353, "if (\$clientSecret === '' && \$rawClientSecret !== '') {") === false) {
+            $offenders[] = "PostmasterManager::refreshAccessToken() ne vérifie plus le résultat de decrypt() sur client_secret — régression du bug corrigé le 14/09/2026 (round 353)";
+        }
+
+        // Round 353 : BehavioralCronManager::sendLifespanReminders() doit
+        // filtrer neria_product_lifespan par la boutique réellement traitée
+        // — sinon le budget partagé MAX_BATCH_PER_RUN est de nouveau
+        // consommé par des produits hors-scope à chaque itération de la
+        // boucle multi-boutique.
+        if ($bcmSrc352 === ''
+            || strpos($bcmSrc352, 'private function sendLifespanReminders(int $idShop): void') === false
+            || strpos($bcmSrc352, 'WHERE pl.id_shop = {$idShop}') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::sendLifespanReminders() ne filtre plus neria_product_lifespan par boutique — régression du bug corrigé le 14/09/2026 (round 353) : les rappels d'une boutique pourraient de nouveau être affamés par ceux d'une autre boutique du même passage de cron";
         }
 
         if ($offenders) {
