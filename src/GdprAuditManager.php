@@ -1205,16 +1205,19 @@ class GdprAuditManager
         // ci-dessus (round 144) : décodage JSON, comparaison stricte sur
         // les valeurs.
         //
-        // Round 330 (hors round) : limite structurelle ACCEPTÉE, pas
-        // corrigée — neria_log n'a AUCUNE colonne id_shop/id_customer
-        // (round 270, customer_col=null), contrairement à
-        // neria_webhook_queue qui a sa PROPRE colonne id_shop (voir le
-        // scoping ajouté ci-dessus). Un match par email seul, toutes
-        // boutiques confondues, reste donc le seul mécanisme possible sans
-        // migration de schéma — même arbitrage déjà accepté explicitement
-        // pour neria_bounces (round 187, commentaire plus haut) : le risque
-        // théorique de collision d'email cross-boutique est jugé preferable
-        // à l'absence totale de purge RGPD sur cette table.
+        // Round 359 : la prémisse du round 330 était FAUSSE — neria_log a
+        // bien sa PROPRE colonne `id_shop` (sql/install.sql, INDEX
+        // idx_shop), déjà exploitée par WatchdogManager::pruneOldLogs()/
+        // clearLogs() pour scoper leurs propres requêtes par $this->idShop.
+        // Le round 330 avait accepté cette limite pour neria_log en la
+        // croyant structurellement impossible (contrairement à
+        // neria_webhook_queue, qui A bien sa colonne id_shop, scopée
+        // ci-dessus) — même bug cross-shop pourtant possible ici, jamais
+        // corrigé faute d'avoir vérifié le schéma réel. Même mécanisme que
+        // le bloc webhook_queue ci-dessus : à défaut ($idShop non transmis
+        // par l'appelant, valeur 0 par défaut), on retombe sur l'ancien
+        // comportement plutôt que de bloquer une purge par ailleurs
+        // légitime.
         if ($email !== '') {
             $fullLog = _DB_PREFIX_ . 'neria_log';
             $logExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullLog) . "'");
@@ -1222,7 +1225,7 @@ class GdprAuditManager
                 $emailLower = strtolower($email);
                 // Round 214 (même raison que neria_webhook_queue ci-dessus) :
                 // $use_cache=false, texte SQL identique à chaque appel.
-                $logRows = $this->db->executeS("SELECT `id_log`, `message`, `context` FROM `{$fullLog}`", true, false);
+                $logRows = $this->db->executeS("SELECT `id_log`, `id_shop`, `message`, `context` FROM `{$fullLog}`", true, false);
                 $logIdsToDelete = [];
                 if (is_array($logRows)) {
                     foreach ($logRows as $row) {
@@ -1242,6 +1245,10 @@ class GdprAuditManager
                             if (is_array($decodedCtx) && in_array($emailLower, array_map('strtolower', array_filter($decodedCtx, 'is_string')), true)) {
                                 $matches = true;
                             }
+                        }
+
+                        if ($matches && $idShop > 0) {
+                            $matches = (int) $row['id_shop'] === $idShop;
                         }
 
                         if ($matches) {

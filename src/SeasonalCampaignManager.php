@@ -154,6 +154,24 @@ class SeasonalCampaignManager
     // mojibake affiché ensuite en BO/rapports ; en mode strict, l'écriture
     // échoue purement et simplement sans que le contrôleur ne vérifie le
     // retour avant d'afficher un message de succès.
+    // Round 359 : annual_date n'était validé QUE côté HTML (pattern regex
+    // sur seasonal.tpl, trivialement contournable par un POST direct) --
+    // ni create() ni update() ne vérifiaient le format ou le calendrier
+    // avant écriture (pSQL() protège l'injection, pas la validité). Une
+    // valeur syntaxiquement plausible mais calendairement impossible
+    // (ex. '04-31', '02-30', '13-99') était acceptée silencieusement --
+    // neria.php affichait un succès, mais runDueCampaigns() compare
+    // date('m-d', $targetTs) (qui ne produit jamais une date impossible)
+    // à cette valeur : la campagne ne se déclenchait alors plus JAMAIS,
+    // sans log ni alerte pour le marchand qui la croit active.
+    private static function normalizeAnnualDate(string $raw): string
+    {
+        if (preg_match('/^(\d{2})-(\d{2})$/', $raw, $m) && checkdate((int) $m[1], (int) $m[2], 2000)) {
+            return $raw;
+        }
+        return '01-01';
+    }
+
     public function create(array $data): int
     {
         $this->db->execute(
@@ -165,7 +183,7 @@ class SeasonalCampaignManager
                 " . (int) $this->idShop . ",
                 '" . pSQL(mb_substr((string) ($data['name'] ?? ''), 0, 100)) . "',
                 '" . pSQL($data['template']        ?? '') . "',
-                '" . pSQL($data['annual_date']     ?? '01-01') . "',
+                '" . pSQL(self::normalizeAnnualDate((string) ($data['annual_date'] ?? '01-01'))) . "',
                 " . (int) ($data['days_before']    ?? 0) . ",
                 " . (int) ($data['is_active']      ?? 1) . ",
                 '" . pSQL($data['target_segment']  ?? '') . "',
@@ -211,7 +229,7 @@ class SeasonalCampaignManager
             "UPDATE `{$this->prefix}" . self::TABLE . "` SET
                 name            = '" . pSQL(mb_substr((string) ($data['name'] ?? ''), 0, 100)) . "',
                 template        = '" . pSQL($data['template']       ?? '') . "',
-                annual_date     = '" . pSQL($data['annual_date']    ?? '01-01') . "',
+                annual_date     = '" . pSQL(self::normalizeAnnualDate((string) ($data['annual_date'] ?? '01-01'))) . "',
                 days_before     = " . (int) ($data['days_before']   ?? 0) . ",
                 is_active       = " . (int) ($data['is_active']     ?? 1) . ",
                 target_segment  = '" . pSQL($data['target_segment'] ?? '') . "',
@@ -261,7 +279,23 @@ class SeasonalCampaignManager
         $campaigns = $this->getAll();
         $totalSent = 0;
 
+        // Round 359 : le plafond ci-dessous (round 289) n'était appliqué
+        // QUE par campagne (array_slice DANS la boucle foreach), alors que
+        // le commentaire de MAX_BATCH_PER_RUN le présente comme un plafond
+        // par EXÉCUTION de cron. Avec plusieurs campagnes dues le même jour
+        // (fréquent en période de fêtes : Soldes d'été + Fête des pères,
+        // etc.), chacune consommait jusqu'à 500 clients -- 5 campagnes
+        // dues le même jour pouvaient déclencher jusqu'à 2500 envois SMTP
+        // réels en un seul passage, réduisant d'autant l'efficacité du
+        // garde-fou anti-crash (fenêtre d'exposition mémoire/temps
+        // d'exécution) que ce plafond est censé garantir. $remainingBudget
+        // impose maintenant une limite RÉELLE cumulée sur tout l'appel.
+        $remainingBudget = self::MAX_BATCH_PER_RUN;
+
         foreach ($campaigns as $campaign) {
+            if ($remainingBudget <= 0) {
+                break;
+            }
             if (!(bool) $campaign['is_active']) {
                 continue;
             }
@@ -313,8 +347,8 @@ class SeasonalCampaignManager
             // reste exact). Les clients au-delà du plafond restent
             // éligibles et seront traités au prochain passage du cron.
             $totalEligible = count($customers);
-            if ($totalEligible > self::MAX_BATCH_PER_RUN) {
-                $customers = array_slice($customers, 0, self::MAX_BATCH_PER_RUN);
+            if ($totalEligible > $remainingBudget) {
+                $customers = array_slice($customers, 0, $remainingBudget);
                 $this->watchdog()->info(
                     \WatchdogManager::i18nMsg('watchdog.seasonal_batch_capped', [
                         'campaign' => $campaign['name'],
@@ -324,6 +358,7 @@ class SeasonalCampaignManager
                     $campaign['template'] ?? '', 'SeasonalCampaign'
                 );
             }
+            $remainingBudget -= count($customers);
 
             $sentCount = 0;
             $checkedIndex = 0;

@@ -725,8 +725,18 @@ class PostmasterManager
             // rafraîchissement échouera à l'identique indéfiniment. On efface
             // le refresh token pour qu'isConnected() cesse de mentir "connecté"
             // et que le BO invite explicitement à ré-autoriser.
+            // Round 359 : CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY purgés
+            // aussi — même correctif que SearchConsoleManager (fichier
+            // jumeau, round 357) pour exactement le même défaut : sans eux,
+            // un access token révoqué restait en cache jusqu'à son
+            // expiration naturelle (~55 min), et tout code lisant
+            // CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY sans repasser par
+            // isConnected() (qui ne teste que CONFIG_REFRESH_TOKEN)
+            // retomberait sur un état résiduel incohérent.
             if ($errCode === 'invalid_grant') {
                 \Configuration::deleteByName(self::CONFIG_REFRESH_TOKEN);
+                \Configuration::deleteByName(self::CONFIG_ACCESS_TOKEN);
+                \Configuration::deleteByName(self::CONFIG_TOKEN_EXPIRY);
             }
             $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.postmaster_token_invalid'), '', 'PostmasterManager');
             return null;
