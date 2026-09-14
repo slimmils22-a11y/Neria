@@ -28,7 +28,7 @@ function run_test(): array
     $pos = strpos($src, "if (class_exists('CalendarManager')) {");
     neria_assert($pos !== false, "bloc CalendarManager introuvable dans runBackgroundJobs()");
 
-    $block = substr($src, $pos, 1400);
+    $block = substr($src, $pos, 1700);
 
     neria_assert(
         strpos($block, '\Shop::getShops(true, null, true)') !== false,

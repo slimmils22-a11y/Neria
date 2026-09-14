@@ -27,7 +27,7 @@ function run_test(): array
     $pos = strpos($src, "// ── Queue webhook (toutes les 5 min)");
     neria_assert($pos !== false, "bloc queue webhook introuvable dans runBackgroundJobs()");
 
-    $block = substr($src, $pos, 2600);
+    $block = substr($src, $pos, 3200);
 
     neria_assert(
         strpos($block, '\Shop::getShops(true, null, true)') !== false,

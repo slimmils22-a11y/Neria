@@ -69,7 +69,7 @@ function run_test(): array
         // $context->currency), mais la priorité $idCurrency > 0 reste
         // identique sur le fond.
         neria_assert(
-            strpos($src, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') !== false,
+            strpos($src, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0, ?int $idProductAttribute = null): float') !== false,
             "LookCompletionManager::safeProductPrice() n'accepte plus \$idCurrency — régression du bug corrigé le 01/09/2026 (round 275)"
         );
         neria_assert(

@@ -32,8 +32,8 @@ function run_test(): array
         // Round 275 : signatures élargies d'un paramètre int $idCurrency = 0.
         // Round 292 : LookCompletionManager élargie à nouveau d'un
         // paramètre int $idCustomer = 0.
-        strpos($lcmSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') !== false
-            && strpos($lcmSrc, '$realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer);') !== false,
+        strpos($lcmSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0, ?int $idProductAttribute = null): float') !== false
+            && strpos($lcmSrc, '$realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer, $inStockAttrId);') !== false,
         "LookCompletionManager n'utilise plus safeProductPrice()/Product::getPriceStatic() pour le prix affiché — régression du bug corrigé le 18/08/2026 (round 184) : un produit en promo afficherait de nouveau son prix plein tarif dans l'email"
     );
     neria_assert(

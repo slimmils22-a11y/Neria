@@ -50,7 +50,7 @@ function run_test(): array
         // les ~2200 caractères suivants (couvre foreach + try + catch +
         // finally pour chacun des 5 sites, y compris les longs commentaires
         // explicatifs intercalés — mesuré sur le code réel, marge incluse).
-        $window = substr($src, $posOriginal, 2200);
+        $window = substr($src, $posOriginal, 2500);
 
         $posTry = strpos($window, 'try {');
         neria_assert($posTry !== false, "Boucle '$label' : aucun try{ trouvé après la capture de $originalVar — régression du correctif round 347 (plus de try/finally englobant)");

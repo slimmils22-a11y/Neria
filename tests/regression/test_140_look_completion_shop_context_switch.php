@@ -36,7 +36,7 @@ function run_test(): array
     $posMethod = strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array');
     neria_assert($posMethod !== false, 'buildProductBlocks() introuvable — régression du bug corrigé le 08/08/2026');
 
-    $body = substr($src, $posMethod, 6400);
+    $body = substr($src, $posMethod, 7300);
 
     $posSetContext = strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)');
     neria_assert(

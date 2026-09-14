@@ -27,7 +27,7 @@ function run_test(): array
     $pos = strpos($src, "// ── Réputation de domaine (rafraîchissement auto 24h)");
     neria_assert($pos !== false, "bloc réputation de domaine introuvable dans runBackgroundJobs()");
 
-    $block = substr($src, $pos, 1600);
+    $block = substr($src, $pos, 1900);
 
     neria_assert(
         strpos($block, '\Shop::getShops(true, null, true)') !== false,

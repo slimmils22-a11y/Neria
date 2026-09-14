@@ -32,7 +32,7 @@ function run_test(): array
     $pos = strpos($src, '// ── Watchdog — digest quotidien (throttle interne 24h)');
     neria_assert($pos !== false, "bloc digest quotidien Watchdog introuvable dans runBackgroundJobs()");
 
-    $block = substr($src, $pos, 1900);
+    $block = substr($src, $pos, 2400);
 
     neria_assert(
         strpos($block, '\Shop::getShops(true, null, true)') !== false,

@@ -28,7 +28,7 @@ function run_test(): array
     $pos = strpos($src, "if (class_exists('SeasonalCampaignManager')) {");
     neria_assert($pos !== false, "bloc SeasonalCampaignManager introuvable dans runBackgroundJobs()");
 
-    $block = substr($src, $pos, 2000);
+    $block = substr($src, $pos, 2500);
 
     neria_assert(
         strpos($block, '\Shop::getShops(true, null, true)') !== false,

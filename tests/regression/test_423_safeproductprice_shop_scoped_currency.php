@@ -54,11 +54,11 @@ function run_test(): array
     $lcSrc = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/LookCompletionManager.php');
     neria_assert($lcSrc !== false, 'Impossible de lire src/LookCompletionManager.php');
     neria_assert(
-        strpos($lcSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') !== false,
+        strpos($lcSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0, ?int $idProductAttribute = null): float') !== false,
         "LookCompletionManager::safeProductPrice() n'a plus le paramètre \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
     neria_assert(
-        strpos($lcSrc, '$this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer)') !== false,
+        strpos($lcSrc, '$this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer, $inStockAttrId)') !== false,
         "LookCompletionManager n'appelle plus safeProductPrice() avec \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
 
