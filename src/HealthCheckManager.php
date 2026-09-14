@@ -2725,7 +2725,7 @@ class HealthCheckManager
             $offenders[] = 'neria.php introuvable (boucle multi-boutique CalendarManager)';
         } else {
             $posCal = strpos($neriaSrc2, "if (class_exists('CalendarManager')) {");
-            $blockCal = $posCal !== false ? substr($neriaSrc2, $posCal, 1400) : '';
+            $blockCal = $posCal !== false ? substr($neriaSrc2, $posCal, 1700) : '';
             if ($posCal === false
                 || strpos($blockCal, 'foreach ($shopsCalendar as $idShopCalendar) {') === false
                 || strpos($blockCal, 'new CalendarManager($this)') === false) {
@@ -2743,7 +2743,7 @@ class HealthCheckManager
             $offenders[] = 'neria.php introuvable (boucle multi-boutique SeasonalCampaignManager)';
         } else {
             $posSeasonal = strpos($neriaSrc2, "if (class_exists('SeasonalCampaignManager')) {");
-            $blockSeasonal = $posSeasonal !== false ? substr($neriaSrc2, $posSeasonal, 2000) : '';
+            $blockSeasonal = $posSeasonal !== false ? substr($neriaSrc2, $posSeasonal, 2400) : '';
             if ($posSeasonal === false
                 || strpos($blockSeasonal, 'foreach ($shopsSeasonal as $idShopSeasonal) {') === false
                 || strpos($blockSeasonal, 'new SeasonalCampaignManager($this)') === false) {
@@ -2760,7 +2760,7 @@ class HealthCheckManager
             $offenders[] = 'neria.php introuvable (boucle multi-boutique WebhookManager)';
         } else {
             $posWebhook = strpos($neriaSrc2, "// ── Queue webhook (toutes les 5 min)");
-            $blockWebhook = $posWebhook !== false ? substr($neriaSrc2, $posWebhook, 2600) : '';
+            $blockWebhook = $posWebhook !== false ? substr($neriaSrc2, $posWebhook, 3200) : '';
             if ($posWebhook === false
                 || strpos($blockWebhook, 'foreach ($shopsWebhook as $idShopWebhook) {') === false
                 || strpos($blockWebhook, 'new WebhookManager($this)') === false) {
@@ -2778,7 +2778,7 @@ class HealthCheckManager
             $offenders[] = 'neria.php introuvable (boucle multi-boutique DomainReputationManager)';
         } else {
             $posDR = strpos($neriaSrc2, "// ── Réputation de domaine (rafraîchissement auto 24h)");
-            $blockDR = $posDR !== false ? substr($neriaSrc2, $posDR, 1600) : '';
+            $blockDR = $posDR !== false ? substr($neriaSrc2, $posDR, 1900) : '';
             if ($posDR === false
                 || strpos($blockDR, 'foreach ($shopsDR as $idShopDR) {') === false
                 || strpos($blockDR, 'new DomainReputationManager($this)') === false) {
@@ -3913,7 +3913,7 @@ class HealthCheckManager
             // point de restauration du contexte plus loin dans la méthode.
             // Round 275 : fenêtre élargie 5700→6400 (paramètre $idCurrency
             // ajouté à la signature et à son commentaire).
-            $bpbBody = $posBpb !== false ? substr($lcmSrc, $posBpb, 6400) : '';
+            $bpbBody = $posBpb !== false ? substr($lcmSrc, $posBpb, 7300) : '';
             if ($posBpb === false
                 || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false
                 || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId)') === false
@@ -6499,7 +6499,7 @@ class HealthCheckManager
             if (strpos($lcmSrc184, "SELECT COALESCE(SUM(quantity), 0) FROM `' . \$this->prefix . 'stock_available`") === false) {
                 $offenders[] = "LookCompletionManager::buildProductBlocks() n'utilise plus le SUM(quantity) SQL direct pour vérifier le stock — régression du bug corrigé le 18/08/2026 (round 184) : un produit à déclinaisons serait de nouveau silencieusement écarté des suggestions 'Complétez votre look'";
             }
-            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') === false) {
+            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0, ?int $idProductAttribute = null): float') === false) {
                 $offenders[] = "LookCompletionManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : le prix affiché redeviendrait \$product->price brut, sans taxe ni promo";
             }
         }
@@ -8513,7 +8513,7 @@ class HealthCheckManager
         // contexte ambiant recevait son digest.
         $neriaSrc266 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
         $digestBlockPos266 = $neriaSrc266 !== '' ? strpos($neriaSrc266, '// ── Watchdog — digest quotidien (throttle interne 24h)') : false;
-        $digestBlock266 = $digestBlockPos266 !== false ? substr($neriaSrc266, $digestBlockPos266, 1900) : '';
+        $digestBlock266 = $digestBlockPos266 !== false ? substr($neriaSrc266, $digestBlockPos266, 2400) : '';
         if ($neriaSrc266 === ''
             || $digestBlockPos266 === false
             || strpos($digestBlock266, 'foreach ($shopsDigest as $idShopDigest) {') === false
@@ -9169,7 +9169,7 @@ class HealthCheckManager
         }
         $lcSrc292 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
         if ($lcSrc292 === ''
-            || strpos($lcSrc292, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') === false
+            || strpos($lcSrc292, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0, ?int $idProductAttribute = null): float') === false
             || strpos($lcSrc292, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array') === false
             || strpos($lcSrc292, '$this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop, $idCurrency, $idCustomer);') === false
         ) {
@@ -11412,7 +11412,7 @@ class HealthCheckManager
             foreach (['Webhook', 'Calendar', 'DR', 'Seasonal', 'Digest'] as $suffix347) {
                 $originalVar347 = '$originalShop' . $suffix347;
                 $posOriginal347 = strpos($neriaSrc347, $originalVar347 . ' = \Context::getContext()->shop;');
-                $window347 = $posOriginal347 !== false ? substr($neriaSrc347, $posOriginal347, 2200) : '';
+                $window347 = $posOriginal347 !== false ? substr($neriaSrc347, $posOriginal347, 2500) : '';
                 $posTry347 = $window347 !== '' ? strpos($window347, 'try {') : false;
                 $posFinally347 = $posTry347 !== false ? strpos($window347, '} finally {', $posTry347) : false;
                 $finallyOk347 = $posFinally347 !== false
@@ -11653,6 +11653,57 @@ class HealthCheckManager
             || strpos($bcmSrc352, 'WHERE pl.id_shop = {$idShop}') === false
         ) {
             $offenders[] = "BehavioralCronManager::sendLifespanReminders() ne filtre plus neria_product_lifespan par boutique — régression du bug corrigé le 14/09/2026 (round 353) : les rappels d'une boutique pourraient de nouveau être affamés par ceux d'une autre boutique du même passage de cron";
+        }
+
+        // Hors round (14/09/2026) : LookCompletionManager doit résoudre le
+        // prix via une déclinaison réellement en stock — même correctif que
+        // CollectionManager (round 353 ci-dessus), répliqué ici (finding
+        // identifié dès le round 352 mais non traité dans ce fichier).
+        $lcmSrcHR = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcmSrcHR === ''
+            || strpos($lcmSrcHR, 'private function resolveInStockAttributeId(int $idProduct, int $idShop): ?int') === false
+            || strpos($lcmSrcHR, '$inStockAttrId = $this->resolveInStockAttributeId($pid, $idShop);') === false
+            || strpos($lcmSrcHR, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0, ?int $idProductAttribute = null): float') === false
+            || strpos($lcmSrcHR, '\Product::getPriceStatic($idProduct, true, $idProductAttribute, 2, null, false, true, 1, false,') === false
+        ) {
+            $offenders[] = "LookCompletionManager ne résout plus le prix via une déclinaison réellement en stock — régression du correctif hors round du 14/09/2026 : un produit dont la combinaison par défaut est épuisée afficherait de nouveau le prix de cette déclinaison hors-stock dans le bloc \"complétez votre look\"";
+        }
+
+        // Hors round (14/09/2026) : les jobs cron webhook/calendar/
+        // domain_reputation/seasonal_campaigns/watchdog_digest doivent
+        // compter leurs échecs par boutique et les transmettre à
+        // cronHeartbeat() — même pattern "toujours ok" déjà corrigé pour
+        // BehavioralCronManager (round 352 ci-dessus), étendu au reste du
+        // module (scheduling explicite utilisateur).
+        $neriaSrcHR = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $cronHeartbeatChecks = [
+            'webhook'            => ['$webhookFailCount++;', "cronHeartbeat('webhook', \$webhookFailCount > 0 ? 'error' : 'ok', \$webhookFailCount);"],
+            'calendar'           => ['$calendarFailCount++;', "cronHeartbeat('calendar', \$calendarFailCount > 0 ? 'error' : 'ok', \$calendarFailCount);"],
+            'domain_reputation'  => ['$domainReputationFailCount++;', "cronHeartbeat('domain_reputation', \$domainReputationFailCount > 0 ? 'error' : 'ok', \$domainReputationFailCount);"],
+            'seasonal_campaigns' => ['$seasonalFailCount++;', "cronHeartbeat('seasonal_campaigns', \$seasonalFailCount > 0 ? 'error' : 'ok', \$seasonalFailCount);"],
+            'watchdog_digest'    => ['$digestFailCount++;', "cronHeartbeat('watchdog_digest', \$digestFailCount > 0 ? 'error' : 'ok', \$digestFailCount);"],
+        ];
+        if ($neriaSrcHR === '') {
+            $offenders[] = "neria.php illisible — impossible de vérifier le heartbeat cron des jobs webhook/calendar/domain_reputation/seasonal_campaigns/watchdog_digest";
+        } else {
+            foreach ($cronHeartbeatChecks as $cronJobName => [$counterLiteralHR, $heartbeatLiteralHR]) {
+                if (strpos($neriaSrcHR, $counterLiteralHR) === false || strpos($neriaSrcHR, $heartbeatLiteralHR) === false) {
+                    $offenders[] = "Job cron '{$cronJobName}' ne reflète plus ses échecs réels par boutique dans cronHeartbeat() — régression du correctif hors round du 14/09/2026 : le widget Watchdog afficherait de nouveau 'OK' même en cas d'échec";
+                }
+            }
+        }
+
+        // Hors round (14/09/2026) : un second remboursement légitime sur
+        // une commande déjà réconciliée doit reprogrammer une nouvelle
+        // séquence J+1/J+3/J+7 quand le cycle précédent est terminé (annulé
+        // ou intégralement envoyé) — l'ancien INSERT IGNORE bloquait
+        // silencieusement TOUT second remboursement sur la même commande.
+        $otmSrcHR = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrcHR === ''
+            || strpos($otmSrcHR, "ON DUPLICATE KEY UPDATE") === false
+            || strpos($otmSrcHR, "status <> \\'active\\' OR sent_3 = 1") === false
+        ) {
+            $offenders[] = "OrderTriggersManager ne réouvre plus la séquence de réconciliation pour un second remboursement légitime — régression du correctif hors round du 14/09/2026 : un second remboursement sur une commande déjà réconciliée (cycle précédent annulé ou terminé) ne serait de nouveau plus jamais reprogrammé, silencieusement";
         }
 
         if ($offenders) {
