@@ -27,8 +27,8 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/LoyaltyManager.php');
     neria_assert($src !== false, 'Impossible de lire src/LoyaltyManager.php');
 
-    $posMethod = strpos($src, 'private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null, int $windowDays = 30): bool');
-    neria_assert($posMethod !== false, "Méthode sendRecapToCustomer() introuvable — jeu de test invalide");
+    $posMethod = strpos($src, 'private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null, int $windowDays = 30, ?array $shopIdsGroup = null): bool');
+    neria_assert($posMethod !== false, "Méthode sendRecapToCustomer() introuvable (ou signature modifiée sans répercuter ce test — round 352 : ajout \$shopIdsGroup) — jeu de test invalide");
     $posNextMethod = strpos($src, 'public function getTopCustomers(int $limit = 10): array', $posMethod);
     neria_assert($posNextMethod !== false, "Méthode getTopCustomers() introuvable pour borner la fenêtre — jeu de test invalide");
     $body = substr($src, $posMethod, $posNextMethod - $posMethod);
