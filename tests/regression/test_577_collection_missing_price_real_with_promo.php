@@ -64,8 +64,8 @@ function run_test(): array
         $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/CollectionManager.php');
         neria_assert($src !== false, 'Impossible de lire src/CollectionManager.php');
         neria_assert(
-            strpos($src, '$productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer);') !== false,
-            "CollectionManager::processCollection() n'utilise plus safeProductPrice() pour {missing_price} — régression du bug corrigé le 05/09/2026 (round 305)"
+            strpos($src, '$productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer, $inStockAttrId);') !== false,
+            "CollectionManager::processCollection() n'utilise plus safeProductPrice() pour {missing_price} — régression du bug corrigé le 05/09/2026 (round 305), ou signature modifiée sans répercuter ce test (round 353 : ajout \$inStockAttrId)"
         );
         neria_assert(
             strpos($src, '$productPrice = (float) $product->price;') === false,
