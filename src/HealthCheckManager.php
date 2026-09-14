@@ -1400,7 +1400,7 @@ class HealthCheckManager
             if (!preg_match('/function\s+isAllowed[\s\S]{0,1500}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
                 $offenders[] = "PreferencesManager : isAllowed() ne consulte plus la ligne par email pour les destinataires sans compte (id_customer=0) — centre de préférences de nouveau sans effet pour cette population";
             }
-            if (!preg_match('/function\s+getByCustomer[\s\S]{0,600}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
+            if (!preg_match('/function\s+getByCustomer[\s\S]{0,1400}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
                 $offenders[] = "PreferencesManager : getByCustomer() ne consulte plus la ligne par email pour les destinataires sans compte (id_customer=0)";
             }
         }
@@ -5555,6 +5555,38 @@ class HealthCheckManager
             || substr_count($seoSrcHR, "'database'       => \$semrushDb,") < 2
         ) {
             $offenders[] = "SeoApiManager::fetchSemrush() code de nouveau 'database' en dur sur 'fr' — régression du bug corrigé le 14/09/2026 (round 354) : tout marchand hors zone francophone recevrait de nouveau un rapport SEO quasi vide/faussé sans indication de la cause";
+        }
+
+        // Round 355 (14/09/2026) : ConfigManager::save*Config()/
+        // resetToDefaults()/resetDesignOnly() ne doivent plus agréger via
+        // $success = $success && $this->set(...) (court-circuit && : un
+        // premier échec bloque silencieusement TOUTES les écritures
+        // suivantes de la même méthode).
+        $cfgSrc355 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cfgSrc355 === ''
+            || preg_match('/\$success\s*=\s*\$success\s*&&\s*\$this->(set|setCustomVariable)\(/', $cfgSrc355) === 1
+            || (substr_count($cfgSrc355, '$ok = $this->set(') + substr_count($cfgSrc355, '$ok = $this->setCustomVariable(')) < 18
+        ) {
+            $offenders[] = "ConfigManager agrège de nouveau ses écritures via un && court-circuitant — régression du bug corrigé le 14/09/2026 (round 355) : un premier échec d'écriture (verrou DB transitoire) bloquerait de nouveau silencieusement toutes les écritures suivantes du même formulaire BO";
+        }
+
+        // Round 355 (14/09/2026) : PreferencesManager::getByCustomer()
+        // branche invité doit trier par id_preference ASC, comme la
+        // branche client identifié (round 178).
+        $prefSrc355 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php');
+        $posGetByCustomer355 = $prefSrc355 !== '' ? strpos($prefSrc355, 'public function getByCustomer(int $idCustomer, string $email = \'\'): array') : false;
+        $posGuestBranch355 = $posGetByCustomer355 !== false ? strpos($prefSrc355, 'if ($idCustomer <= 0) {', $posGetByCustomer355) : false;
+        $guestBody355 = $posGuestBranch355 !== false ? substr($prefSrc355, $posGuestBranch355, 1100) : '';
+        if ($guestBody355 === '' || strpos($guestBody355, 'ORDER BY `id_preference` ASC') === false) {
+            $offenders[] = "PreferencesManager::getByCustomer() branche invité ne trie plus par id_preference ASC — régression du bug corrigé le 14/09/2026 (round 355) : une ligne obsolète pourrait de nouveau l'emporter selon l'ordre physique MySQL sur des données legacy dupliquées";
+        }
+
+        // Round 355 (14/09/2026) : CryptoManager::loadKey() doit lire la
+        // clé avec id_shop=0 explicite, cohérent avec generateAndStoreKey()
+        // (round 321).
+        $cryptoSrc355 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CryptoManager.php');
+        if ($cryptoSrc355 === '' || strpos($cryptoSrc355, '$hex = (string) \Configuration::get(self::CONFIG_KEY, null, null, 0);') === false) {
+            $offenders[] = "CryptoManager::loadKey() ne lit plus explicitement id_shop=0 — régression du correctif hors round du 14/09/2026 (round 355)";
         }
 
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
