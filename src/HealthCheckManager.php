@@ -5589,6 +5589,50 @@ class HealthCheckManager
             $offenders[] = "CryptoManager::loadKey() ne lit plus explicitement id_shop=0 — régression du correctif hors round du 14/09/2026 (round 355)";
         }
 
+        // Round 356 (14/09/2026) : LicenseManager::validateLicense() doit
+        // distinguer un échec de déchiffrement RÉEL de CONFIG_KEY (panne
+        // technique locale, tolérée comme une panne réseau) d'une licence
+        // jamais activée (purge de l'état d'activation).
+        $lmSrc356 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        if ($lmSrc356 === ''
+            || strpos($lmSrc356, '$rawKey !== \'\' && $key === \'\'') === false
+            || strpos($lmSrc356, "watchdog.license_key_decrypt_failed") === false
+        ) {
+            $offenders[] = "LicenseManager::validateLicense() ne distingue plus un échec de déchiffrement d'une licence jamais activée — régression du bug corrigé le 14/09/2026 (round 356) : un client payant frappé par un simple accroc de déchiffrement local verrait de nouveau son état d'activation purgé (jeton, fenêtre de grâce 90 jours), retombant sur la grâce 'jamais activé' de 30 jours qui expire nécessairement pour une boutique en prod ancienne";
+        }
+        if ($lmSrc356 === '' || strpos($lmSrc356, '$keyDecryptFailed = $rawKeyDisplay !== \'\' && $key === \'\';') === false) {
+            $offenders[] = "LicenseManager::getStatusForDisplay() ne distingue plus un échec de déchiffrement d'une licence jamais activée pour le calcul des jours de grâce — régression du bug corrigé le 14/09/2026 (round 356)";
+        }
+
+        // Round 356 (14/09/2026) : DeliverabilityScorer ne doit plus coder
+        // '$$$'/'€€€' (3 caractères, sous le seuil minimal de 4) dans son
+        // dictionnaire anti-spam, doit produire les 3 critères SPF/DMARC/
+        // DKIM même sans adresse d'expédition configurée, et comparer le
+        // domaine boutique en casse normalisée.
+        $dsSrc356 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php');
+        if ($dsSrc356 === ''
+            || strpos($dsSrc356, "'50% off', '\$\$\$\$', '€€€€',") === false
+        ) {
+            $offenders[] = "DeliverabilityScorer contient de nouveau '\$\$\$'/'€€€' (3 caractères) au lieu de '\$\$\$\$'/'€€€€' — régression du bug corrigé le 14/09/2026 (round 356) : ces déclencheurs anti-spam classiques redeviendraient inertes (sous le seuil minimal de 4 caractères)";
+        }
+        if ($dsSrc356 === '' || strpos($dsSrc356, "\$criteria[] = \$this->criterion('warning', \$this->t('score.criterion_spf'), \$this->t('score.detail_no_sending_domain'), 0);") === false) {
+            $offenders[] = "DeliverabilityScorer::score() ne signale plus SPF/DMARC/DKIM en avertissement quand aucune adresse d'expédition n'est configurée — régression du bug corrigé le 14/09/2026 (round 356) : ces 3 critères redisparaîtraient silencieusement du rapport";
+        }
+        if ($dsSrc356 === '' || strpos($dsSrc356, 'str_contains($htmlContentLower, mb_strtolower($shopDomain))') === false) {
+            $offenders[] = "DeliverabilityScorer::score() ne compare plus le domaine boutique en casse normalisée — régression du bug corrigé le 14/09/2026 (round 356)";
+        }
+
+        // Round 356 (14/09/2026) : CustomerEmailHistoryManager::resend()
+        // doit rester protégé par un GET_LOCK() (scopé id_stat) avant le
+        // contrôle cooldown/blacklist/préférences.
+        $cehmSrc356 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php');
+        if ($cehmSrc356 === ''
+            || strpos($cehmSrc356, "\$resendLockKey = 'neria_resend_' . \$idStat;") === false
+            || strpos($cehmSrc356, 'private function resendLocked(int $idCustomer, array $email, \Customer $customer): array') === false
+        ) {
+            $offenders[] = "CustomerEmailHistoryManager::resend() n'est plus protégée par GET_LOCK() — régression du bug corrigé le 14/09/2026 (round 356) : un double-clic BO (ou deux onglets) pourrait de nouveau déclencher 2 envois identiques malgré le Mode Silence actif";
+        }
+
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
         // throttle réseau indépendant, son verrou, sa distinction de
         // révocation, et la purge de l'état résiduel quand CONFIG_KEY est vide.
@@ -6385,7 +6429,7 @@ class HealthCheckManager
             $offenders[] = 'CustomerEmailHistoryManager.php introuvable (garde-fou round 179)';
         } else {
             $posResend179 = strpos($cehmSrc179, 'public function resend(int $idStat, int $idCustomer): array');
-            $resendBody179 = $posResend179 !== false ? substr($cehmSrc179, $posResend179, 2000) : '';
+            $resendBody179 = $posResend179 !== false ? substr($cehmSrc179, $posResend179, 4000) : '';
             if ($posResend179 === false || strpos($resendBody179, "\\BounceManager::isBounced(\$customer->email)") === false) {
                 $offenders[] = "CustomerEmailHistoryManager::resend() ne revérifie plus bounce/blacklist/préférences/cooldown avant Mail::Send() — régression du bug corrigé le 16/08/2026 (round 179) : un renvoi vers un client bloqué serait de nouveau journalisé comme un succès";
             }
@@ -10483,7 +10527,7 @@ class HealthCheckManager
         // simultanément à has_key=false.
         $licSrc321 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
         $posLic321 = strpos($licSrc321, 'public function validateLicense(bool $force = false): void');
-        $bodyLic321 = $posLic321 !== false ? substr($licSrc321, $posLic321, 2300) : '';
+        $bodyLic321 = $posLic321 !== false ? substr($licSrc321, $posLic321, 4300) : '';
         if ($licSrc321 === ''
             || $posLic321 === false
             || strpos($bodyLic321, 'deleteByName(self::CONFIG_EXPIRY_WARNED_FOR)') === false
