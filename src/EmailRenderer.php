@@ -422,7 +422,13 @@ class EmailRenderer
         // principal du template (clé greeting_main) traduit dans la langue
         // détectée — réutilise les traductions existantes (19 langues).
         if (trim((string) ($params['subject'] ?? '')) === '') {
-            $headline = $this->engine->get($template, 'greeting_main', $lang);
+            // Round 357 : resolveShopId($params) transmis — même correctif
+            // que le multi-sender juste au-dessus (round 351) : sans lui,
+            // TranslationEngine::get() résolvait les variables personnalisées
+            // ({maison_name}/etc. éventuellement présentes dans greeting_main)
+            // via le contexte AMBIANT (boutique de l'opérateur BO ou du
+            // dernier cron actif), pas celle du destinataire réel de CET envoi.
+            $headline = $this->engine->get($template, 'greeting_main', $lang, $this->resolveShopId($params));
             if ($headline !== '') {
                 $params['subject'] = trim(strip_tags($headline));
             } else {
@@ -439,7 +445,9 @@ class EmailRenderer
         $variant = $this->resolveABVariant($template, $params);
 
         // â”€â”€ Enregistre {neria_trad} dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        $this->registerSmartyFunction($template, $lang, $variant);
+        // Round 357 : resolveShopId($params) transmis (boutique du
+        // destinataire réel) — même correctif que $headline ci-dessus.
+        $this->registerSmartyFunction($template, $lang, $variant, $this->resolveShopId($params));
 
         // â”€â”€ Injecte les liens rÃ©seaux sociaux â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Reformate le tableau produits PrestaShop
@@ -544,7 +552,7 @@ class EmailRenderer
         $outputName = $template . '__' . bin2hex(random_bytes(8));
         // silentIfCoreMissing=true : ce template peut être hors périmètre Neria
         // (module tiers) — cf. docblock de compileNeriaTemplate().
-        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? [], false, true, $outputName);
+        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? [], false, true, $outputName, $this->resolveShopId($params));
         if ($compiledPath !== null) {
             // ── Wrapping des liens pour le tracking de clics ─────────────
             if ($this->config->isStatsEnabled() && !empty($params['neria_token'])) {
@@ -884,7 +892,7 @@ class EmailRenderer
             // neria_fallback.html restait partagé entre tous les envois de
             // secours concurrents dans une même langue.
             $fallbackOutputName = 'neria_fallback__' . bin2hex(random_bytes(8));
-            if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso, $templateVars, false, false, $fallbackOutputName) === null) {
+            if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso, $templateVars, false, false, $fallbackOutputName, $this->resolveShopId($params)) === null) {
                 $this->watchdog()->critical(
                     WatchdogManager::i18nMsg('watchdog.fallback_no_template'),
                     'neria_fallback',
@@ -958,14 +966,20 @@ class EmailRenderer
      * La closure capture $template, $lang et $variant pour que
      * chaque appel {neria_trad} sache quel bloc charger.
      *
-     * @param string $template Nom du template
-     * @param string $lang     Code langue
-     * @param string $variant  Variante A/B ('A', 'B' ou '')
+     * @param string   $template Nom du template
+     * @param string   $lang     Code langue
+     * @param string   $variant  Variante A/B ('A', 'B' ou '')
+     * @param int|null $idShop   Round 357 : boutique du destinataire réel
+     *                           (resolveShopId($params)) pour la résolution
+     *                           des variables personnalisées via {neria_trad}
+     *                           — null pour l'aperçu BO (contexte ambiant
+     *                           légitime, pas de destinataire réel).
      */
     private function registerSmartyFunction(
         string $template,
         string $lang,
-        string $variant
+        string $variant,
+        ?int $idShop = null
     ): void {
         $engine  = $this->engine;
         $module  = $this->module;
@@ -982,7 +996,7 @@ class EmailRenderer
         $smarty->registerPlugin(
             'function',
             'neria_trad',
-            function (array $p) use ($engine, $template, $lang, $variant, $module): string {
+            function (array $p) use ($engine, $template, $lang, $variant, $module, $idShop): string {
                 if (empty($p['key'])) {
                     return '';
                 }
@@ -999,7 +1013,7 @@ class EmailRenderer
                 }
 
                 // Traduction standard
-                return self::sanitizeTranslationHtml($engine->get($template, $key, $lang));
+                return self::sanitizeTranslationHtml($engine->get($template, $key, $lang, $idShop));
             }
         );
     }
@@ -2930,7 +2944,8 @@ class EmailRenderer
         array $templateVars = [],
         bool $suppressResidualLog = false,
         bool $silentIfCoreMissing = false,
-        ?string $outputName = null
+        ?string $outputName = null,
+        ?int $idShop = null
     ): ?string {
         // Round 238 : $outputName distinct de $template — permet d'écrire le
         // fichier compilé sous un nom UNIQUE par envoi (voir applyNeriaRendering
@@ -3042,8 +3057,8 @@ class EmailRenderer
             $h = $nameHonorifics[$lang];
             $compiled = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
-                function ($mm) use ($engine, $template, $lang, $h) {
-                    $g = self::sanitizeTranslationHtml($engine->get($template, $mm[1], $lang));
+                function ($mm) use ($engine, $template, $lang, $h, $idShop) {
+                    $g = self::sanitizeTranslationHtml($engine->get($template, $mm[1], $lang, $idShop));
                     return '{firstname}' . $h['suffix'] . $h['sep'] . $g . $h['end'];
                 },
                 $compiled
@@ -3052,8 +3067,8 @@ class EmailRenderer
 
         $compiled = preg_replace_callback(
             '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
-            function ($m) use ($engine, $template, $lang) {
-                $v = self::sanitizeTranslationHtml($engine->get($template, $m[1], $lang));
+            function ($m) use ($engine, $template, $lang, $idShop) {
+                $v = self::sanitizeTranslationHtml($engine->get($template, $m[1], $lang, $idShop));
                 return $v !== '' ? $v : $m[0];
             },
             $compiled
@@ -3280,8 +3295,8 @@ class EmailRenderer
                 $h = $nameHonorifics[$lang];
                 $compiledTxt = preg_replace_callback(
                     '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
-                    function ($mm) use ($engine, $template, $lang, $h) {
-                        $g = $engine->get($template, $mm[1], $lang);
+                    function ($mm) use ($engine, $template, $lang, $h, $idShop) {
+                        $g = $engine->get($template, $mm[1], $lang, $idShop);
                         return '{firstname}' . $h['suffix'] . $h['sep'] . $g . $h['end'];
                     },
                     $compiledTxt
@@ -3301,8 +3316,8 @@ class EmailRenderer
             // fréquents (bankwire, order_conf, payment, refund, shipped...).
             $compiledTxt = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
-                function ($m) use ($engine, $template, $lang) {
-                    $v = $engine->get($template, $m[1], $lang);
+                function ($m) use ($engine, $template, $lang, $idShop) {
+                    $v = $engine->get($template, $m[1], $lang, $idShop);
                     return $v !== '' ? NeriaTools::sanitizeText($v) : $m[0];
                 },
                 $compiledTxt

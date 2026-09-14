@@ -63,13 +63,13 @@ class TranslationEngine
     private array $cache = [];
 
     /**
-     * Cache des variables personnalisées du marchand
-     * Structure : ['{maison_name}' => 'Maison Dupont', ...]
+     * Cache des variables personnalisées du marchand, PAR BOUTIQUE.
+     * Structure : [id_shop => ['{maison_name}' => 'Maison Dupont', ...]]
+     * Round 357 : indexé par id_shop (auparavant un seul cache plat,
+     * chargé une fois pour l'id_shop AMBIANT du process) — voir
+     * loadCustomVars().
      */
-    private array $customVarsCache = [];
-
-    /** @var bool Indique si les variables custom ont été chargées */
-    private bool $customVarsLoaded = false;
+    private array $customVarsCacheByShop = [];
 
     /** @var array|null Cache du mapping pays ISO → langue Neria */
     private ?array $countryLangMap = null;
@@ -111,12 +111,16 @@ class TranslationEngine
      * 3. Fallback anglais (si langue demandée introuvable)
      * 4. Chaîne vide (si rien trouvé — ne plante pas)
      *
-     * @param string $template Nom du template (ex: order_conf)
-     * @param string $key      Clé de traduction (ex: greeting_main)
-     * @param string $lang     Code langue ISO (ex: fr, ja, ar)
+     * @param string   $template Nom du template (ex: order_conf)
+     * @param string   $key      Clé de traduction (ex: greeting_main)
+     * @param string   $lang     Code langue ISO (ex: fr, ja, ar)
+     * @param int|null $idShop   Round 357 : boutique pour la résolution des
+     *                           variables personnalisées {maison_name}/etc.
+     *                           — voir resolveVariables(). Repli sur le
+     *                           contexte ambiant si null.
      * @return string          Texte traduit, prêt à être injecté
      */
-    public function get(string $template, string $key, string $lang): string
+    public function get(string $template, string $key, string $lang, ?int $idShop = null): string
     {
         // ── Normalise la langue ──────────────────────────────────
         $lang = $this->normalizeLang($lang);
@@ -140,7 +144,8 @@ class TranslationEngine
         // ── Cherche dans le cache ────────────────────────────────
         if (isset($this->cache[$cacheKey][$key]) && $this->cache[$cacheKey][$key] !== '') {
             return $this->resolveVariables(
-                $this->cache[$cacheKey][$key]
+                $this->cache[$cacheKey][$key],
+                $idShop
             );
         }
 
@@ -163,7 +168,8 @@ class TranslationEngine
                     'TranslationEngine'
                 );
                 return $this->resolveVariables(
-                    $this->cache[$fallbackKey][$key]
+                    $this->cache[$fallbackKey][$key],
+                    $idShop
                 );
             }
         }
@@ -173,12 +179,12 @@ class TranslationEngine
             $this->loadBlock('_global', $lang);
             $globalKey = '_global:' . $lang;
             if (isset($this->cache[$globalKey][$key]) && $this->cache[$globalKey][$key] !== '') {
-                return $this->resolveVariables($this->cache[$globalKey][$key]);
+                return $this->resolveVariables($this->cache[$globalKey][$key], $idShop);
             }
             $this->loadBlock('_global', self::FALLBACK_LANG);
             $globalFallbackKey = '_global:' . self::FALLBACK_LANG;
             if (isset($this->cache[$globalFallbackKey][$key]) && $this->cache[$globalFallbackKey][$key] !== '') {
-                return $this->resolveVariables($this->cache[$globalFallbackKey][$key]);
+                return $this->resolveVariables($this->cache[$globalFallbackKey][$key], $idShop);
             }
         }
 
@@ -279,26 +285,30 @@ class TranslationEngine
      * Enregistre la fonction Smarty {neria_trad key='...'} dans le moteur
      * Appelé depuis EmailRenderer avant le rendu du template
      *
-     * @param \Smarty $smarty  Instance Smarty de PrestaShop
-     * @param string  $template Nom du template en cours de rendu
-     * @param string  $lang     Langue du destinataire
+     * @param \Smarty  $smarty  Instance Smarty de PrestaShop
+     * @param string   $template Nom du template en cours de rendu
+     * @param string   $lang     Langue du destinataire
+     * @param int|null $idShop   Round 357 : boutique du destinataire réel,
+     *                           transmise à get() pour la résolution des
+     *                           variables personnalisées — voir get().
      */
     public function registerSmartyFunction(
         \Smarty $smarty,
         string $template,
-        string $lang
+        string $lang,
+        ?int $idShop = null
     ): void {
-        // Capture $this, $template, $lang dans la closure
+        // Capture $this, $template, $lang, $idShop dans la closure
         $engine = $this;
 
         $smarty->registerPlugin(
             'function',
             'neria_trad',
-            function (array $params) use ($engine, $template, $lang): string {
+            function (array $params) use ($engine, $template, $lang, $idShop): string {
                 if (empty($params['key'])) {
                     return '';
                 }
-                return $engine->get($template, $params['key'], $lang);
+                return $engine->get($template, $params['key'], $lang, $idShop);
             }
         );
     }
@@ -510,17 +520,19 @@ class TranslationEngine
     // ============================================================
 
     /**
-     * Charge les variables personnalisées du marchand depuis la BDD
-     * Structure en cache : ['{maison_name}' => 'Maison Dupont']
+     * Charge les variables personnalisées du marchand depuis la BDD, pour
+     * LA BOUTIQUE de $idShop (round 357 : plus l'id_shop ambiant du
+     * process). Structure en cache : ['{maison_name}' => 'Maison Dupont']
+     *
+     * @return array<string,string> ['{clé}' => 'valeur', ...]
      */
-    private function loadCustomVars(): void
+    private function loadCustomVars(int $idShop): array
     {
-        if ($this->customVarsLoaded) {
-            return;
+        if (isset($this->customVarsCacheByShop[$idShop])) {
+            return $this->customVarsCacheByShop[$idShop];
         }
 
-        $table  = _DB_PREFIX_ . 'neria_custom_variable';
-        $idShop = (int) \Context::getContext()->shop->id;
+        $table = _DB_PREFIX_ . 'neria_custom_variable';
 
         // Round 335 : $use_cache=false — même famille de bug que les
         // rounds 210-216 sur les 3 autres executeS() de ce fichier : sans
@@ -535,15 +547,16 @@ class TranslationEngine
             false
         );
 
+        $vars = [];
         if (is_array($rows)) {
             foreach ($rows as $row) {
                 // Stocke avec les accolades pour la résolution directe
-                $this->customVarsCache['{' . $row['variable_key'] . '}'] =
-                    $row['variable_value'];
+                $vars['{' . $row['variable_key'] . '}'] = $row['variable_value'];
             }
         }
 
-        $this->customVarsLoaded = true;
+        $this->customVarsCacheByShop[$idShop] = $vars;
+        return $vars;
     }
 
     /**
@@ -551,18 +564,30 @@ class TranslationEngine
      * Remplace {maison_name}, {slogan}, {founder_name}, etc.
      * par les valeurs définies par le marchand dans le back-office
      *
-     * @param string $text Texte brut contenant éventuellement des variables
+     * @param string   $text   Texte brut contenant éventuellement des variables
+     * @param int|null $idShop Round 357 : boutique dont les variables
+     *                         personnalisées doivent être résolues — repli
+     *                         sur le contexte ambiant si null (compatibilité
+     *                         des appelants non encore mis à jour).
      * @return string Texte avec variables résolues
      */
-    private function resolveVariables(string $text): string
+    private function resolveVariables(string $text, ?int $idShop = null): string
     {
         // Optimisation : si pas de { dans le texte, rien à résoudre
         if (strpos($text, '{') === false) {
             return $text;
         }
 
-        // Charge les variables custom si pas encore fait
-        $this->loadCustomVars();
+        // Round 357 : $idShop explicite — auparavant toujours résolu via
+        // Context::getContext()->shop->id (contexte AMBIANT du process),
+        // même piège déjà corrigé pour EmailRenderer (rounds 138/321) et
+        // CertificateManager (round 212) : un employé BO en contexte
+        // "Boutique B" déclenchant un envoi/document pour une commande de
+        // la "Boutique A" voyait les variables personnalisées ({maison_name},
+        // {slogan}...) résolues avec celles de B au lieu de A, alors que
+        // neria_custom_variable est explicitement stocké PAR boutique
+        // (ConfigManager::setCustomVariable()).
+        $customVars = $this->loadCustomVars($idShop ?? (int) \Context::getContext()->shop->id);
 
         // Résout les variables custom du marchand — strtr() (et non
         // str_replace() avec des tableaux) : str_replace() enchaîne les
@@ -575,8 +600,8 @@ class TranslationEngine
         // de corrompre un texte affiché au client. strtr() avec un tableau
         // effectue un seul passage simultané sur le texte ORIGINAL, sans
         // jamais rescanner une portion déjà substituée.
-        if (!empty($this->customVarsCache)) {
-            $text = strtr($text, $this->customVarsCache);
+        if (!empty($customVars)) {
+            $text = strtr($text, $customVars);
         }
 
         return $text;
@@ -658,9 +683,8 @@ class TranslationEngine
      */
     public function clearCache(): void
     {
-        $this->cache          = [];
-        $this->customVarsCache = [];
-        $this->customVarsLoaded = false;
+        $this->cache                 = [];
+        $this->customVarsCacheByShop = [];
     }
 
     // ============================================================

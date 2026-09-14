@@ -65309,6 +65309,27 @@
         "nl": "MySQL-vergrendeling niet verkregen voor het opnieuw verzenden van e-mail #{id_stat} — opnieuw verzenden overgeslagen om dubbele verzending bij hoge gelijktijdigheid (dubbelklik, dubbel tabblad) te voorkomen",
         "gb": "MySQL lock not acquired for resending email #{id_stat} — resend skipped to avoid a duplicate send under heavy concurrency (double-click, duplicate tab)"
     },
+    "watchdog.calendar_country_unresolved": {
+        "fr": "Événement calendaire restreint au pays '{country}', introuvable/désactivé — aucun client ciblé par sécurité plutôt que de cibler tous les clients de la langue sans restriction de pays",
+        "en": "Calendar event restricted to country '{country}', not found/disabled — no customer targeted as a safety measure rather than targeting all customers of the language without country restriction",
+        "de": "Kalenderereignis auf das Land '{country}' beschränkt, nicht gefunden/deaktiviert — aus Sicherheitsgründen wird kein Kunde angesprochen, anstatt alle Kunden der Sprache ohne Länderbeschränkung anzusprechen",
+        "it": "Evento calendario limitato al paese '{country}', non trovato/disattivato — nessun cliente targetizzato per sicurezza invece di targetizzare tutti i clienti della lingua senza restrizione di paese",
+        "es": "Evento de calendario restringido al país '{country}', no encontrado/desactivado — no se dirige a ningún cliente por seguridad en lugar de dirigirse a todos los clientes del idioma sin restricción de país",
+        "pt": "Evento de calendário restrito ao país '{country}', não encontrado/desativado — nenhum cliente visado por segurança em vez de visar todos os clientes do idioma sem restrição de país",
+        "br": "Evento de calendário restrito ao país '{country}', não encontrado/desativado — nenhum cliente visado por segurança em vez de visar todos os clientes do idioma sem restrição de país",
+        "ar": "حدث تقويم مقيّد بالدولة '{country}'، غير موجودة/معطّلة — لم يتم استهداف أي عميل كإجراء أمان بدلاً من استهداف جميع عملاء هذه اللغة دون قيد الدولة",
+        "ja": "カレンダーイベントは国「{country}」に制限されていますが、見つからないか無効になっています — 国の制限なしで言語の全顧客を対象にする代わりに、安全のため誰も対象にしません",
+        "ko": "캘린더 이벤트가 국가 '{country}'로 제한되어 있으나 찾을 수 없거나 비활성화되어 있습니다 — 국가 제한 없이 해당 언어의 모든 고객을 대상으로 하는 대신 안전을 위해 아무 고객도 대상으로 하지 않습니다",
+        "zh": "日历事件被限定为国家/地区“{country}”，但未找到或已停用——出于安全考虑不针对任何客户，而不是针对该语言的所有客户（不受国家/地区限制）",
+        "tw": "行事曆事件限定為國家/地區「{country}」，但找不到或已停用——基於安全考量不鎖定任何客戶，而非鎖定該語言的所有客戶（不受國家/地區限制）",
+        "ru": "Событие календаря ограничено страной '{country}', которая не найдена/отключена — из соображений безопасности не выбран ни один клиент вместо нацеливания на всех клиентов этого языка без ограничения по стране",
+        "tr": "Takvim etkinliği '{country}' ülkesiyle sınırlandırılmış ancak bulunamadı/devre dışı — ülke kısıtlaması olmadan dilin tüm müşterilerini hedeflemek yerine güvenlik amacıyla hiçbir müşteri hedeflenmedi",
+        "sv": "Kalenderhändelse begränsad till landet '{country}', hittades inte/inaktiverat — ingen kund riktas av säkerhetsskäl istället för att rikta sig till alla kunder av språket utan landsbegränsning",
+        "no": "Kalenderhendelse begrenset til landet '{country}', ikke funnet/deaktivert — ingen kunde målrettet av sikkerhetshensyn i stedet for å målrette alle kunder av språket uten landsbegrensning",
+        "da": "Kalenderhændelse begrænset til landet '{country}', ikke fundet/deaktiveret — ingen kunde målrettet af sikkerhedshensyn i stedet for at målrette alle kunder af sproget uden landebegrænsning",
+        "nl": "Kalendergebeurtenis beperkt tot land '{country}', niet gevonden/uitgeschakeld — omwille van de veiligheid wordt geen enkele klant gericht in plaats van alle klanten van de taal zonder landbeperking te richten",
+        "gb": "Calendar event restricted to country '{country}', not found/disabled — no customer targeted as a safety measure rather than targeting all customers of the language without country restriction"
+    },
     "watchdog.churn_score_partial_failure": {
         "fr": "Échec SQL partiel lors du recalcul du score de risque de churn ({n} client(s) mis à jour avant l'échec)",
         "en": "Partial SQL failure while recomputing churn risk score ({n} customer(s) updated before failure)",

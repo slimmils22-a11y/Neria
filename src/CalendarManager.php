@@ -934,6 +934,23 @@ class CalendarManager
                     WHERE co.`iso_code` = '" . pSQL($countryCode) . "'
                       AND a.`deleted`   = 0
                 )";
+            } else {
+                // Round 357 : fail-CLOSED plutôt que fail-open — si un
+                // événement est explicitement restreint à un pays
+                // ($countryCode non vide) mais que ce pays n'est plus
+                // résolvable (désactivé depuis dans Localisation > Pays,
+                // ISO invalide/renommé), $countryFilter restait '' :
+                // AUCUNE restriction n'était appliquée, ciblant alors TOUS
+                // les clients de la langue concernée au lieu de personne —
+                // fuite de ciblage vers une audience bien plus large que
+                // celle voulue par le marchand, sans la moindre alerte.
+                // "AND 1=0" ne cible personne (comportement sûr) plutôt que
+                // de retomber silencieusement sur un ciblage non restreint.
+                $countryFilter = 'AND 1=0';
+                $this->watchdog()->warning(
+                    \WatchdogManager::i18nMsg('watchdog.calendar_country_unresolved', ['country' => $countryCode]),
+                    '', 'CalendarManager'
+                );
             }
         }
 
@@ -1229,8 +1246,29 @@ class CalendarManager
             $sendDate  = clone $eventDate;
             $sendDate->modify('-' . $event['send_days_before'] . ' days');
 
+            // Round 357 : bascule sur $year+1 si l'envoi prévu est déjà
+            // passé cette année — même correctif déjà appliqué à
+            // getEventDisplayInfo() (round 142, ci-dessus dans ce fichier) et
+            // cohérent avec processEvent() (boucle [$year, $year+1] sans
+            // condition). Auparavant, un simple `continue` faisait
+            // DISPARAÎTRE l'occasion de la liste « Prochaines occasions »
+            // (BO) jusqu'au 1er janvier suivant au lieu d'afficher sa
+            // prochaine occurrence réelle — impact sur la quasi-totalité des
+            // occasions du module (Noël, Nouvel An, Saint-Valentin,
+            // Halloween, Pâques, fêtes des mères FR/US, Nowruz, Setsubun,
+            // Hanami). N'affecte que l'affichage BO : processEvent() (envoi
+            // réel) a sa propre boucle [$year, $year+1] correcte, non
+            // affectée par ce défaut.
             if ($sendDate < $today) {
-                continue;
+                $eventDate = $this->getEventDate($event['event_key'], $year + 1);
+                if (!$eventDate) {
+                    continue;
+                }
+                $sendDate = clone $eventDate;
+                $sendDate->modify('-' . $event['send_days_before'] . ' days');
+                if ($sendDate < $today) {
+                    continue;
+                }
             }
 
             $eventYear = (int) $eventDate->format('Y');

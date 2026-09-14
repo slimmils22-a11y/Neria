@@ -723,8 +723,22 @@ class SearchConsoleManager
             // On efface le refresh token pour qu'isConnected() cesse de
             // prétendre "connecté" alors que les données ne se rafraîchissent
             // plus silencieusement depuis la révocation.
+            // Round 357 : CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY purgés
+            // aussi — auparavant seul le refresh token était effacé, mais
+            // l'access token révoqué restait en cache avec une expiration
+            // encore dans le futur (jusqu'à ~55 min). getAccessToken() ne
+            // teste QUE l'expiration locale avant de servir ce token en
+            // cache — un appel API suivant échouait donc de nouveau en 401
+            // (gaspillant un appel Google), et ce chemin d'échec (refresh
+            // vide car déjà purgé) n'écrit pas CONFIG_LAST_ERROR/_AT,
+            // produisant un message moins clair pour
+            // HealthCheckManager::checkOAuthFreshness() que celui déjà posé
+            // 2 lignes plus haut. Purge complète : getAccessToken() retombe
+            // immédiatement sur refreshAccessToken() au prochain appel.
             if ($errCode === 'invalid_grant') {
                 \Configuration::deleteByName(self::CONFIG_REFRESH_TOKEN);
+                \Configuration::deleteByName(self::CONFIG_ACCESS_TOKEN);
+                \Configuration::deleteByName(self::CONFIG_TOKEN_EXPIRY);
             }
             $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.gsc_token_invalid'), '', 'SearchConsoleManager');
             return null;

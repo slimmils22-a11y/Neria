@@ -503,9 +503,14 @@ class CertificateManager
         // boutique ayant personnalisé ces textes différemment) voyait le
         // PDF afficher le texte configuré pour B, incohérent avec le nom
         // de boutique A affiché juste au-dessus.
-        $title    = (string) \Configuration::get(self::CFG_TITLE, null, null, (int) $order->id_shop)    ?: $engine->get('certificate_email', 'certificate_pdf_default_title', $lang);
-        $subtitle = (string) \Configuration::get(self::CFG_SUBTITLE, null, null, (int) $order->id_shop) ?: $engine->get('certificate_email', 'certificate_pdf_default_subtitle', $lang);
-        $bodyText = (string) \Configuration::get(self::CFG_BODY, null, null, (int) $order->id_shop)     ?: $engine->get('certificate_email', 'certificate_pdf_default_body', $lang);
+        // Round 357 : (int) $order->id_shop transmis aussi à $engine->get()
+        // (pas seulement Configuration::get() ci-dessus, round 106) — même
+        // défaut : TranslationEngine résolvait ses variables personnalisées
+        // ({maison_name}/etc. dans ces textes de repli) via le contexte
+        // AMBIANT, pas la boutique réelle de la commande.
+        $title    = (string) \Configuration::get(self::CFG_TITLE, null, null, (int) $order->id_shop)    ?: $engine->get('certificate_email', 'certificate_pdf_default_title', $lang, (int) $order->id_shop);
+        $subtitle = (string) \Configuration::get(self::CFG_SUBTITLE, null, null, (int) $order->id_shop) ?: $engine->get('certificate_email', 'certificate_pdf_default_subtitle', $lang, (int) $order->id_shop);
+        $bodyText = (string) \Configuration::get(self::CFG_BODY, null, null, (int) $order->id_shop)     ?: $engine->get('certificate_email', 'certificate_pdf_default_body', $lang, (int) $order->id_shop);
 
         // Substitution de {shop_name} même lorsque le marchand a personnalisé
         // ces champs — auparavant seule la valeur par défaut (fallback) était
@@ -690,12 +695,12 @@ class CertificateManager
 
             // ── Tableau des informations ──────────────────────────
             $fields = [
-                $engine->get('certificate_email', 'certificate_pdf_label_product', $lang)       => $productName,
-                $engine->get('certificate_email', 'certificate_pdf_label_serial', $lang)         => $serial,
-                $engine->get('certificate_email', 'certificate_pdf_label_order_date', $lang)     => $dateStr,
-                $engine->get('certificate_email', 'certificate_pdf_label_certified_date', $lang) => $issuedStr,
-                $engine->get('certificate_email', 'certificate_pdf_label_owner', $lang)          => $customerName,
-                $engine->get('certificate_email', 'certificate_pdf_label_order', $lang)          => '#' . (int) $order->id,
+                $engine->get('certificate_email', 'certificate_pdf_label_product', $lang, (int) $order->id_shop)       => $productName,
+                $engine->get('certificate_email', 'certificate_pdf_label_serial', $lang, (int) $order->id_shop)         => $serial,
+                $engine->get('certificate_email', 'certificate_pdf_label_order_date', $lang, (int) $order->id_shop)     => $dateStr,
+                $engine->get('certificate_email', 'certificate_pdf_label_certified_date', $lang, (int) $order->id_shop) => $issuedStr,
+                $engine->get('certificate_email', 'certificate_pdf_label_owner', $lang, (int) $order->id_shop)          => $customerName,
+                $engine->get('certificate_email', 'certificate_pdf_label_order', $lang, (int) $order->id_shop)          => '#' . (int) $order->id,
             ];
 
             foreach ($fields as $label => $value) {
@@ -764,7 +769,7 @@ class CertificateManager
                 $this->pdfSetFont($pdf, $fontSans, '', 7);
                 $pdf->SetTextColor(150, 150, 150);
                 $pdf->SetXY(55, $y + 8);
-                $pdf->Cell(130, 5, $engine->get('certificate_email', 'certificate_pdf_qr_hint', $lang), 0, 0, 'L');
+                $pdf->Cell(130, 5, $engine->get('certificate_email', 'certificate_pdf_qr_hint', $lang, (int) $order->id_shop), 0, 0, 'L');
                 $pdf->SetXY(55, $y + 14);
                 $pdf->Cell(130, 5, $qrUrl, 0, 0, 'L');
                 $y += 32;
@@ -784,13 +789,13 @@ class CertificateManager
             $this->pdfSetFont($pdf, $fontSans, 'I', 9);
             $pdf->SetTextColor(100, 80, 40);
             $pdf->SetXY(20, $y);
-            $pdf->Cell(170, 6, strtr($engine->get('certificate_email', 'certificate_pdf_signature', $lang), $pdfVars), 0, 1, 'C');
+            $pdf->Cell(170, 6, strtr($engine->get('certificate_email', 'certificate_pdf_signature', $lang, (int) $order->id_shop), $pdfVars), 0, 1, 'C');
 
             // ── Pied de page ──────────────────────────────────────
             $this->pdfSetFont($pdf, $fontSans, '', 7);
             $pdf->SetTextColor(180, 160, 130);
             $pdf->SetXY(20, 270);
-            $pdf->Cell(170, 5, strtr($engine->get('certificate_email', 'certificate_pdf_footer', $lang), $pdfVars), 0, 0, 'C');
+            $pdf->Cell(170, 5, strtr($engine->get('certificate_email', 'certificate_pdf_footer', $lang, (int) $order->id_shop), $pdfVars), 0, 0, 'C');
 
             $pdfContent = $pdf->Output('certificate_' . $serial . '.pdf', 'S');
 
