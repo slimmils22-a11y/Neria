@@ -11580,6 +11580,43 @@ class HealthCheckManager
             $offenders[] = "CertificateManager::generatePdf() ne dérive plus le nom de fichier d'un hash du serial brut — régression du bug corrigé le 13/09/2026 (round 351) : deux certificats distincts pourraient de nouveau collisionner sur le même fichier physique";
         }
 
+        // Round 352 : LoyaltyManager::sendMonthlyRecaps() doit itérer par
+        // GROUPE de boutiques en mode cumul transversal (throttle +
+        // sélection clients scopés), pas sur toute l'installation en un
+        // seul passage — même famille que le correctif fidélité round
+        // 350/351.
+        $lmSrc352 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($lmSrc352 === ''
+            || strpos($lmSrc352, "SELECT id_shop_group FROM `{\$this->prefix}shop_group` WHERE active = 1 AND deleted = 0") === false
+            || strpos($lmSrc352, "self::CONFIG_RECAP_LAST_SENT . '_grp' . \$idShopGroup") === false
+            || strpos($lmSrc352, 'private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null, int $windowDays = 30, ?array $shopIdsGroup = null): bool') === false
+        ) {
+            $offenders[] = "LoyaltyManager::sendMonthlyRecaps() n'itère plus par groupe de boutiques — régression du bug corrigé le 14/09/2026 (round 352) : le récap mensuel de points redeviendrait un seul passage sur toute l'installation, avec un throttle global bloquant silencieusement tous les autres groupes";
+        }
+
+        // Round 352 : DomainReputationManager::runFullCheck() doit
+        // déclencher l'alerte Watchdog (alertForReport()) pour LA BOUTIQUE
+        // COURANTE aussi quand elle réutilise le rapport mutualisé d'une
+        // boutique sœur (round 299) — sinon une boutique "suiveuse"
+        // n'était jamais notifiée d'un grade critique affiché sur son
+        // propre tableau de bord.
+        $drmSrc352 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc352 === '' || substr_count($drmSrc352, '$this->alertForReport($shared);') !== 2) {
+            $offenders[] = "DomainReputationManager::runFullCheck() n'appelle plus alertForReport(\$shared) aux 2 points de réutilisation d'un rapport partagé — régression du bug corrigé le 14/09/2026 (round 352)";
+        }
+
+        // Round 352 : BehavioralCronManager::run() doit poser un heartbeat
+        // reflétant les échecs réels des 19 étapes (runStep() retourne
+        // bool, compte les échecs), pas 'ok' inconditionnel.
+        $bcmSrc352 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc352 === ''
+            || strpos($bcmSrc352, '$this->stepFailureCount = 0;') === false
+            || strpos($bcmSrc352, "\$this->stepFailureCount > 0 ? 'error' : 'ok'") === false
+            || strpos($bcmSrc352, 'private function runStep(string $label, callable $fn): bool') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::run() ne reflète plus les échecs réels dans le heartbeat Watchdog — régression du bug corrigé le 14/09/2026 (round 352) : le widget Watchdog afficherait de nouveau 'OK' même si les 19 tâches comportementales ont toutes échoué";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
