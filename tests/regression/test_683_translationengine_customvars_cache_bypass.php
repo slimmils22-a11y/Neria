@@ -33,7 +33,7 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/TranslationEngine.php');
     neria_assert($src !== false, 'Impossible de lire src/TranslationEngine.php');
 
-    $posFn = strpos($src, 'private function loadCustomVars(): void');
+    $posFn = strpos($src, 'private function loadCustomVars(int $idShop): array');
     neria_assert($posFn !== false, 'loadCustomVars() introuvable — jeu de test invalide');
     $body = substr($src, $posFn, 900);
     neria_assert(
