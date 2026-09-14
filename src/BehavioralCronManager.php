@@ -61,6 +61,11 @@ class BehavioralCronManager
     private \Db $db;
     private string $prefix;
     private ?\WatchdogManager $watchdog = null;
+    // Round 352 : nombre d'étapes runStep() ayant échoué durant le run()
+    // en cours — remis à 0 en tête de run(), lu juste avant le heartbeat
+    // final pour distinguer un run réellement sain d'un run où toutes les
+    // tâches ont échoué en silence (chacune absorbée individuellement).
+    private int $stepFailureCount = 0;
 
     public function __construct(\Neria $module)
     {
@@ -88,6 +93,7 @@ class BehavioralCronManager
      */
     public function run(): void
     {
+        $this->stepFailureCount = 0;
         \Configuration::updateValue(\HealthCheckManager::CRON_LAST_BEHAVIORAL, date('Y-m-d H:i:s'));
         $this->watchdog()->info(\WatchdogManager::i18nMsg('watchdog.behavioral_cron_start'), '', 'BehavioralCron');
 
@@ -250,23 +256,44 @@ class BehavioralCronManager
             $this->runStep('sendLookCompletions',            fn () => $this->sendLookCompletions());
         }
 
-        $this->watchdog()->cronHeartbeat('behavioral', 'ok');
+        // Round 352 : statut/compteur reflètent désormais les échecs réels
+        // — auparavant 'ok' inconditionnel, même si les 19 étapes avaient
+        // toutes échoué (chacune absorbée individuellement par runStep()).
+        $this->watchdog()->cronHeartbeat(
+            'behavioral',
+            $this->stepFailureCount > 0 ? 'error' : 'ok',
+            $this->stepFailureCount
+        );
         $this->watchdog()->info(\WatchdogManager::i18nMsg('watchdog.behavioral_cron_done'), '', 'BehavioralCron');
     }
 
     /**
      * Exécute une tâche isolée : une exception y est journalisée puis
      * absorbée, sans jamais interrompre les tâches suivantes du run().
+     *
+     * Round 352 : retourne désormais bool (au lieu de void) — run()
+     * comptabilise les échecs pour poser un heartbeat 'error' plutôt que
+     * 'ok' inconditionnel. Sans ce retour, les 19 étapes pouvaient échouer
+     * intégralement (table corrompue, régression tierce cassant
+     * CartRule::add()...) tout en journalisant chacune une erreur Watchdog
+     * individuelle, alors que cronHeartbeat('behavioral', 'ok') était quand
+     * même écrit sans condition juste après — le widget Watchdog du
+     * tableau de bord affichait "cron comportemental : OK, exécuté à
+     * l'instant" alors qu'aucun email comportemental n'était réellement
+     * parti ce jour-là.
      */
-    private function runStep(string $label, callable $fn): void
+    private function runStep(string $label, callable $fn): bool
     {
         try {
             $fn();
+            return true;
         } catch (\Throwable $e) {
             $this->watchdog()->error(
                 \WatchdogManager::i18nMsg('watchdog.step_failed', ['label' => $label, 'error' => $e->getMessage()]),
                 '', 'BehavioralCron'
             );
+            $this->stepFailureCount++;
+            return false;
         }
     }
 

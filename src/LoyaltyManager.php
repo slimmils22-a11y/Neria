@@ -845,9 +845,13 @@ class LoyaltyManager
         );
     }
 
-    public function getCustomerTier(int $idCustomer, ?int $idShop = null): ?array
+    // Round 352 : $shopIdsGroup optionnel — même extension que
+    // getCustomerPoints() (round 350/351), pour permettre un scope par
+    // GROUPE de boutiques en mode cumul transversal (utilisé par
+    // sendRecapToCustomer()).
+    public function getCustomerTier(int $idCustomer, ?int $idShop = null, ?array $shopIdsGroup = null): ?array
     {
-        $total  = $this->getCustomerPoints($idCustomer, $idShop);
+        $total  = $this->getCustomerPoints($idCustomer, $idShop, $shopIdsGroup);
         $tiers  = $this->getTiers();
         $current = null;
 
@@ -860,9 +864,9 @@ class LoyaltyManager
         return $current;
     }
 
-    public function getNextTier(int $idCustomer, ?int $idShop = null): ?array
+    public function getNextTier(int $idCustomer, ?int $idShop = null, ?array $shopIdsGroup = null): ?array
     {
-        $total = $this->getCustomerPoints($idCustomer, $idShop);
+        $total = $this->getCustomerPoints($idCustomer, $idShop, $shopIdsGroup);
         foreach ($this->getTiers() as $tier) {
             if ($total < $tier['points']) {
                 return $tier;
@@ -1026,42 +1030,68 @@ class LoyaltyManager
         // et peut finir par envoyer le récap 13 fois par an au lieu de 12.
         $thisMonth = date('Y-m');
 
-        // Mode cumul transversal (défaut) : comportement historique inchangé —
-        // un seul passage, un throttle global, un total tous magasins confondus.
+        // Mode cumul transversal (défaut) : round 352 — un passage PAR
+        // GROUPE de boutiques (pas un seul passage sur toute l'installation
+        // comme auparavant), un throttle par groupe, un total scopé au
+        // groupe. Même correctif de fond que checkAndReward()/
+        // getCustomerStats()/getGlobalStats() (round 350/351) : ce module
+        // est vendu à de multiples commerçants (PrestaShop Addons), un
+        // récap mensuel de points pouvait additionner les points de deux
+        // enseignes indépendantes hébergées sur la même installation.
         $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
         if ($crossShop) {
-            // Round 121 : valeur stockée en datetime complet (pas juste
-            // 'Y-m') pour pouvoir calculer $windowDays ci-dessous — voir
-            // sendRecapToCustomer(). Le throttle mensuel (comparaison sur
-            // les 7 premiers caractères) reste inchangé.
-            $lastSentRaw   = (string) \Configuration::get(self::CONFIG_RECAP_LAST_SENT);
-            $lastSentMonth = substr($lastSentRaw, 0, 7);
-            if ($lastSentMonth === $thisMonth) {
-                return 0; // Déjà envoyé ce mois-ci
-            }
-            $windowDays = self::computeRecapWindowDays($lastSentRaw);
-
-            $customers = $this->db->executeS(
-                "SELECT DISTINCT id_customer
-                 FROM `{$this->prefix}" . self::TABLE_POINTS . "`
-                 WHERE id_customer > 0"
+            $groups = $this->db->executeS(
+                "SELECT id_shop_group FROM `{$this->prefix}shop_group` WHERE active = 1 AND deleted = 0"
             ) ?: [];
 
             $sent = 0;
-            foreach ($customers as $row) {
-                try {
-                    if ($this->sendRecapToCustomer((int) $row['id_customer'], null, $windowDays)) {
-                        $sent++;
-                    }
-                } catch (\Throwable $e) {
-                    $this->watchdog()->error(
-                        \WatchdogManager::i18nMsg('watchdog.loyalty_recap_error', ['customer' => (int) $row['id_customer'], 'error' => $e->getMessage()]),
-                        'loyalty_recap', 'Loyalty'
-                    );
+            foreach ($groups as $groupRow) {
+                $idShopGroup = (int) $groupRow['id_shop_group'];
+                $shopIdsGroup = \Shop::getShops(true, $idShopGroup, true);
+                $shopIdsGroup = !empty($shopIdsGroup) ? array_map('intval', array_values($shopIdsGroup)) : [];
+                if (empty($shopIdsGroup)) {
+                    continue; // groupe sans boutique active — rien à traiter
                 }
-            }
 
-            \Configuration::updateValue(self::CONFIG_RECAP_LAST_SENT, date('Y-m-d H:i:s'));
+                // Round 121 : valeur stockée en datetime complet (pas juste
+                // 'Y-m') pour pouvoir calculer $windowDays ci-dessous — voir
+                // sendRecapToCustomer(). Le throttle mensuel (comparaison
+                // sur les 7 premiers caractères) reste inchangé. Round 352 :
+                // clé suffixée par groupe — sans ce suffixe, le premier
+                // groupe traité écrirait un throttle qui bloquerait
+                // silencieusement le récap de TOUS les autres groupes ce
+                // mois-ci (même piège déjà corrigé pour le mode séparé,
+                // ci-dessous, jamais porté au mode transversal jusqu'ici).
+                $lastSentKey   = self::CONFIG_RECAP_LAST_SENT . '_grp' . $idShopGroup;
+                $lastSentRaw   = (string) \Configuration::get($lastSentKey);
+                $lastSentMonth = substr($lastSentRaw, 0, 7);
+                if ($lastSentMonth === $thisMonth) {
+                    continue; // Déjà envoyé ce mois-ci pour ce groupe
+                }
+                $windowDays = self::computeRecapWindowDays($lastSentRaw);
+                $anchorShopId = $this->groupAnchorShopId($shopIdsGroup);
+
+                $customers = $this->db->executeS(
+                    "SELECT DISTINCT id_customer
+                     FROM `{$this->prefix}" . self::TABLE_POINTS . "`
+                     WHERE id_customer > 0 AND id_shop IN (" . implode(',', $shopIdsGroup) . ")"
+                ) ?: [];
+
+                foreach ($customers as $row) {
+                    try {
+                        if ($this->sendRecapToCustomer((int) $row['id_customer'], $anchorShopId, $windowDays, $shopIdsGroup)) {
+                            $sent++;
+                        }
+                    } catch (\Throwable $e) {
+                        $this->watchdog()->error(
+                            \WatchdogManager::i18nMsg('watchdog.loyalty_recap_error', ['customer' => (int) $row['id_customer'], 'error' => $e->getMessage()]),
+                            'loyalty_recap', 'Loyalty'
+                        );
+                    }
+                }
+
+                \Configuration::updateValue($lastSentKey, date('Y-m-d H:i:s'));
+            }
 
             return $sent;
         }
@@ -1155,7 +1185,14 @@ class LoyaltyManager
         return max(1, min($days, 400));
     }
 
-    private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null, int $windowDays = 30): bool
+    // Round 352 : $shopIdsGroup optionnel — scope le total/la fenêtre de
+    // points sur un GROUPE de boutiques en mode cumul transversal, au lieu
+    // de toute l'installation (même correctif que checkAndReward()/
+    // getCustomerStats() round 350/351, jamais porté au récap mensuel
+    // jusqu'ici). $idShop reste utilisé pour les vérifications par
+    // boutique unique (préférences, bounce, blacklist) — voir $realIdShop
+    // plus bas, résolu par l'appelant vers l'ancre du groupe.
+    private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null, int $windowDays = 30, ?array $shopIdsGroup = null): bool
     {
         $customer = new \Customer($idCustomer);
         if (!\Validate::isLoadedObject($customer) || !$customer->active) {
@@ -1176,7 +1213,11 @@ class LoyaltyManager
         // envoi, calculé par computeRecapWindowDays()), pas une fenêtre
         // fixe de 30 jours — voir le commentaire de computeRecapWindowDays()
         // pour le scénario de points dupliqués/oubliés que cela corrige.
-        $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
+        if ($shopIdsGroup !== null && !empty($shopIdsGroup)) {
+            $shopFilter = ' AND id_shop IN (' . implode(',', array_map('intval', $shopIdsGroup)) . ')';
+        } else {
+            $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
+        }
         $pointsMonth = (int) $this->db->getValue(
             "SELECT COALESCE(SUM(points), 0)
              FROM `{$this->prefix}" . self::TABLE_POINTS . "`
@@ -1189,9 +1230,9 @@ class LoyaltyManager
             return false;
         }
 
-        $total    = $this->getCustomerPoints($idCustomer, $idShop);
-        $nextTier = $this->getNextTier($idCustomer, $idShop);
-        $currTier = $this->getCustomerTier($idCustomer, $idShop);
+        $total    = $this->getCustomerPoints($idCustomer, $idShop, $shopIdsGroup);
+        $nextTier = $this->getNextTier($idCustomer, $idShop, $shopIdsGroup);
+        $currTier = $this->getCustomerTier($idCustomer, $idShop, $shopIdsGroup);
 
         $prevPoints  = $currTier ? $currTier['points'] : 0;
         $progressPct = 0;

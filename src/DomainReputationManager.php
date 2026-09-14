@@ -282,6 +282,12 @@ class DomainReputationManager
         $shared = $this->findFreshReportForDomain($domain);
         if ($shared !== null) {
             $this->cacheReport($shared);
+            // Round 352 : alerte Watchdog déclenchée aussi pour CETTE
+            // boutique (scopée par $this->idShop) — sans cet appel, une
+            // boutique "suiveuse" réutilisant le rapport d'une boutique
+            // sœur affichait un grade F/D critique sans jamais être
+            // notifiée pour son propre id_shop.
+            $this->alertForReport($shared);
             return $shared;
         }
 
@@ -330,6 +336,8 @@ class DomainReputationManager
                     $shared = $this->findFreshReportForDomain($domain);
                     if ($shared !== null) {
                         $this->cacheReport($shared);
+                        // Round 352 : même correctif que ci-dessus.
+                        $this->alertForReport($shared);
                         return $shared;
                     }
                     return $this->runFullCheckLocked($domain);
@@ -473,7 +481,28 @@ class DomainReputationManager
             \Configuration::updateValue(self::CONFIG_LAST_CHECK, time(), false, null, $this->idShop);
         }
 
-        $rblHits = count($bl['hits'] ?? []);
+        $this->alertForReport($report);
+
+        return $report;
+    }
+
+    // Round 352 : extrait de runFullCheckLocked() pour être aussi appelé
+    // quand une boutique RÉUTILISE le rapport mutualisé d'une boutique
+    // sœur partageant le même domaine d'envoi (round 299,
+    // findFreshReportForDomain()) — jusqu'ici, seule la boutique ayant
+    // réellement exécuté la vérification DNS/RBL déclenchait une alerte
+    // Watchdog ($this->watchdog() est scopé par $this->idShop). Une
+    // boutique "suiveuse" affichait le même score F/D critique sur son
+    // tableau de bord sans JAMAIS recevoir la moindre alerte pour son
+    // propre id_shop, même si ses destinataires d'alerte sont configurés
+    // différemment de la boutique ayant déclenché le vrai check.
+    private function alertForReport(array $report): void
+    {
+        $domain  = (string) ($report['domain'] ?? '');
+        $score   = (int) ($report['score'] ?? 0);
+        $grade   = (string) ($report['grade'] ?? '');
+        $rblHits = count($report['blacklists']['hits'] ?? []);
+
         $msgVars = ['domain' => $domain ?: '?', 'score' => $score, 'grade' => $grade];
         $msg = $rblHits
             ? \WatchdogManager::i18nMsg('watchdog.domain_reputation_checked_rbl', $msgVars + ['n' => $rblHits])
@@ -486,8 +515,6 @@ class DomainReputationManager
         } else {
             $this->watchdog()->info($msg, '', 'DomainReputation');
         }
-
-        return $report;
     }
 
     // ============================================================
