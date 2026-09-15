@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.47';
+    const VERSION = '1.0.48';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -6159,6 +6159,19 @@ class Neria extends Module
             }
         }
 
+        // ── Bounces : partage cross-shop du blacklistage (round 15/09/2026,
+        // bloc d) ── contrairement au cumul fidélité ci-dessus, aucune
+        // bascule de clé n'est nécessaire ici : les lignes existantes
+        // restent id_shop=0 (globales) quel que soit ce réglage — seul
+        // l'ÉCRITURE de FUTURS bounces (recordBounce(), source webhook/
+        // manual) en tient compte. Pas de blocage "réservations en
+        // attente" à prévoir, contrairement à la fidélité.
+        if (Tools::getValue('neria_action') === 'bounce_cross_shop_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $current = (new ConfigManager($this))->isBounceCrossShopEnabled();
+            Configuration::updateGlobalValue('NERIA_BOUNCE_CROSS_SHOP_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=bounces&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-bounce-crossshop');
+        }
+
         // ── Centre de contrôle : visibilité d'une feature dans le menu ──
         // Whitelist stricte contre le registre : n'affecte jamais l'état
         // actif/inactif réel de la feature, uniquement l'affichage de son
@@ -6416,27 +6429,34 @@ class Neria extends Module
         }
 
         // ── Bounces : ignorer / réactiver / supprimer ────────────────
+        // Round 15/09/2026 (bloc d) : identifiant réel `bounce_id` (PK)
+        // transmis par bounces.tpl, plus `bounce_email` — depuis que le
+        // scoping par boutique permet PLUSIEURS lignes pour un même
+        // email, agir par email seul était devenu ambigu (voir
+        // BounceManager::ignoreBounce()). L'email reste transmis
+        // uniquement pour l'affichage du message d'erreur.
         if (in_array(Tools::getValue('neria_action'), ['ignore_bounce', 'reactivate_bounce', 'delete_bounce'], true)
             && $_SERVER['REQUEST_METHOD'] === 'POST'
             && class_exists('BounceManager')) {
-            $email = trim((string) Tools::getValue('bounce_email', ''));
-            $mgr   = new BounceManager($this);
-            $action = Tools::getValue('neria_action');
-            if ($email !== '') {
+            $bounceId = (int) Tools::getValue('bounce_id', 0);
+            $email    = trim((string) Tools::getValue('bounce_email', ''));
+            $mgr      = new BounceManager($this);
+            $action   = Tools::getValue('neria_action');
+            if ($bounceId > 0) {
                 if ($action === 'ignore_bounce') {
-                    $ok = $mgr->ignoreBounce($email);
+                    $ok = $mgr->ignoreBounce($bounceId);
                     $msgKey = 'msg.bounce_ignored';
                 } elseif ($action === 'reactivate_bounce') {
-                    $ok = $mgr->reactivateBounce($email);
+                    $ok = $mgr->reactivateBounce($bounceId);
                     $msgKey = 'msg.bounce_reactivated';
                 } else {
-                    $ok = $mgr->deleteBounce($email);
+                    $ok = $mgr->deleteBounce($bounceId);
                     $msgKey = 'msg.bounce_deleted';
                 }
                 // Round 315 : succès affiché uniquement si l'action a
                 // réellement eu un effet — ignoreBounce()/reactivateBounce()/
                 // deleteBounce() renvoient désormais false si aucune ligne
-                // ne correspond à l'email (déjà traité par un autre onglet
+                // ne correspond à l'id (déjà traité par un autre onglet
                 // BO, faute de frappe) au lieu de toujours true.
                 if ($ok) {
                     $this->context->smarty->assign('neria_success', AdminTranslator::t($msgKey));
@@ -7583,6 +7603,9 @@ class Neria extends Module
             'bounce_filter'      => $filter,
             'bounce_page'        => $page,
             'bounce_total_pages' => max(1, (int) ceil($total / $limit)),
+            // Round 15/09/2026 (bloc d) : réglage marchand pour le
+            // scoping/partage cross-shop des bounces.
+            'bounce_cross_shop_enabled' => (new ConfigManager($this))->isBounceCrossShopEnabled(),
         ];
     }
 

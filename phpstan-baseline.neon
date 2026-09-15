@@ -73,6 +73,12 @@ parameters:
 			path: controllers/front/track.php
 
 		-
+			message: '#^Parameter \#1 \$module of class BounceManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/bounce.php
+
+		-
 			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
 			identifier: argument.type
 			count: 1

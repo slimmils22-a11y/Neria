@@ -269,6 +269,23 @@
     </div>
   </div>
 
+  {* ── Bascule multi-boutique bounces ───────────────────────────── *}
+  <div class="neria-notice" style="background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px; padding:20px 24px; margin-bottom:24px;" id="neria-bounce-crossshop">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <div>
+        <p style="margin:0 0 4px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#8a6d3b;">{neria_admin key='bounces.cross_shop_title'}</p>
+        <p style="margin:0; font-size:12px; color:#6b5a3e; max-width:520px; line-height:1.6;">{neria_admin key='bounces.cross_shop_desc'}</p>
+      </div>
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;flex-shrink:0;">
+        <input type="hidden" name="neria_action" value="bounce_cross_shop_toggle">
+        <input type="hidden" name="neria_tab"    value="bounces">
+        <button type="submit" style="border:none;border-radius:20px;padding:8px 18px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;background:{if $bounce_cross_shop_enabled}#1a7a40{else}#c0392b{/if};">
+          {if $bounce_cross_shop_enabled}● {neria_admin key='bounces.cross_shop_on'}{else}○ {neria_admin key='bounces.cross_shop_off'}{/if}
+        </button>
+      </form>
+    </div>
+  </div>
+
   {* ── Explications : mode d'emploi ─────────────────────────────── *}
   <div class="nb-box--setup">
     <h4>📖 {neria_admin key='bounces.howto_title'}</h4>
@@ -471,6 +488,7 @@
         <thead>
           <tr>
             <th>{neria_admin key='bounces.col_email'}</th>
+            <th>{neria_admin key='bounces.col_shop'}</th>
             <th>{neria_admin key='bounces.col_type'}</th>
             <th>{neria_admin key='bounces.col_source'}</th>
             <th>{neria_admin key='bounces.col_reason'}</th>
@@ -484,6 +502,7 @@
           {foreach from=$bounce_list item=b}
           <tr>
             <td><strong>{$b.email|escape:'html'}</strong></td>
+            <td style="white-space:nowrap;color:#777;font-size:11px;">{if $b.shop_name}{$b.shop_name|escape:'html'}{else}{neria_admin key='bounces.shop_all'}{/if}</td>
             <td><span class="nb-badge nb-badge--{$b.type}">{$b.type}</span></td>
             <td><span class="nb-badge nb-badge--{$b.source}">{$b.source}</span></td>
             <td style="max-width:280px;color:#777;font-size:11px;">{$b.reason|truncate:80:'…'|escape:'html'}</td>
@@ -495,6 +514,7 @@
                 <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
                   <input type="hidden" name="neria_action" value="{if $b.status === 'active'}ignore_bounce{else}reactivate_bounce{/if}">
                   <input type="hidden" name="neria_tab" value="bounces">
+                  <input type="hidden" name="bounce_id" value="{$b.id|intval}">
                   <input type="hidden" name="bounce_email" value="{$b.email|escape:'html'}">
                   <button type="submit" class="nb-btn nb-btn--sm" style="background:{if $b.status === 'active'}#e67e22{else}#2980b9{/if};color:#fff;">
                     {if $b.status === 'active'}{neria_admin key='bounces.ignore_btn'}{else}{neria_admin key='bounces.reactivate_btn'}{/if}
@@ -503,6 +523,7 @@
                 <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
                   <input type="hidden" name="neria_action" value="delete_bounce">
                   <input type="hidden" name="neria_tab" value="bounces">
+                  <input type="hidden" name="bounce_id" value="{$b.id|intval}">
                   <input type="hidden" name="bounce_email" value="{$b.email|escape:'html'}">
                   <button type="button" class="nb-btn nb-btn--danger nb-btn--sm"
                           data-confirm="{neria_admin key='bounces.delete_confirm_pre'} {$b.email|escape:'html'} {neria_admin key='bounces.delete_confirm_post'}"

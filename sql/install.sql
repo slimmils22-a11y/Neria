@@ -628,6 +628,7 @@ COMMENT='Certificats d''authenticité émis par Neria — un par produit/command
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_bounces` (
     `id`             INT(11)      NOT NULL AUTO_INCREMENT,
     `email`          VARCHAR(255) NOT NULL COMMENT 'Adresse email invalide (lowercase)',
+    `id_shop`        INT(11)      NOT NULL DEFAULT 0 COMMENT '0 = global (bloque toutes les boutiques), N = scopé à la boutique N',
     `type`           ENUM('hard','soft') NOT NULL DEFAULT 'hard' COMMENT 'hard = permanent, soft = temporaire',
     `reason`         VARCHAR(500) DEFAULT NULL COMMENT 'Message de rejet ou code DSN',
     `source`         ENUM('imap','webhook','manual') NOT NULL DEFAULT 'imap' COMMENT 'Canal de détection',
@@ -636,10 +637,11 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_bounces` (
     `status`         ENUM('active','ignored') NOT NULL DEFAULT 'active' COMMENT 'active = bloqué, ignored = faux positif',
     `date_add`       DATETIME     NOT NULL COMMENT 'Date de première détection',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_email` (`email`),
+    UNIQUE KEY `uq_email_shop` (`email`, `id_shop`),
     KEY `idx_type`        (`type`),
     KEY `idx_status`      (`status`),
-    KEY `idx_last_bounce` (`last_bounce_at`)
+    KEY `idx_last_bounce` (`last_bounce_at`),
+    KEY `idx_shop`        (`id_shop`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Adresses email en rebond détectées par Neria — exclues automatiquement des envois';
 

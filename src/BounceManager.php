@@ -32,11 +32,21 @@ class BounceManager
 
     const TABLE = 'neria_bounces';
 
-    private \Module $module;
+    private \Neria $module;
+    // Round 15/09/2026 (bloc d) : boutique ambiante, utilisée par
+    // recordBounce() pour les 2 seuls chemins où un id_shop réellement
+    // fiable existe (webhook ESP — dispatché sous le domaine réel de la
+    // boutique via ModuleFrontController ; ajout manuel BO — l'admin
+    // opère dans le contexte shop-switcher du BO). La boîte IMAP
+    // partagée (checkBounceMailbox()) n'a AUCUN signal de boutique
+    // fiable par message et reste toujours enregistrée en global
+    // (id_shop=0), quel que soit ce contexte.
+    private int $idShop;
 
-    public function __construct(\Module $module)
+    public function __construct(\Neria $module)
     {
         $this->module = $module;
+        $this->idShop = (int) \Context::getContext()->shop->id;
     }
 
     /**
@@ -59,36 +69,25 @@ class BounceManager
     // ══════════════════════════════════════════════════════════════════════
 
     /**
-     * Retourne true si l'adresse doit être bloquée (hard bounce actif,
-     * ou soft bounce ayant dépassé le seuil).
+     * Round 15/09/2026 (bloc d, arbitrage produit — scoping bounces) :
+     * `neria_bounces` a désormais une colonne `id_shop` (0 = enregistrement
+     * GLOBAL, ancien comportement/tout bounce IMAP — aucune boutique fiable
+     * ne peut être déduite d'une boîte de réception Return-Path partagée ;
+     * N = scopé à la boutique N, écrit uniquement par le webhook ESP ou
+     * l'ajout manuel BO quand `NERIA_BOUNCE_CROSS_SHOP_ENABLED` est
+     * désactivé — voir recordBounce()). isBounced() reste STATIQUE (des
+     * dizaines d'appelants existants l'utilisent ainsi sans instance) et
+     * consulte désormais À LA FOIS la ligne globale (id_shop=0) ET la
+     * ligne scopée à la boutique ambiante : un bounce global bloque
+     * TOUJOURS (filet de sécurité, jamais moins protecteur qu'avant ce
+     * correctif), un bounce scopé à une boutique ne bloque QUE cette
+     * boutique. Extrait dans evaluateBounceRow() pour appliquer
+     * exactement la même logique (hard bounce jamais réhabilité
+     * automatiquement, expiration/seuil des soft bounces) aux 2 lignes
+     * sans dupliquer le raisonnement.
      */
-    public static function isBounced(string $email): bool
+    private static function evaluateBounceRow(?array $row): bool
     {
-        $email = mb_strtolower(trim($email));
-        if ($email === '') {
-            return false;
-        }
-
-        // months_since_bounce calculé côté SQL (TIMESTAMPDIFF, horloge MySQL)
-        // plutôt qu'en PHP (strtotime('now') - strtotime(last_bounce_at)) —
-        // last_bounce_at est désormais stampée avec NOW() à l'écriture
-        // (recordBounce()), donc comparer avec l'horloge PHP introduirait le
-        // même risque de décalage serveur web/serveur DB que celui corrigé
-        // pour neria_stat.date_add.
-        // Round 218 : $use_cache=false, même famille de bug que les rounds
-        // 210-217 — ce garde-fou est vérifié avant CHAQUE Mail::Send().
-        // Sans ce paramètre, un hard bounce fraîchement enregistré via le
-        // webhook ESP pourrait ne pas être vu immédiatement par un envoi
-        // groupé du même cron, contournant silencieusement le filtre
-        // anti-bounce.
-        $row = \Db::getInstance()->getRow(
-            'SELECT `type`, `bounce_count`, `status`,
-                    TIMESTAMPDIFF(MONTH, `last_bounce_at`, NOW()) AS months_since_bounce
-             FROM `' . _DB_PREFIX_ . self::TABLE . '`
-             WHERE `email` = \'' . pSQL($email) . '\'',
-            false
-        );
-
         if (!$row || $row['status'] !== 'active') {
             return false;
         }
@@ -115,6 +114,47 @@ class BounceManager
         // Soft bounce : bloquer uniquement si seuil dépassé
         $threshold = (int) \Configuration::get(self::CFG_SOFT_THRESHOLD) ?: 3;
         return (int) $row['bounce_count'] >= $threshold;
+    }
+
+    /**
+     * Retourne true si l'adresse doit être bloquée (hard bounce actif,
+     * ou soft bounce ayant dépassé le seuil) — sur la ligne globale
+     * (id_shop=0) OU sur la ligne scopée à la boutique ambiante/fournie.
+     */
+    public static function isBounced(string $email, ?int $idShop = null): bool
+    {
+        $email = mb_strtolower(trim($email));
+        if ($email === '') {
+            return false;
+        }
+        $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
+
+        // months_since_bounce calculé côté SQL (TIMESTAMPDIFF, horloge MySQL)
+        // plutôt qu'en PHP (strtotime('now') - strtotime(last_bounce_at)) —
+        // last_bounce_at est désormais stampée avec NOW() à l'écriture
+        // (recordBounce()), donc comparer avec l'horloge PHP introduirait le
+        // même risque de décalage serveur web/serveur DB que celui corrigé
+        // pour neria_stat.date_add.
+        // Round 218 : $use_cache=false, même famille de bug que les rounds
+        // 210-217 — ce garde-fou est vérifié avant CHAQUE Mail::Send().
+        // Sans ce paramètre, un hard bounce fraîchement enregistré via le
+        // webhook ESP pourrait ne pas être vu immédiatement par un envoi
+        // groupé du même cron, contournant silencieusement le filtre
+        // anti-bounce.
+        $rows = \Db::getInstance()->executeS(
+            'SELECT `id_shop`, `type`, `bounce_count`, `status`,
+                    TIMESTAMPDIFF(MONTH, `last_bounce_at`, NOW()) AS months_since_bounce
+             FROM `' . _DB_PREFIX_ . self::TABLE . '`
+             WHERE `email` = \'' . pSQL($email) . '\' AND `id_shop` IN (0, ' . $idShop . ')',
+            true, false
+        ) ?: [];
+
+        foreach ($rows as $row) {
+            if (self::evaluateBounceRow($row)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -629,6 +669,17 @@ class BounceManager
         $source = in_array($source, ['imap', 'webhook', 'manual'], true) ? $source : 'manual';
         $reason = mb_substr($reason, 0, 500);
 
+        // Round 15/09/2026 (bloc d) : source 'imap' TOUJOURS globale
+        // (id_shop=0) — une boîte Return-Path partagée n'a aucun signal
+        // de boutique fiable par message. 'webhook'/'manual' respectent
+        // le réglage marchand : globale si le partage cross-shop est
+        // activé (comportement historique, par défaut pour les vieilles
+        // installs déjà migrées), scopée à $this->idShop sinon.
+        $cfg = new \ConfigManager($this->module);
+        $writeIdShop = ($source !== 'imap' && !$cfg->isBounceCrossShopEnabled())
+            ? $this->idShop
+            : 0;
+
         $db  = \Db::getInstance();
 
         // Un soft bounce expiré (voir isBounced()) doit reprendre à 1, pas
@@ -676,9 +727,9 @@ class BounceManager
         // n'était en réalité pas protégée contre un futur envoi.
         $inserted336 = $db->execute(
             'INSERT INTO `' . _DB_PREFIX_ . self::TABLE . '`
-                (`email`, `type`, `reason`, `source`, `bounce_count`, `last_bounce_at`, `status`, `date_add`)
+                (`email`, `id_shop`, `type`, `reason`, `source`, `bounce_count`, `last_bounce_at`, `status`, `date_add`)
              VALUES (
-                \'' . pSQL($email) . '\', \'' . pSQL($type) . '\', \'' . pSQL($reason) . '\',
+                \'' . pSQL($email) . '\', ' . $writeIdShop . ', \'' . pSQL($type) . '\', \'' . pSQL($reason) . '\',
                 \'' . pSQL($source) . '\', 1, NOW(), \'active\', NOW()
              )
              ON DUPLICATE KEY UPDATE
@@ -726,10 +777,15 @@ class BounceManager
             $f     = pSQL(str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filter));
             $where = " AND (`email` LIKE '%$f%' OR `reason` LIKE '%$f%')";
         }
+        // Round 15/09/2026 (bloc d) : nom de boutique résolu via LEFT JOIN
+        // (NULL si id_shop=0/global ou si la boutique a été supprimée
+        // depuis) — bounces.tpl affiche "Toutes boutiques" dans ce cas.
         return \Db::getInstance()->executeS(
-            'SELECT * FROM `' . _DB_PREFIX_ . self::TABLE . '`
+            'SELECT b.*, s.name AS shop_name
+             FROM `' . _DB_PREFIX_ . self::TABLE . '` b
+             LEFT JOIN `' . _DB_PREFIX_ . 'shop` s ON s.id_shop = b.id_shop
              WHERE 1' . $where . '
-             ORDER BY `last_bounce_at` DESC
+             ORDER BY b.last_bounce_at DESC
              LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset
         ) ?: [];
     }
@@ -765,21 +821,28 @@ class BounceManager
         ];
     }
 
-    public function ignoreBounce(string $email): bool
+    // Round 15/09/2026 (bloc d) : ignoreBounce()/reactivateBounce()/
+    // deleteBounce() opèrent désormais sur `id` (clé primaire réelle de
+    // neria_bounces), pas `email` — depuis que le scoping par boutique
+    // permet PLUSIEURS lignes pour un même email (une globale id_shop=0,
+    // une ou plusieurs scopées), agir "par email" était devenu ambigu :
+    // quelle ligne ignorer/réactiver/supprimer si plusieurs existent
+    // pour la même adresse ? getBounceList() expose déjà `id` (SELECT *),
+    // le BO (bounces.tpl) transmet désormais cet identifiant.
+    public function ignoreBounce(int $id): bool
     {
         // Round 315 : existence vérifiée AVANT l'UPDATE plutôt que via
-        // Affected_Rows() après — un email déjà au statut 'ignored' (bouton
+        // Affected_Rows() après — une ligne déjà au statut 'ignored' (bouton
         // recliqué, ou onglet BO ouvert deux fois) donne Affected_Rows()=0
         // bien que la ligne existe réellement (aucune valeur changée), même
         // fausse ambiguïté déjà documentée pour SeasonalCampaignManager::
         // update() (round 311) — Db::execute() renvoie toujours true tant
         // que la requête SQL elle-même a réussi, y compris quand AUCUNE
-        // ligne ne correspond à l'email (faute de frappe, ligne déjà
+        // ligne ne correspond à l'id (faute de frappe, ligne déjà
         // supprimée par un autre onglet BO), affichant "Bounce ignoré" à
         // tort.
-        $emailSql = pSQL(mb_strtolower(trim($email)));
         $exists = (bool) \Db::getInstance()->getValue(
-            'SELECT 1 FROM `' . _DB_PREFIX_ . self::TABLE . '` WHERE `email` = \'' . $emailSql . '\'',
+            'SELECT 1 FROM `' . _DB_PREFIX_ . self::TABLE . '` WHERE `id` = ' . (int) $id,
             false
         );
         if (!$exists) {
@@ -788,12 +851,12 @@ class BounceManager
         \Db::getInstance()->execute(
             'UPDATE `' . _DB_PREFIX_ . self::TABLE . '`
              SET `status` = \'ignored\'
-             WHERE `email` = \'' . $emailSql . '\''
+             WHERE `id` = ' . (int) $id
         );
         return true;
     }
 
-    public function reactivateBounce(string $email): bool
+    public function reactivateBounce(int $id): bool
     {
         // bounce_count remis à 0 (pas seulement status='active') : sans ça,
         // une adresse ayant dépassé le seuil (ex. bounce_count=5, seuil=3)
@@ -805,10 +868,9 @@ class BounceManager
         // inopérante pour toute adresse au-dessus du seuil.
         // Round 315 : existence vérifiée AVANT l'UPDATE — même raisonnement
         // que ignoreBounce() ci-dessus (fausse ambiguïté Affected_Rows()
-        // sur une adresse déjà 'active'/bounce_count=0).
-        $emailSql = pSQL(mb_strtolower(trim($email)));
+        // sur une ligne déjà 'active'/bounce_count=0).
         $exists = (bool) \Db::getInstance()->getValue(
-            'SELECT 1 FROM `' . _DB_PREFIX_ . self::TABLE . '` WHERE `email` = \'' . $emailSql . '\'',
+            'SELECT 1 FROM `' . _DB_PREFIX_ . self::TABLE . '` WHERE `id` = ' . (int) $id,
             false
         );
         if (!$exists) {
@@ -829,22 +891,22 @@ class BounceManager
         \Db::getInstance()->execute(
             'UPDATE `' . _DB_PREFIX_ . self::TABLE . '`
              SET `status` = \'active\', `bounce_count` = 0, `type` = \'soft\'
-             WHERE `email` = \'' . $emailSql . '\''
+             WHERE `id` = ' . (int) $id
         );
         return true;
     }
 
-    public function deleteBounce(string $email): bool
+    public function deleteBounce(int $id): bool
     {
         // Round 315 : Affected_Rows() vérifié — DELETE est un vrai
         // indicateur fiable ici (pas d'ambiguïté "valeurs resoumises
         // identiques" possible pour une suppression). Db::delete()
         // renvoyait toujours true tant que la requête SQL réussissait,
-        // même quand aucune ligne ne correspondait à l'email (déjà
+        // même quand aucune ligne ne correspondait à l'id (déjà
         // supprimé par un autre onglet BO, faute de frappe).
         \Db::getInstance()->delete(
             self::TABLE,
-            '`email` = \'' . pSQL(mb_strtolower(trim($email))) . '\''
+            '`id` = ' . (int) $id
         );
         return (int) \Db::getInstance()->Affected_Rows() > 0;
     }

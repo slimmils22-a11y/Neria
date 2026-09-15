@@ -102,6 +102,15 @@ class ConfigManager
     const KEY_MILESTONE_VOUCHER_PERCENT = 'NERIA_MILESTONE_VOUCHER_PERCENT';
     const KEY_VOUCHER_FIXED_CAP = 'NERIA_VOUCHER_FIXED_CAP';
     const KEY_LOYALTY_CROSS_SHOP_ENABLED = 'NERIA_LOYALTY_CROSS_SHOP_ENABLED';
+    // Round 15/09/2026 (bloc d, arbitrage produit) : défaut INVERSE de
+    // KEY_LOYALTY_CROSS_SHOP_ENABLED (qui vaut 1 par défaut) — délibéré,
+    // pas une incohérence. Un cumul de points de fidélité partagé par
+    // erreur entre boutiques est gênant mais réversible ; un email
+    // bloqué silencieusement sur une boutique qui n'a jamais eu de
+    // problème de délivrabilité est une perte de vente potentielle
+    // jamais détectée. Décidé avec l'utilisateur : scoping par défaut,
+    // partage en option pour les marchands qui le veulent explicitement.
+    const KEY_BOUNCE_CROSS_SHOP_ENABLED = 'NERIA_BOUNCE_CROSS_SHOP_ENABLED';
 
     // ── Centre de contrôle (visibilité menu BO) ────────────────────
     const KEY_MENU_HIDDEN_ITEMS = 'NERIA_MENU_HIDDEN_ITEMS';
@@ -183,6 +192,7 @@ class ConfigManager
         self::KEY_VOUCHER_FIXED_CAP  => 10000,
         self::KEY_MILESTONE_VOUCHER_PERCENT => 1,
         self::KEY_LOYALTY_CROSS_SHOP_ENABLED => 1,
+        self::KEY_BOUNCE_CROSS_SHOP_ENABLED  => 0,
         self::KEY_MENU_HIDDEN_ITEMS  => '[]',
         self::KEY_COOLDOWN_ENABLED    => 0,
         self::KEY_COOLDOWN_MINUTES    => 10,
@@ -835,6 +845,14 @@ class ConfigManager
     public function isLoyaltyCrossShopEnabled(): bool
     {
         return (bool) $this->get(self::KEY_LOYALTY_CROSS_SHOP_ENABLED, 1);
+    }
+
+    // Round 15/09/2026 (bloc d) : défaut 0 (scoping), volontairement
+    // inverse de isLoyaltyCrossShopEnabled() — voir le commentaire de la
+    // constante KEY_BOUNCE_CROSS_SHOP_ENABLED pour la justification.
+    public function isBounceCrossShopEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_BOUNCE_CROSS_SHOP_ENABLED, 0);
     }
 
     // ================================================================
