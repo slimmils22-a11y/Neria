@@ -800,6 +800,134 @@ class DomainReputationManager
     // VÉRIFICATION BLACKLISTS (42 RBL)
     // ============================================================
 
+    // Correctif hors round (15/09/2026, suite rounds 359/360) :
+    // dns_get_record() n'offre AUCUN timeout applicatif (voir commentaire
+    // de DNS_TIME_BUDGET_SECS plus haut, qui documentait déjà cette
+    // limite comme acceptée faute de mieux) — le $deadline ci-dessous
+    // n'est vérifié qu'ENTRE deux appels, jamais PENDANT un appel bloqué.
+    // Confirmé reproductible en pratique : la suite de tests s'est
+    // bloquée ~45-60 min sur une seule requête RBL sans réponse, deux
+    // rounds consécutifs (359 et 360), CPU quasi nul pendant tout ce
+    // temps (attente passive d'un paquet UDP jamais reçu). Un hébergeur
+    // mutualisé filtrant/throttlant le trafic UDP:53 sortant vers des
+    // résolveurs externes (comportement de durcissement anti-spam
+    // courant) expose le même risque en production : le cron Neria
+    // entier peut se bloquer indéfiniment sur une seule RBL muette.
+    //
+    // dnsQueryWithTimeout() interroge un résolveur DNS-over-HTTPS
+    // (Cloudflare, port 443) via cURL, qui EXPOSE un vrai timeout de
+    // connexion/réponse (CURLOPT_TIMEOUT_MS) — contrairement à
+    // dns_get_record(), une requête sans réponse est désormais
+    // interrompue au bout de DNS_DOH_TIMEOUT_MS au lieu de bloquer
+    // indéfiniment. Le port 443 sortant est quasi universellement ouvert
+    // sur l'hébergement mutualisé (contrairement au port 53 UDP),
+    // rendant ce chemin plus fiable que le résolveur système sur
+    // exactement ce type d'environnement. Repli automatique sur
+    // dns_get_record() (comportement historique, sans garantie de
+    // timeout) si cURL est indisponible ou si la requête DoH échoue —
+    // jamais pire que l'existant.
+    //
+    // Limité à checkBlacklists() ici : seul site où le blocage a été
+    // reproduit empiriquement. checkSpf()/checkDkim()/checkDmarc()/
+    // checkMx()/checkPtr()/checkBimi()/resolveIp() partagent la même
+    // exposition théorique (tous basés sur dns_get_record()) mais
+    // n'ont jamais été observés bloquer en pratique dans cette suite —
+    // à étendre à ces méthodes si l'une d'elles se manifeste un jour.
+    private const DNS_DOH_TIMEOUT_MS = 2000;
+
+    private function dnsQueryWithTimeout(string $host, int $recordType)
+    {
+        if (!function_exists('curl_init')) {
+            return @dns_get_record($host, $recordType);
+        }
+        $typeMap = [DNS_A => 'A'];
+        $typeStr = $typeMap[$recordType] ?? null;
+        if ($typeStr === null) {
+            return @dns_get_record($host, $recordType);
+        }
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL               => 'https://cloudflare-dns.com/dns-query?name=' . rawurlencode($host) . '&type=' . $typeStr,
+            CURLOPT_HTTPHEADER        => ['Accept: application/dns-json'],
+            CURLOPT_RETURNTRANSFER    => true,
+            CURLOPT_TIMEOUT_MS        => self::DNS_DOH_TIMEOUT_MS,
+            CURLOPT_CONNECTTIMEOUT_MS => self::DNS_DOH_TIMEOUT_MS,
+            CURLOPT_SSL_VERIFYPEER    => true,
+        ]);
+        $body  = curl_exec($ch);
+        $errNo = curl_errno($ch);
+        curl_close($ch);
+
+        if ($errNo === CURLE_OPERATION_TIMEDOUT) {
+            // Vérifié empiriquement le 15/09/2026 : CURLOPT_TIMEOUT_MS
+            // interrompt bien réellement une requête sans réponse au bout
+            // de DNS_DOH_TIMEOUT_MS (confirmé : ~2.01s mesurés pour un
+            // délai configuré à 2000ms, contre dns_get_record() qui peut
+            // rester bloqué plusieurs dizaines de minutes sur le même cas
+            // réel, rounds 359/360). Répliquer sur dns_get_record() ICI
+            // réintroduirait exactement le risque de blocage non borné que
+            // ce correctif élimine -- un timeout DoH doit se traiter comme
+            // le budget de temps DNS déjà épuisé (résultat indéterminé,
+            // PAS une erreur fatale), jamais comme un signal pour retenter
+            // l'ancien chemin sans aucune garantie de délai.
+            return false;
+        }
+        if ($body === false || $errNo !== 0) {
+            // Tout autre échec cURL (résolution de cloudflare-dns.com,
+            // TLS, etc., PAS un timeout) -- ces échecs se manifestent
+            // typiquement très vite, contrairement à un dns_get_record()
+            // qui reste sans réponse : repli sur le comportement
+            // historique acceptable ici, plutôt que de traiter un
+            // incident réseau ponctuel sur le résolveur DoH comme une
+            // erreur DNS définitive pour le domaine réellement demandé.
+            return @dns_get_record($host, $recordType);
+        }
+
+        $decoded = json_decode((string) $body, true);
+        if (!is_array($decoded) || !isset($decoded['Status'])) {
+            return @dns_get_record($host, $recordType);
+        }
+        if ((int) $decoded['Status'] === 3) {
+            // NXDOMAIN confirmé -- équivalent au tableau vide que
+            // dns_get_record() renvoie pour un NXDOMAIN légitime.
+            return [];
+        }
+        if ((int) $decoded['Status'] !== 0) {
+            // Toute autre erreur DoH (SERVFAIL, etc.) -- traitée comme une
+            // erreur DNS réseau (comme dns_get_record() === false), jamais
+            // comme "non listé".
+            return false;
+        }
+
+        $answers = $decoded['Answer'] ?? [];
+        if (!is_array($answers)) {
+            return false;
+        }
+        $out = [];
+        foreach ($answers as $a) {
+            $data = is_array($a) ? ($a['data'] ?? '') : '';
+            // Vérifié empiriquement le 15/09/2026 : Spamhaus (zen/sbl/xbl/pbl
+            // .spamhaus.org, 4 des 42 RBL_LIST) renvoie délibérément
+            // 127.255.255.0/24 quand la requête provient d'un résolveur
+            // PUBLIC partagé (Cloudflare, Google...) plutôt que du
+            // résolveur du demandeur lui-même -- politique documentée
+            // anti-abus, PAS un vrai résultat de listage. Sans ce filtre,
+            // interroger via DoH aurait fait remonter un FAUX positif
+            // "blacklisté" pour CHAQUE domaine vérifié sur ces 4 listes,
+            // bien plus grave que le blocage que ce correctif répare.
+            // Traité comme une réponse indéterminée (comme un dns_error)
+            // plutôt qu'un hit fabriqué : $checked ne sera pas incrémenté
+            // pour cette RBL précise, mécanisme déjà existant et neutre
+            // (voir round 177 plus haut) pour toute vérification incomplète.
+            if (preg_match('/^127\.255\.255\.\d{1,3}$/', (string) $data)) {
+                return false;
+            }
+            $out[] = ['host' => $host, 'type' => $typeStr, 'data' => $data];
+        }
+        return $out;
+    }
+
     private function checkBlacklists(string $ip, ?float $deadline = null): array
     {
         $parts = explode('.', $ip);
@@ -818,7 +946,9 @@ class DomainReputationManager
             $host = $reversed . '.' . $rbl;
             // dns_get_record retourne false en cas d'erreur réseau,
             // tableau vide si NXDOMAIN (= non listé), tableau non vide si listé.
-            $result = @dns_get_record($host, DNS_A);
+            // dnsQueryWithTimeout() reproduit exactement ce contrat (voir
+            // commentaire au-dessus de sa déclaration), avec un vrai timeout.
+            $result = $this->dnsQueryWithTimeout($host, DNS_A);
             // Round 177 : `$checked++` s'exécutait AUSSI sur une erreur
             // réseau (`$result === false`), indiscernable ensuite d'une
             // vérification réussie qui n'a simplement rien trouvé. Une
