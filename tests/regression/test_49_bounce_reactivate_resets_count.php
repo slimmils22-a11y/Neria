@@ -35,7 +35,7 @@ function run_test(): array
         $mgr = new BounceManager(neria_test_module());
         neria_assert(BounceManager::isBounced($email) === true, "jeu de test invalide : l'adresse ne semble pas bloquée avant réactivation (bounce_count=5, seuil par défaut 3)");
 
-        $mgr->reactivateBounce($email);
+        $mgr->reactivateBounce($idBounce);
 
         $row = $db->getRow(
             "SELECT status, bounce_count FROM {$prefix}neria_bounces WHERE id = {$idBounce}"

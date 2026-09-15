@@ -37,6 +37,10 @@ function run_test(): array
             "INSERT INTO {$prefix}neria_bounces (email, type, bounce_count, status, last_bounce_at, date_add)
              VALUES ('" . pSQL($email) . "', 'hard', 1, 'active', NOW(), NOW())"
         );
+        // Insert_ID() n'est fiable que juste après l'INSERT — toute requête
+        // intercalée (même un simple SELECT via isBounced() ci-dessous) peut
+        // le remettre à 0 selon le pilote MySQL, d'où la capture immédiate.
+        $idBounce = (int) $db->Insert_ID();
 
         neria_assert(
             BounceManager::isBounced($email) === true,
@@ -44,7 +48,7 @@ function run_test(): array
         );
 
         $mgr = new BounceManager(neria_test_module());
-        $result = $mgr->reactivateBounce($email);
+        $result = $mgr->reactivateBounce($idBounce);
         neria_assert($result === true, "reactivateBounce() a retourné false pour une adresse existante — jeu de test invalide");
 
         neria_assert(

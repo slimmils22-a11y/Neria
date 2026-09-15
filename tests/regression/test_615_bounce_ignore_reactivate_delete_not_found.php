@@ -40,42 +40,44 @@ function run_test(): array
         $mgr->addManualBounce($email, 'hard');
         $row = $db->getRow("SELECT * FROM " . _DB_PREFIX_ . "neria_bounces WHERE email = '" . pSQL($email) . "'");
         neria_assert($row !== false, 'addManualBounce() n\'a pas créé la ligne — jeu de test invalide');
+        $idBounce = (int) $row['id'];
+        $ghostId  = (int) $db->getValue("SELECT MAX(id) FROM " . _DB_PREFIX_ . "neria_bounces") + 999999;
 
-        // Email fantôme : les 3 méthodes doivent renvoyer false.
+        // Id fantôme : les 3 méthodes doivent renvoyer false.
         neria_assert(
-            $mgr->ignoreBounce($ghost) === false,
-            "ignoreBounce() renvoie true pour un email inexistant ({$ghost}) — régression du bug corrigé le 07/09/2026 (round 315) : le marchand verrait 'Bounce ignoré' alors qu'aucune ligne n'a été modifiée"
+            $mgr->ignoreBounce($ghostId) === false,
+            "ignoreBounce() renvoie true pour un id inexistant ({$ghostId}) — régression du bug corrigé le 07/09/2026 (round 315) : le marchand verrait 'Bounce ignoré' alors qu'aucune ligne n'a été modifiée"
         );
         neria_assert(
-            $mgr->reactivateBounce($ghost) === false,
-            "reactivateBounce() renvoie true pour un email inexistant ({$ghost}) — régression du bug corrigé le 07/09/2026 (round 315)"
+            $mgr->reactivateBounce($ghostId) === false,
+            "reactivateBounce() renvoie true pour un id inexistant ({$ghostId}) — régression du bug corrigé le 07/09/2026 (round 315)"
         );
         neria_assert(
-            $mgr->deleteBounce($ghost) === false,
-            "deleteBounce() renvoie true pour un email inexistant ({$ghost}) — régression du bug corrigé le 07/09/2026 (round 315)"
+            $mgr->deleteBounce($ghostId) === false,
+            "deleteBounce() renvoie true pour un id inexistant ({$ghostId}) — régression du bug corrigé le 07/09/2026 (round 315)"
         );
 
-        // Email réel : ignoreBounce() puis reactivateBounce() doivent
+        // Id réel : ignoreBounce() puis reactivateBounce() doivent
         // renvoyer true et produire un effet réel vérifiable en base.
         neria_assert(
-            $mgr->ignoreBounce($email) === true,
-            "ignoreBounce() renvoie false pour un email réellement présent ({$email}) — jeu de test invalide ou régression"
+            $mgr->ignoreBounce($idBounce) === true,
+            "ignoreBounce() renvoie false pour un id réellement présent ({$idBounce}) — jeu de test invalide ou régression"
         );
-        $status = $db->getValue("SELECT status FROM " . _DB_PREFIX_ . "neria_bounces WHERE email = '" . pSQL($email) . "'");
+        $status = $db->getValue("SELECT status FROM " . _DB_PREFIX_ . "neria_bounces WHERE id = {$idBounce}");
         neria_assert($status === 'ignored', "ignoreBounce() n'a pas mis status='ignored' en base (obtenu " . var_export($status, true) . ")");
 
         neria_assert(
-            $mgr->reactivateBounce($email) === true,
-            "reactivateBounce() renvoie false pour un email réellement présent ({$email}) — jeu de test invalide ou régression"
+            $mgr->reactivateBounce($idBounce) === true,
+            "reactivateBounce() renvoie false pour un id réellement présent ({$idBounce}) — jeu de test invalide ou régression"
         );
-        $status2 = $db->getValue("SELECT status FROM " . _DB_PREFIX_ . "neria_bounces WHERE email = '" . pSQL($email) . "'");
+        $status2 = $db->getValue("SELECT status FROM " . _DB_PREFIX_ . "neria_bounces WHERE id = {$idBounce}");
         neria_assert($status2 === 'active', "reactivateBounce() n'a pas remis status='active' en base (obtenu " . var_export($status2, true) . ")");
 
         neria_assert(
-            $mgr->deleteBounce($email) === true,
-            "deleteBounce() renvoie false pour un email réellement présent ({$email}) — jeu de test invalide ou régression"
+            $mgr->deleteBounce($idBounce) === true,
+            "deleteBounce() renvoie false pour un id réellement présent ({$idBounce}) — jeu de test invalide ou régression"
         );
-        $stillThere = $db->getValue("SELECT COUNT(*) FROM " . _DB_PREFIX_ . "neria_bounces WHERE email = '" . pSQL($email) . "'");
+        $stillThere = $db->getValue("SELECT COUNT(*) FROM " . _DB_PREFIX_ . "neria_bounces WHERE id = {$idBounce}");
         neria_assert((int) $stillThere === 0, "deleteBounce() n'a pas réellement supprimé la ligne");
     } finally {
         $db->execute("DELETE FROM " . _DB_PREFIX_ . "neria_bounces WHERE email IN ('" . pSQL($email) . "', '" . pSQL($ghost) . "')");

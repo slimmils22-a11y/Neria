@@ -29,8 +29,11 @@ function run_test(): array
 
     $bo = file_get_contents($base . 'src/BounceManager.php');
     neria_assert($bo !== false, 'Impossible de lire src/BounceManager.php');
+    // Round 15/09/2026 (bloc d) : la requête a changé (colonne id_shop +
+    // clause IN (0, $idShop) pour le scoping multi-boutique), mais reste
+    // un executeS(..., true, false) — aiguille mise à jour en conséquence.
     neria_assert(
-        strpos($bo, "WHERE `email` = \\'' . pSQL(\$email) . '\\'',\n            false\n        );") !== false,
+        strpos($bo, "AND `id_shop` IN (0, ' . \$idShop . ')',\n            true, false\n        ) ?: [];") !== false,
         "BounceManager::isBounced() n'a plus \$use_cache=false — régression du bug corrigé le 26/08/2026 (round 218)"
     );
 

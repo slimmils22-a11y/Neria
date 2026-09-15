@@ -44,7 +44,8 @@ function run_test(): array
         // 1) Soft bounce puis ignoré explicitement — isBounced() doit
         // renvoyer false.
         $mgr->recordBounce($email, 'soft', 'mailbox full (regtest572)');
-        $mgr->ignoreBounce($email);
+        $idBounce = (int) $db->getValue("SELECT id FROM " . _DB_PREFIX_ . "neria_bounces WHERE email = '" . pSQL($email) . "'");
+        $mgr->ignoreBounce($idBounce);
         neria_assert(
             BounceManager::isBounced($email) === false,
             "isBounced() renvoie true juste après ignoreBounce() — jeu de test invalide"
@@ -68,7 +69,7 @@ function run_test(): array
         // 3) Comportement préservé : un nouveau SOFT bounce sur une
         // adresse ignorée ne doit PAS la réactiver (respect du jugement
         // du marchand sur un incident jugé transitoire).
-        $mgr->ignoreBounce($email);
+        $mgr->ignoreBounce($idBounce);
         neria_assert(BounceManager::isBounced($email) === false, "jeu de test invalide : ignoreBounce() n'a pas remis status='ignored'");
         $mgr->recordBounce($email, 'soft', 'mailbox full again (regtest572)');
         neria_assert(
