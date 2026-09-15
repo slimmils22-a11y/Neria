@@ -5822,6 +5822,30 @@ class HealthCheckManager
             $offenders[] = "ConfigManager::toggleBooleanKey()/toggleMenuItemVisibility() n'utilisent plus des noms de verrou MySQL scopés par \$this->idShop — régression du bug corrigé le 15/09/2026 (round 360) : 2 boutiques indépendantes se bloqueraient de nouveau mutuellement sur le même toggle";
         }
 
+        // Correctif hors round (15/09/2026, suite rounds 359/360) :
+        // DomainReputationManager::checkBlacklists() doit interroger via
+        // dnsQueryWithTimeout() (résolveur DoH avec timeout borné), pas
+        // dns_get_record() directement (aucun timeout applicatif —
+        // confirmé bloquer run_all.php ~45-60 min sur une seule requête
+        // RBL sans réponse). Un timeout cURL doit rester `return false`
+        // (jamais un repli sur dns_get_record(), qui réintroduirait le
+        // blocage non borné), et la réponse anti-abus 127.255.255.x de
+        // Spamhaus doit rester filtrée (sinon chaque domaine vérifié
+        // serait à tort signalé blacklisté sur 4 des 42 RBL_LIST).
+        $drmSrc360b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc360b === ''
+            || strpos($drmSrc360b, 'private function dnsQueryWithTimeout(string $host, int $recordType)') === false
+            || strpos($drmSrc360b, '$result = $this->dnsQueryWithTimeout($host, DNS_A);') === false
+        ) {
+            $offenders[] = "DomainReputationManager::checkBlacklists() n'utilise plus dnsQueryWithTimeout() — régression du correctif hors round du 15/09/2026 : dns_get_record() sans timeout applicatif redeviendrait le chemin direct, réexposant le module à un blocage non borné du cron sur une seule RBL sans réponse";
+        }
+        if ($drmSrc360b === ''
+            || strpos($drmSrc360b, 'if ($errNo === CURLE_OPERATION_TIMEDOUT) {') === false
+            || strpos($drmSrc360b, "preg_match('/^127\\.255\\.255\\.\\d{1,3}\$/', (string) \$data)") === false
+        ) {
+            $offenders[] = "DomainReputationManager::dnsQueryWithTimeout() ne traite plus le timeout cURL comme un résultat indéterminé, ou ne filtre plus la réponse anti-abus 127.255.255.x de Spamhaus — régression du correctif hors round du 15/09/2026 : soit un repli sur dns_get_record() réintroduirait le blocage non borné, soit chaque domaine vérifié serait à tort signalé blacklisté sur zen/sbl/xbl/pbl.spamhaus.org";
+        }
+
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
         // throttle réseau indépendant, son verrou, sa distinction de
         // révocation, et la purge de l'état résiduel quand CONFIG_KEY est vide.
