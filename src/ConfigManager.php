@@ -445,10 +445,18 @@ class ConfigManager
         $this->idShop = $idShop ?? (int) \Context::getContext()->shop->id;
     }
 
+    // Round 360 : $this->idShop transmis explicitement — sans lui, un
+    // ConfigManager construit sur une boutique différente du contexte
+    // ambiant (ex. EmailRenderer::resolveShopId() scopé multi-sender,
+    // round 351) journalisait via son WatchdogManager interne sous
+    // l'id_shop AMBIANT, pas celui réellement traité par cette instance
+    // (toggleBooleanKey()/toggleMenuItemVisibility()/uploadLogo() en
+    // seraient affectés dès qu'un appelant combine un $idShop non ambiant
+    // avec une de ces méthodes).
     private function watchdog(): \WatchdogManager
     {
         if ($this->watchdog === null) {
-            $this->watchdog = new \WatchdogManager($this->module);
+            $this->watchdog = new \WatchdogManager($this->module, $this->idShop);
         }
         return $this->watchdog;
     }
@@ -708,7 +716,12 @@ class ConfigManager
     private function toggleBooleanKey(string $key, string $getter, string $setter): bool
     {
         $db = \Db::getInstance();
-        $lockName = 'neria_toggle_' . $key;
+        // Round 360 : verrou scopé par boutique — sans $this->idShop, deux
+        // boutiques indépendantes basculant le MÊME toggle au même moment
+        // se bloquaient mutuellement (jusqu'à 3s) sans nécessité, alors que
+        // chaque instance agit déjà exclusivement sur sa propre boutique
+        // via $getter/$setter (aucun risque de donnée partagée entre elles).
+        $lockName = 'neria_toggle_' . $key . '_' . $this->idShop;
         $gotLock = (int) $db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)", false);
         if ($gotLock !== 1) {
             // Round 141 : GET_LOCK() renvoie 0 (timeout) ou NULL (erreur) —
@@ -944,7 +957,13 @@ class ConfigManager
         // toggleBooleanKey() (round 141), jamais porté ici. Sous contention,
         // on refuse la bascule plutôt que de modifier la config sans
         // protection (même stratégie que la méthode jumelle).
-        $gotLock = (int) $db->getValue("SELECT GET_LOCK('neria_menu_hidden_items', 3)", false);
+        // Round 360 : verrou scopé par boutique — la clé protégée
+        // (KEY_MENU_HIDDEN_ITEMS, écrite via updateValue(..., $this->idShop)
+        // depuis le round 181) l'est déjà elle-même ; deux boutiques
+        // indépendantes basculant un item de menu au même moment se
+        // bloquaient mutuellement (jusqu'à 3s) sans nécessité.
+        $lockNameMenu = 'neria_menu_hidden_items_' . $this->idShop;
+        $gotLock = (int) $db->getValue("SELECT GET_LOCK('" . pSQL($lockNameMenu) . "', 3)", false);
         if ($gotLock !== 1) {
             $this->watchdog()->warning(
                 'ConfigManager::toggleMenuItemVisibility() : verrou MySQL non acquis pour ' . $key . ', bascule annulée',
@@ -975,7 +994,7 @@ class ConfigManager
             // juste après le toggle renverrait encore l'ancienne valeur.
             $this->cache[self::KEY_MENU_HIDDEN_ITEMS] = $encoded;
         } finally {
-            $db->execute("SELECT RELEASE_LOCK('neria_menu_hidden_items')");
+            $db->execute("SELECT RELEASE_LOCK('" . pSQL($lockNameMenu) . "')");
         }
     }
 

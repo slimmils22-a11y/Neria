@@ -56,11 +56,21 @@ class WatchdogManager
     private \Db   $db;
     private int   $idShop;
 
-    public function __construct(Neria $module)
+    // Round 360 : $idShop optionnel ajouté (même pattern déjà appliqué à
+    // ConfigManager/TranslationEngine/DomainReputationManager rounds
+    // 351/357/358) — sans lui, un appelant construit avec un $idShop
+    // explicite différent du contexte ambiant (ex. ConfigManager scopé
+    // sur une autre boutique via EmailRenderer::resolveShopId()) ne
+    // pouvait pas propager cette boutique à son propre WatchdogManager
+    // interne : tout log journalisé via cette instance retombait à tort
+    // sur la boutique du contexte ambiant plutôt que sur la boutique
+    // réellement traitée. Défaut à null = comportement historique
+    // (ambiant), donc aucun des nombreux appelants existants n'est affecté.
+    public function __construct(Neria $module, ?int $idShop = null)
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
-        $this->idShop = (int) \Context::getContext()->shop->id;
+        $this->idShop = $idShop ?? (int) \Context::getContext()->shop->id;
     }
 
     // ============================================================
@@ -365,11 +375,23 @@ class WatchdogManager
         // suivantes étaient absorbées par le throttle sans jamais être
         // mentionnées nulle part, laissant croire au marchand à un
         // incident isolé alors qu'une vraie panne était en cours.
+        // Round 360 : la borne de la fenêtre était calculée en PHP
+        // (date('Y-m-d H:i:s', $lastSent)) puis comparée à `date_add`, une
+        // colonne toujours écrite via NOW() MySQL (record(), plus bas) —
+        // un vrai décalage d'horloge PHP/MySQL (même de quelques secondes)
+        // pouvait sous- ou sur-compter le burst affiché dans l'email
+        // d'alerte. $lastSent et time() proviennent tous deux de l'horloge
+        // PHP (Configuration écrite via time() ci-dessous) : leur
+        // DIFFÉRENCE (durée écoulée) reste donc fiable indépendamment de
+        // MySQL. On applique cette durée comme INTERVAL depuis NOW() côté
+        // SQL plutôt que de comparer une chaîne de date absolue PHP à une
+        // colonne horodatée par un autre serveur.
+        $secondsSinceLastAlert = $lastSent > 0 ? (time() - $lastSent) : 86400;
         $burstCount = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . self::TABLE . '`
              WHERE id_shop = ' . $this->idShop . '
                AND level IN (\'' . self::LEVEL_ERROR . '\', \'' . self::LEVEL_CRITICAL . '\')
-               AND date_add >= \'' . date('Y-m-d H:i:s', $lastSent ?: (time() - 86400)) . '\''
+               AND date_add >= DATE_SUB(NOW(), INTERVAL ' . (int) $secondsSinceLastAlert . ' SECOND)'
         );
 
         \Configuration::updateGlobalValue(self::CFG_ALERT_LAST_SENT . '_' . $this->idShop, time());

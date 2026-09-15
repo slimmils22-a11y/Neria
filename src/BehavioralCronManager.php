@@ -60,7 +60,9 @@ class BehavioralCronManager
     private \Neria $module;
     private \Db $db;
     private string $prefix;
-    private ?\WatchdogManager $watchdog = null;
+    // Round 360 : plus de propriété $watchdog mémoïsée ici — voir watchdog()
+    // ci-dessous, désormais reconstruite à chaque appel pour capter la
+    // boutique ambiante réelle au moment de l'appel.
     // Round 352 : nombre d'étapes runStep() ayant échoué durant le run()
     // en cours — remis à 0 en tête de run(), lu juste avant le heartbeat
     // final pour distinguer un run réellement sain d'un run où toutes les
@@ -80,12 +82,27 @@ class BehavioralCronManager
         return ($ctx && $ctx->link) ? $ctx->link->getPageLink('history', true, $idLang > 0 ? $idLang : null, null, false, $idShop) : '';
     }
 
+    // Round 360 : ne mémoïse plus l'instance. WatchdogManager::__construct()
+    // capture Context::getContext()->shop->id UNE SEULE FOIS à
+    // l'instanciation ; l'ancienne version mémoïsée créait l'instance au
+    // tout premier appel (ligne ~98, AVANT la boucle multi-boutique de
+    // run()), figeant $idShop sur la boutique d'origine pour toute la
+    // durée du run() — chaque \Context::getContext()->shop = new \Shop(...)
+    // ultérieur dans les boucles par boutique n'était donc JAMAIS reflété :
+    // toutes les erreurs (segment_recompute_failed, churn_recompute_failed,
+    // gdpr_auto_purge_*, birthday_voucher_error, etc.) des boutiques
+    // suivantes étaient journalisées sous l'id_shop de la PREMIÈRE
+    // boutique traitée, invisibles pour leurs propres marchands et
+    // polluant à tort le journal de la première boutique. Même piège déjà
+    // corrigé pour SegmentManager/ChurnScoreManager/GdprAuditManager/
+    // PropensityScoreManager (rounds 49/112, commentaires ci-dessous) —
+    // jamais appliqué au WatchdogManager lui-même jusqu'ici. Le
+    // constructeur de WatchdogManager est une simple affectation de
+    // propriétés (aucune requête), donc reconstruire à chaque appel est
+    // sans coût réel.
     private function watchdog(): \WatchdogManager
     {
-        if ($this->watchdog === null) {
-            $this->watchdog = new \WatchdogManager($this->module);
-        }
-        return $this->watchdog;
+        return new \WatchdogManager($this->module);
     }
 
     /**
