@@ -6112,6 +6112,27 @@ class HealthCheckManager
             $offenders[] = "neria-emergency.php affiche de nouveau le message d'exception brut de la lecture des logs — régression du bug corrigé le 14/08/2026 (round 166) : une erreur SQL redeviendrait exposée en clair après authentification";
         }
 
+        // Bloc (d) feuille de route Addons (15/09/2026, arbitrage produit) :
+        // neria-emergency.php doit afficher les résultats de santé de
+        // CHAQUE boutique active séparément (agrégation), pas un seul
+        // SELECT ... LIMIT 1 arbitraire — sinon la page de secours peut de
+        // nouveau afficher les KPIs d'une AUTRE boutique que celle
+        // réellement en panne, précisément au pire moment pour s'y fier.
+        $emergSrc770 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria-emergency.php');
+        if ($emergSrc770 === ''
+            || strpos($emergSrc770, "SELECT `id_shop`, `name` FROM `{\$prefix}shop` WHERE `active` = 1") === false
+            || strpos($emergSrc770, 'foreach ($shopsForHealth as $s) {') === false
+            || strpos($emergSrc770, "ORDER BY (`id_shop` = ?) DESC LIMIT 1") === false
+        ) {
+            $offenders[] = "neria-emergency.php n'agrège plus les résultats de santé par boutique active — régression du bug corrigé le 15/09/2026 (bloc d) : un SELECT ... LIMIT 1 arbitraire redeviendrait le seul résultat affiché, potentiellement celui d'une autre boutique que celle réellement en panne";
+        }
+        if ($emergSrc770 === ''
+            || strpos($emergSrc770, 'SELECT `id_shop`, `level`, `template`, `class`, `message`, `date_add`') === false
+            || strpos($emergSrc770, "if (\$multiShopEmergency): ?>\n                <th>") === false
+        ) {
+            $offenders[] = "neria-emergency.php n'affiche plus la colonne Boutique dans le journal des logs sur une install multiboutique — régression du bug corrigé le 15/09/2026 (bloc d)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
