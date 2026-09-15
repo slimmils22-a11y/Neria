@@ -24,6 +24,11 @@
  * test_402 pour la même contrainte) : vérifie par lecture directe du
  * source que le retour de GET_LOCK() est bien assigné à une variable
  * testée avant toute écriture/RELEASE_LOCK().
+ *
+ * Round 360 : le nom du verrou de toggleMenuItemVisibility() est désormais
+ * scopé par boutique ($lockNameMenu = 'neria_menu_hidden_items_' .
+ * $this->idShop) — needle mise à jour en conséquence, intention round 196
+ * (retour de GET_LOCK() vérifié) inchangée.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -62,8 +67,8 @@ function run_test(): array
 
     $cfgSrc = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/ConfigManager.php');
     neria_assert($cfgSrc !== false, 'Impossible de lire src/ConfigManager.php');
-    $posMenuLock = strpos($cfgSrc, "GET_LOCK('neria_menu_hidden_items', 3)");
-    neria_assert($posMenuLock !== false, "Appel GET_LOCK('neria_menu_hidden_items', 3) introuvable — jeu de test invalide");
+    $posMenuLock = strpos($cfgSrc, "GET_LOCK('\" . pSQL(\$lockNameMenu) . \"', 3)");
+    neria_assert($posMenuLock !== false, "Appel GET_LOCK('\" . pSQL(\$lockNameMenu) . \"', 3) introuvable — jeu de test invalide");
     $before = substr($cfgSrc, max(0, $posMenuLock - 60), 60);
     neria_assert(
         strpos($before, '$gotLock = ') !== false,

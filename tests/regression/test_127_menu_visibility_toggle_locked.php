@@ -19,6 +19,11 @@
  * toggleMenuItemVisibility() pour DEUX clés différentes masquent bien LES
  * DEUX (le verrou ne doit pas casser le comportement normal non
  * concurrent).
+ *
+ * Round 360 : le nom du verrou est désormais scopé par boutique
+ * ($lockNameMenu = 'neria_menu_hidden_items_' . $this->idShop, voir
+ * test_768) — needle mise à jour en conséquence, intention round 123
+ * (cycle verrouillé) inchangée.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -29,8 +34,9 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/ConfigManager.php');
     neria_assert($src !== false, 'Impossible de lire src/ConfigManager.php');
     neria_assert(
-        strpos($src, "GET_LOCK('neria_menu_hidden_items', 3)") !== false
-        && strpos($src, "RELEASE_LOCK('neria_menu_hidden_items')") !== false,
+        strpos($src, "\$lockNameMenu = 'neria_menu_hidden_items_' . \$this->idShop;") !== false
+        && strpos($src, "GET_LOCK('\" . pSQL(\$lockNameMenu) . \"', 3)") !== false
+        && strpos($src, "RELEASE_LOCK('\" . pSQL(\$lockNameMenu) . \"')") !== false,
         "ConfigManager::toggleMenuItemVisibility() ne verrouille plus le cycle lecture-modification-écriture — régression du bug corrigé le 08/08/2026 (round 123)"
     );
 

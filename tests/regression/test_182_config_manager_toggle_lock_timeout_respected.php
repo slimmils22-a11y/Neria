@@ -14,6 +14,12 @@
  * technique que test_68) pour forcer un vrai timeout de GET_LOCK() côté
  * ConfigManager, puis vérifie que toggleBooleanKey() ne bascule PAS l'état
  * en base pendant que le verrou est détenu ailleurs.
+ *
+ * Round 360 : le nom du verrou est désormais scopé par boutique
+ * ($lockName = 'neria_toggle_' . $key . '_' . $this->idShop) — mis à jour
+ * ici en conséquence (sans quoi la seconde connexion tiendrait un verrou
+ * au mauvais nom, ne bloquant plus réellement ConfigManager et rendant ce
+ * test un faux positif silencieux).
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -26,7 +32,7 @@ function run_test(): array
 
     $cfg     = new ConfigManager($module);
     $initial = $cfg->isSignatureEnabled();
-    $lockName = 'neria_toggle_' . ConfigManager::KEY_SIGNATURE_ENABLED;
+    $lockName = 'neria_toggle_' . ConfigManager::KEY_SIGNATURE_ENABLED . '_' . (int) \Context::getContext()->shop->id;
 
     $mysqli = @mysqli_connect(_DB_SERVER_, _DB_USER_, _DB_PASSWD_, _DB_NAME_, defined('_DB_PORT_') ? (int) _DB_PORT_ : 3306);
     neria_assert($mysqli !== false, 'Impossible d\'ouvrir une seconde connexion MySQL pour simuler un processus concurrent — jeu de test invalide');

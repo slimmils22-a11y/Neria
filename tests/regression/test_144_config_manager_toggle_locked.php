@@ -64,10 +64,13 @@ function run_test(): array
     // élargie à 1300 (round 141) après le correctif de vérification du
     // retour de GET_LOCK() qui a allongé la méthode — mesurée sur le
     // fichier réel (distance RELEASE_LOCK() ≈ 1118 octets).
+    // Round 360 : 1300→1700 — le verrou scopé par boutique ($this->idShop
+    // dans $lockName) a ajouté un commentaire explicatif qui repousse
+    // RELEASE_LOCK() plus loin (distance mesurée : 1569 caractères).
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/ConfigManager.php');
     $posHelper = strpos($src, 'private function toggleBooleanKey(');
     neria_assert($posHelper !== false, 'toggleBooleanKey() introuvable — régression du bug corrigé le 08/08/2026 (round 132)');
-    $helperBody = substr($src, $posHelper, 1300);
+    $helperBody = substr($src, $posHelper, 1700);
     neria_assert(
         strpos($helperBody, "GET_LOCK('") !== false && strpos($helperBody, "RELEASE_LOCK('") !== false,
         "toggleBooleanKey() n'utilise plus GET_LOCK/RELEASE_LOCK — régression du bug corrigé le 08/08/2026 (round 132) : la race condition sur les toggles booléens réapparaîtrait"
