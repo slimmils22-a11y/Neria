@@ -3681,9 +3681,15 @@ class HealthCheckManager
         $cfg1Src = $this->readModuleSrc($cfg1File);
         if ($cfg1Src === '') {
             $offenders[] = 'ConfigManager.php introuvable (garde-fou round 123 : toggleMenuItemVisibility() verrouillé)';
-        } elseif (strpos($cfg1Src, "GET_LOCK('neria_menu_hidden_items', 3)") === false
-            || strpos($cfg1Src, "RELEASE_LOCK('neria_menu_hidden_items')") === false
+        } elseif (strpos($cfg1Src, "\$lockNameMenu = 'neria_menu_hidden_items_' . \$this->idShop;") === false
+            || strpos($cfg1Src, "GET_LOCK('\" . pSQL(\$lockNameMenu) . \"', 3)") === false
+            || strpos($cfg1Src, "RELEASE_LOCK('\" . pSQL(\$lockNameMenu) . \"')") === false
         ) {
+            // Round 360 : littéral non scopé 'neria_menu_hidden_items'
+            // remplacé par $lockNameMenu scopé par boutique (voir
+            // garde-fou round 360 dédié plus bas) — needle mise à jour en
+            // conséquence, intention round 123 (cycle verrouillé)
+            // inchangée.
             $offenders[] = "ConfigManager::toggleMenuItemVisibility() ne verrouille plus le cycle lecture-modification-écriture — régression du bug corrigé le 08/08/2026 (round 123)";
         }
 
@@ -3992,7 +3998,11 @@ class HealthCheckManager
             // Fenêtre élargie à 1300 (round 141) après le correctif de
             // vérification du retour de GET_LOCK(), qui a allongé la
             // méthode — mesurée sur le fichier réel (~1118 octets).
-            $helperBody = $posHelper !== false ? substr($cfgSrc, $posHelper, 1300) : '';
+            // Round 360 : 1300→1700 — le verrou scopé par boutique
+            // ($this->idShop dans $lockName) a ajouté un commentaire
+            // explicatif qui repousse RELEASE_LOCK() plus loin (distance
+            // mesurée : 1569 caractères).
+            $helperBody = $posHelper !== false ? substr($cfgSrc, $posHelper, 1700) : '';
             if ($posHelper === false || strpos($helperBody, "GET_LOCK('") === false || strpos($helperBody, "RELEASE_LOCK('") === false) {
                 $offenders[] = "ConfigManager::toggleBooleanKey() n'utilise plus GET_LOCK/RELEASE_LOCK — régression du bug corrigé le 08/08/2026 (round 132) : la race condition sur les toggles booléens BO pourrait réapparaître";
             }
@@ -5767,6 +5777,51 @@ class HealthCheckManager
             $offenders[] = "SeasonalCampaignManager::runDueCampaigns() n'applique plus MAX_BATCH_PER_RUN comme un plafond cumulé sur toute l'exécution — régression du bug corrigé le 14/09/2026 (round 359) : plusieurs campagnes dues le même jour pourraient de nouveau consommer chacune jusqu'à 500 clients, au lieu de 500 au total";
         }
 
+        // Round 360 (15/09/2026) : BehavioralCronManager::watchdog() ne
+        // doit plus mémoïser son instance WatchdogManager — sinon la
+        // boutique captée au tout premier appel (avant la boucle
+        // multi-boutique) resterait figée pour toute la durée du run(),
+        // et toute erreur journalisée pendant le traitement des boutiques
+        // suivantes serait attribuée à tort à la première.
+        $bcmSrc360 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc360 === ''
+            || strpos($bcmSrc360, 'private function watchdog(): \WatchdogManager') === false
+            || strpos($bcmSrc360, 'return new \WatchdogManager($this->module);') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::watchdog() ne reconstruit plus une instance WatchdogManager à chaque appel — régression du bug corrigé le 15/09/2026 (round 360) : l'instance mémoïsée figerait de nouveau l'id_shop de la première boutique traitée pour toute la durée du run(), les erreurs des boutiques suivantes seraient journalisées sous le mauvais id_shop";
+        }
+
+        // Round 360 (15/09/2026) : WatchdogManager::sendImmediateAlert()
+        // doit borner la fenêtre de comptage du burst via DATE_SUB(NOW(),
+        // INTERVAL ... SECOND) côté SQL, pas une chaîne de date PHP
+        // absolue comparée à date_add (colonne toujours écrite via NOW()
+        // MySQL) — sinon un décalage d'horloge PHP/MySQL fausse le
+        // comptage affiché dans l'email d'alerte.
+        $wdSrc360 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdSrc360 === ''
+            || strpos($wdSrc360, "date_add >= DATE_SUB(NOW(), INTERVAL ' . (int) \$secondsSinceLastAlert . ' SECOND)") === false
+            || strpos($wdSrc360, 'public function __construct(Neria $module, ?int $idShop = null)') === false
+        ) {
+            $offenders[] = "WatchdogManager ne borne plus la fenêtre de burstCount via DATE_SUB(NOW(), INTERVAL ... SECOND), ou n'accepte plus un \$idShop optionnel dans son constructeur — régression du bug corrigé le 15/09/2026 (round 360)";
+        }
+
+        // Round 360 (15/09/2026) : ConfigManager::watchdog() doit
+        // transmettre $this->idShop à son WatchdogManager interne, et ses
+        // verrous toggleBooleanKey()/toggleMenuItemVisibility() doivent
+        // être scopés par boutique.
+        $cmSrc360 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cmSrc360 === ''
+            || strpos($cmSrc360, 'new \WatchdogManager($this->module, $this->idShop);') === false
+        ) {
+            $offenders[] = "ConfigManager::watchdog() ne transmet plus \$this->idShop à WatchdogManager — régression du bug corrigé le 15/09/2026 (round 360) : un log émis par une instance ConfigManager scopée sur une autre boutique que le contexte ambiant retomberait à tort sur ce dernier";
+        }
+        if ($cmSrc360 === ''
+            || strpos($cmSrc360, "\$lockName = 'neria_toggle_' . \$key . '_' . \$this->idShop;") === false
+            || strpos($cmSrc360, "\$lockNameMenu = 'neria_menu_hidden_items_' . \$this->idShop;") === false
+        ) {
+            $offenders[] = "ConfigManager::toggleBooleanKey()/toggleMenuItemVisibility() n'utilisent plus des noms de verrou MySQL scopés par \$this->idShop — régression du bug corrigé le 15/09/2026 (round 360) : 2 boutiques indépendantes se bloqueraient de nouveau mutuellement sur le même toggle";
+        }
+
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
         // throttle réseau indépendant, son verrou, sa distinction de
         // révocation, et la purge de l'état résiduel quand CONFIG_KEY est vide.
@@ -7274,7 +7329,11 @@ class HealthCheckManager
         if ($cfgSrc196 === '') {
             $offenders[] = 'ConfigManager.php introuvable (garde-fou round 196)';
         } else {
-            $posMenuLock196 = strpos($cfgSrc196, "GET_LOCK('neria_menu_hidden_items', 3)");
+            // Round 360 : littéral non scopé 'neria_menu_hidden_items'
+            // remplacé par $lockNameMenu scopé par boutique — needle mise
+            // à jour, intention round 196 (retour de GET_LOCK() vérifié)
+            // inchangée.
+            $posMenuLock196 = strpos($cfgSrc196, "GET_LOCK('\" . pSQL(\$lockNameMenu) . \"', 3)");
             $beforeMenu196 = $posMenuLock196 !== false ? substr($cfgSrc196, max(0, $posMenuLock196 - 60), 60) : '';
             $afterMenu196 = $posMenuLock196 !== false ? substr($cfgSrc196, $posMenuLock196, 250) : '';
             if ($posMenuLock196 === false || strpos($beforeMenu196, '$gotLock = ') === false || strpos($afterMenu196, 'if ($gotLock !== 1)') === false) {
@@ -7583,7 +7642,9 @@ class HealthCheckManager
         // fichiers devaient passer $use_cache=false explicitement.
         $round210Files = [
             'src/CalendarManager.php'          => "SELECT GET_LOCK('neria_calendar_check_\" . \$this->idShop . \"', 0)\", false)",
-            'src/ConfigManager.php'             => "SELECT GET_LOCK('neria_menu_hidden_items', 3)\", false)",
+            // Round 360 : littéral adapté — 'neria_menu_hidden_items' fixe
+            // remplacé par $lockNameMenu scopé par $this->idShop.
+            'src/ConfigManager.php'             => "SELECT GET_LOCK('\" . pSQL(\$lockNameMenu) . \"', 3)\", false)",
             'src/CssInliner.php'                => "SELECT GET_LOCK('neria_css_inline_failures_\" . \$idShop . \"', 1)\", false)",
             // Round 299 : littéral élargi — $lockName (basé sur le domaine)
             // remplace $this->idShop, cf. lockName().
