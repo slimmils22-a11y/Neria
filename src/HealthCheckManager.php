@@ -1442,7 +1442,7 @@ class HealthCheckManager
         $bounceSrc = $this->readModuleSrc($bounceFile);
         if ($bounceSrc === '') {
             $offenders[] = 'BounceManager.php introuvable';
-        } elseif (!preg_match('/function\s+recordBounce[\s\S]{0,1500}?ON DUPLICATE KEY UPDATE/', $bounceSrc)) {
+        } elseif (!preg_match('/function\s+recordBounce[\s\S]{0,2000}?ON DUPLICATE KEY UPDATE/', $bounceSrc)) {
             $offenders[] = 'BounceManager : recordBounce() n\'utilise plus un INSERT...ON DUPLICATE KEY UPDATE atomique (deux notifications de rebond simultanées pour la même adresse pourraient de nouveau doublonner le compteur)';
         }
 
@@ -6133,6 +6133,39 @@ class HealthCheckManager
             $offenders[] = "neria-emergency.php n'affiche plus la colonne Boutique dans le journal des logs sur une install multiboutique — régression du bug corrigé le 15/09/2026 (bloc d)";
         }
 
+        // Bloc (d) feuille de route Addons (15/09/2026, 2e arbitrage produit) :
+        // neria_bounces doit être scopable par boutique — isBounced() doit
+        // consulter à la fois la ligne globale (id_shop=0, filet de
+        // sécurité jamais moins protecteur qu'avant) ET la ligne scopée à
+        // la boutique ambiante, et recordBounce() doit écrire en id_shop=0
+        // pour le canal IMAP (aucun signal fiable de boutique par message)
+        // quel que soit le réglage, en respectant NERIA_BOUNCE_CROSS_SHOP_ENABLED
+        // pour les canaux webhook/manuel.
+        $bmSrc351 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($bmSrc351 === ''
+            || strpos($bmSrc351, 'AND `id_shop` IN (0, \' . $idShop . \')') === false
+        ) {
+            $offenders[] = "BounceManager::isBounced() ne consulte plus à la fois la ligne globale (id_shop=0) et la ligne scopée à la boutique ambiante — régression de l'arbitrage produit du 15/09/2026 (bloc d) : sur une install multi-boutiques, un bounce scopé à une AUTRE boutique pourrait à tort bloquer (ou ne plus bloquer) une boutique qui n'a rien à voir";
+        }
+        if ($bmSrc351 === ''
+            || strpos($bmSrc351, "\$writeIdShop = (\$source !== 'imap' && !\$cfg->isBounceCrossShopEnabled())") === false
+        ) {
+            $offenders[] = "BounceManager::recordBounce() ne calcule plus \$writeIdShop selon le canal source et NERIA_BOUNCE_CROSS_SHOP_ENABLED — régression de l'arbitrage produit du 15/09/2026 (bloc d) : le canal IMAP (sans signal fiable de boutique) pourrait à tort écrire un bounce scopé, ou le webhook/manuel ignorer le réglage marchand";
+        }
+        $sqlSrc351 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/sql/install.sql');
+        if ($sqlSrc351 === ''
+            || strpos($sqlSrc351, 'UNIQUE KEY `uq_email_shop` (`email`, `id_shop`)') === false
+        ) {
+            $offenders[] = "sql/install.sql ne définit plus la clé unique composite uq_email_shop (email, id_shop) sur neria_bounces — régression de l'arbitrage produit du 15/09/2026 (bloc d) : une installation neuve refuserait d'avoir plusieurs lignes par email (une globale + une par boutique), cassant le scoping dès l'installation";
+        }
+        if ($bmSrc351 === ''
+            || strpos($bmSrc351, 'public function ignoreBounce(int $id): bool') === false
+            || strpos($bmSrc351, 'public function reactivateBounce(int $id): bool') === false
+            || strpos($bmSrc351, 'public function deleteBounce(int $id): bool') === false
+        ) {
+            $offenders[] = "BounceManager::ignoreBounce()/reactivateBounce()/deleteBounce() n'opèrent plus par id (int) — régression de l'arbitrage produit du 15/09/2026 (bloc d) : agir par email seul redeviendrait ambigu dès qu'un email a plusieurs lignes (une globale + une scopée)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
@@ -7996,7 +8029,7 @@ class HealthCheckManager
             $offenders[] = "BlacklistManager::loadAll() n'a plus \$use_cache=false — régression du bug corrigé le 26/08/2026 (round 218) : un template fraîchement blacklisté pourrait continuer à être envoyé";
         }
         $boSrc218 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php'));
-        if ($boSrc218 === '' || strpos($boSrc218, "WHERE `email` = \\'' . pSQL(\$email) . '\\'',\n            false\n        );") === false) {
+        if ($boSrc218 === '' || strpos($boSrc218, "AND `id_shop` IN (0, ' . \$idShop . ')',\n            true, false\n        ) ?: [];") === false) {
             $offenders[] = "BounceManager::isBounced() n'a plus \$use_cache=false — régression du bug corrigé le 26/08/2026 (round 218) : un hard bounce fraîchement enregistré pourrait ne pas être vu immédiatement";
         }
 
@@ -11379,7 +11412,7 @@ class HealthCheckManager
         // retour de son INSERT.
         $bmSrc336 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
         $posRecordBounce336 = $bmSrc336 !== '' ? strpos($bmSrc336, 'public function recordBounce(string $email, string $type, string $reason, string $source = \'imap\'): void') : false;
-        $recordBounceBody336 = $posRecordBounce336 !== false ? substr($bmSrc336, $posRecordBounce336, 5700) : '';
+        $recordBounceBody336 = $posRecordBounce336 !== false ? substr($bmSrc336, $posRecordBounce336, 6500) : '';
         if ($recordBounceBody336 === ''
             || strpos($recordBounceBody336, "WatchdogManager::i18nMsg('watchdog.bounce_record_failed'") === false
         ) {
