@@ -6217,6 +6217,39 @@ class HealthCheckManager
             $offenders[] = "ManualSendManager::getPreferencesGuardStatus()/getCooldownGuestNoticeStatus() n'échappe plus l'email en HTML avant interpolation dans le message — régression XSS du correctif bloc B (17/09/2026) : un email contenant du HTML/JS déclencherait à nouveau son exécution dans la session BO de l'opérateur via send.tpl (innerHTML)";
         }
 
+        // Bloc D (17/09/2026) : arbitrage rouvert sur
+        // BounceManager::parseGenericWebhook() — module vendu mondialement,
+        // ce chemin générique est le chemin RÉEL pour la majorité des ESP
+        // tiers non explicitement supportés (fournisseurs régionaux hors
+        // Mailgun/SendGrid/Postmark). Un défaut ambigu doit échouer vers le
+        // sens RÉVERSIBLE (soft, auto-expirable) plutôt que définitif
+        // (hard, jamais réhabilité automatiquement) — sans quoi un vrai
+        // client d'un marchand utilisant un ESP non reconnu perd
+        // silencieusement et DÉFINITIVEMENT ses emails dès le premier
+        // événement au format ambigu.
+        $bmSrc361d = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($bmSrc361d === ''
+            || strpos($bmSrc361d, "\$type     = (str_contains(\$event, 'hard') || str_contains(\$event, 'permanent')) ? 'hard' : 'soft';") === false
+        ) {
+            $offenders[] = "BounceManager::parseGenericWebhook() ne classe plus 'soft' par défaut un événement ambigu — régression de l'arbitrage bloc D (17/09/2026) : un événement d'ESP tiers non reconnu sans marqueur explicite 'hard'/'permanent' bloquerait de nouveau DÉFINITIVEMENT l'adresse cliente concernée";
+        }
+
+        // Bloc D (17/09/2026) : EmailRenderer::injectSocialVars() résolvait
+        // les liens réseaux sociaux via $this->config (ConfigManager
+        // construit UNE FOIS avec le contexte AMBIANT à l'instanciation
+        // d'EmailRenderer), pas la boutique réelle du destinataire de CET
+        // envoi — même famille de piège déjà corrigée dans ce même fichier
+        // pour la signature (round 138)/le sujet (round 357)/le
+        // multi-expéditeur (round 351), jamais porté ici. Un envoi
+        // programmé/cron pour la boutique B pouvait afficher les réseaux
+        // sociaux configurés pour la boutique A.
+        $erSrc361d = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc361d === ''
+            || strpos($erSrc361d, "\$this->injectSocialVars(\$params['templateVars'], \$this->resolveShopId(\$params));") === false
+        ) {
+            $offenders[] = "EmailRenderer::injectSocialVars() n'est plus appelée avec resolveShopId(\$params) dans le chemin d'envoi réel — régression de l'arbitrage bloc D (17/09/2026) : les liens réseaux sociaux d'une AUTRE boutique pourraient de nouveau s'afficher dans un email traité pour la boutique consultée";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
