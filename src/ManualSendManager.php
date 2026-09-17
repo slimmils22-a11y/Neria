@@ -1119,9 +1119,20 @@ class ManualSendManager
             return ['blocked' => false, 'message' => ''];
         }
 
+        // Round bloc B (17/09/2026) : email échappé HTML avant interpolation —
+        // AdminTranslator::tVars() fait un strtr() brut, sans échappement
+        // (confirmé par convention ailleurs, ex. EmailRenderer.php). Ce
+        // message est consommé par l'endpoint AJAX check_preferences_guard
+        // (aucune validation Validate::isEmail() côté serveur à ce point) et
+        // injecté tel quel via `textEl.innerHTML = data.message` dans
+        // send.tpl — sans cet échappement, un opérateur BO saisissant
+        // volontairement ou accidentellement une valeur contenant du HTML/JS
+        // dans le champ destinataire déclenchait son exécution dans sa
+        // propre session BO authentifiée dès la vérification en temps réel
+        // du garde-fou préférences (avant même tout envoi réel).
         return [
             'blocked' => true,
-            'message' => AdminTranslator::tVars('msg.send_blocked_preferences', ['email' => $email]),
+            'message' => AdminTranslator::tVars('msg.send_blocked_preferences', ['email' => htmlspecialchars($email, ENT_QUOTES, 'UTF-8')]),
         ];
     }
 
@@ -1146,9 +1157,13 @@ class ManualSendManager
         if ($this->findCustomer($email) !== null) {
             return ['notice' => false, 'message' => ''];
         }
+        // Round bloc B (17/09/2026) : même correctif XSS que
+        // getPreferencesGuardStatus() ci-dessus — message consommé par
+        // l'endpoint AJAX check_cooldown_guest_notice et injecté via
+        // `cooldownNoticeText.innerHTML = d.message` dans send.tpl.
         return [
             'notice'  => true,
-            'message' => AdminTranslator::tVars('msg.cooldown_guest_notice', ['email' => $email]),
+            'message' => AdminTranslator::tVars('msg.cooldown_guest_notice', ['email' => htmlspecialchars($email, ENT_QUOTES, 'UTF-8')]),
         ];
     }
 
