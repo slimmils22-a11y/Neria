@@ -6202,6 +6202,21 @@ class HealthCheckManager
             $offenders[] = "HealthCheckManager::checkMilestoneVoucherCartRuleValidity() ne scope plus sa lecture par boutique — régression round HealthCheckManager (bloc A, 16/09/2026) : un bon de palier cassé sur une AUTRE boutique polluerait de nouveau le résultat affiché pour la boutique consultée";
         }
 
+        // Round bloc B (17/09/2026, passage template-par-template sur les
+        // .tpl admin) : ManualSendManager::getPreferencesGuardStatus()/
+        // getCooldownGuestNoticeStatus() interpolaient l'email transmis via
+        // AdminTranslator::tVars({email}) — qui fait un strtr() brut, sans
+        // échappement HTML — dans un message ensuite injecté en innerHTML
+        // brut par send.tpl (endpoints AJAX check_preferences_guard /
+        // check_cooldown_guest_notice, aucune validation d'email côté
+        // serveur). XSS auto-déclenchable par l'opérateur BO lui-même.
+        $msmSrc361 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msmSrc361 === ''
+            || substr_count($msmSrc361, "htmlspecialchars(\$email, ENT_QUOTES, 'UTF-8')") < 2
+        ) {
+            $offenders[] = "ManualSendManager::getPreferencesGuardStatus()/getCooldownGuestNoticeStatus() n'échappe plus l'email en HTML avant interpolation dans le message — régression XSS du correctif bloc B (17/09/2026) : un email contenant du HTML/JS déclencherait à nouveau son exécution dans la session BO de l'opérateur via send.tpl (innerHTML)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
