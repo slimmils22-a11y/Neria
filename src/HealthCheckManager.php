@@ -485,11 +485,19 @@ class HealthCheckManager
             }
 
             // Vérifier que le hook actionEmailSendBefore est bien enregistré
+            // Round 361 : scopé par boutique (ps_hook_module porte id_shop
+            // en multi-boutique) — sans ce filtre, le hook enregistré sur
+            // UNE boutique suffisait à afficher "pixel OK" pour TOUTES les
+            // boutiques de l'installation, y compris une où le hook aurait
+            // été désenregistré (désinstallation partielle, réimport de
+            // config incomplet) et où le pixel de suivi ne se déclenche
+            // en réalité jamais.
             $hooked = (int) \Db::getInstance()->getValue(
                 'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'hook_module` hm
                  JOIN `' . _DB_PREFIX_ . 'hook` h ON h.id_hook = hm.id_hook
                  WHERE h.name = \'actionEmailSendBefore\'
-                   AND hm.id_module = ' . (int) $this->module->id
+                   AND hm.id_module = ' . (int) $this->module->id . '
+                   AND hm.id_shop = ' . (int) $this->idShop
             );
 
             if ($hooked > 0) {
@@ -15469,10 +15477,18 @@ class HealthCheckManager
             ];
         }
 
+        // Round 361 : scopé comme BounceManager::isBounced() — une ligne
+        // globale (id_shop=0) concerne toutes les boutiques, une ligne
+        // scopée ne concerne que la sienne. Sans ce filtre, le taux de
+        // bounce affiché pour une boutique agrégeait à tort les bounces
+        // de TOUTES les boutiques de l'installation au numérateur, alors
+        // que le dénominateur ($sent24h ci-dessus) restait scopé — faussant
+        // le taux calculé sur toute install multi-boutiques.
         $bounces24h = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_bounces`
              WHERE `last_bounce_at` > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-               AND `status` = 'active'"
+               AND `status` = 'active'
+               AND `id_shop` IN (0, {$this->idShop})"
         );
 
         $rate = round($bounces24h / $sent24h * 100, 1);
@@ -19859,11 +19875,20 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.milestone_voucher_cartrule_disabled')];
         }
 
+        // Round 361 : scopé par boutique — le schéma (install.sql, TABLE 38)
+        // documente explicitement que id_shop fait toujours partie de la
+        // clé anti-doublon ici (contrairement aux points de fidélité,
+        // configurables en cumul transversal) : "palier 5" en boutique A
+        // et "palier 5" en boutique B sont deux jalons distincts. Sans ce
+        // filtre, un bon cassé sur une AUTRE boutique polluait le WARNING
+        // affiché pour la boutique consultée, sans que le marchand puisse
+        // même le retrouver dans son propre BO.
         $db = \Db::getInstance();
         $rows = $db->executeS(
             'SELECT `id_voucher`, `id_cart_rule` FROM `' . _DB_PREFIX_ . 'neria_milestone_voucher`
              WHERE `id_cart_rule` > 0
-             AND `created_at` >= DATE_SUB(NOW(), INTERVAL 90 DAY)'
+             AND `created_at` >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+             AND `id_shop` = ' . (int) $this->idShop
         );
 
         $dead = [];
@@ -20221,9 +20246,17 @@ class HealthCheckManager
         }
 
         // Combien d'emails comportementaux dans les 7 derniers jours ?
+        // Round 361 : scopé par boutique — neria_behavioral_sent porte
+        // id_shop précisément pour distinguer les boutiques (voir le
+        // commentaire du schéma, install.sql TABLE 12). Sans ce filtre,
+        // une boutique B qui envoie normalement masquait un vrai silence
+        // anormal sur une boutique A du même install (faux OK), et
+        // inversement une petite boutique B pouvait être polluée par le
+        // volume d'une boutique A.
         $sent7d = (int) $db->getValue(
             'SELECT COUNT(*) FROM `' . $prefix . 'neria_behavioral_sent`
-             WHERE sent_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
+             WHERE sent_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+               AND id_shop = ' . (int) $this->idShop
         );
 
         if ($sent7d > 0) {
@@ -20233,9 +20266,15 @@ class HealthCheckManager
             ];
         }
 
-        // 0 envoi — vérifier si la boutique a suffisamment de clients pour que ce soit anormal
+        // 0 envoi — vérifier si la boutique a suffisamment de clients pour
+        // que ce soit anormal. Round 361 : scopé par boutique (id_shop de
+        // ps_customer, toujours renseigné qu'importe le partage de clients
+        // multi-boutiques) — sinon une petite boutique B pouvait être
+        // faussement mise en WARNING à cause du volume de clients d'une
+        // AUTRE boutique A du même install.
         $activeCustomers = (int) $db->getValue(
-            'SELECT COUNT(*) FROM `' . $prefix . 'customer` WHERE active = 1 AND deleted = 0'
+            'SELECT COUNT(*) FROM `' . $prefix . 'customer`
+             WHERE active = 1 AND deleted = 0 AND id_shop = ' . (int) $this->idShop
         );
 
         if ($activeCustomers < 10) {
