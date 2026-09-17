@@ -6174,6 +6174,34 @@ class HealthCheckManager
             $offenders[] = "BounceManager::ignoreBounce()/reactivateBounce()/deleteBounce() n'opèrent plus par id (int) — régression de l'arbitrage produit du 15/09/2026 (bloc d) : agir par email seul redeviendrait ambigu dès qu'un email a plusieurs lignes (une globale + une scopée)";
         }
 
+        // Round HealthCheckManager (bloc A, 16/09/2026) : premier round
+        // dédié à CE fichier après 360 rounds où il n'avait jamais été
+        // audité pour ses propres bugs (seulement enrichi de garde-fous
+        // pour d'autres fichiers). 4 méthodes de diagnostic ne scopaient
+        // pas leur lecture par boutique alors que $this->idShop est
+        // disponible et utilisé partout ailleurs dans ce même fichier.
+        $hcmSrc361 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcmSrc361 === ''
+            || strpos($hcmSrc361, "AND `id_shop` IN (0, {\$this->idShop})") === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkBounceRate() ne scope plus son numérateur (bounces24h) par boutique — régression round HealthCheckManager (bloc A, 16/09/2026) : le taux de bounce affiché pour une boutique agrégerait de nouveau à tort les bounces de TOUTES les boutiques de l'installation";
+        }
+        if ($hcmSrc361 === ''
+            || strpos($hcmSrc361, 'AND hm.id_shop = \' . (int) $this->idShop') === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkPixelInHtml() ne scope plus la vérification du hook actionEmailSendBefore par boutique — régression round HealthCheckManager (bloc A, 16/09/2026) : un hook enregistré sur UNE boutique suffirait de nouveau à afficher 'pixel OK' pour toutes les boutiques de l'installation";
+        }
+        if ($hcmSrc361 === ''
+            || substr_count($hcmSrc361, "AND id_shop = ' . (int) \$this->idShop") < 2
+        ) {
+            $offenders[] = "HealthCheckManager::checkBehavioralSilence() ne scope plus ses 2 lectures (envois 7j + clients actifs) par boutique — régression round HealthCheckManager (bloc A, 16/09/2026) : l'activité d'une AUTRE boutique masquerait de nouveau un vrai silence comportemental sur la boutique consultée";
+        }
+        if ($hcmSrc361 === ''
+            || strpos($hcmSrc361, "AND `id_shop` = ' . (int) \$this->idShop") === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkMilestoneVoucherCartRuleValidity() ne scope plus sa lecture par boutique — régression round HealthCheckManager (bloc A, 16/09/2026) : un bon de palier cassé sur une AUTRE boutique polluerait de nouveau le résultat affiché pour la boutique consultée";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
