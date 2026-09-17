@@ -1,11 +1,11 @@
 module.exports = {
   meta: {
-    version: "1.0.36",
+    version: "1.0.48",
     lang_name: "Italiano",
     doc_title: "Manuale Utente Completo",
-    doc_subtitle: "Modulo PrestaShop 8 & 9 — Versione 1.0.33",
+    doc_subtitle: "Modulo PrestaShop 8 & 9 — Versione 1.0.48",
     doc_tagline: "19 lingue  ·  117 template  ·  88 funzionalità",
-    header_text: "NERIA — Luxury Email Suite  |  Manuale Utente v1.0.33",
+    header_text: "NERIA — Luxury Email Suite  |  Manuale Utente v1.0.48",
     footer_text: "© 2026 Neriasoftware — Tutti i diritti riservati",
     toc_title: "Sommario",
     cover_name: "NERIA",
