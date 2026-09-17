@@ -629,7 +629,20 @@ class BounceManager
             return null;
         }
         $email    = mb_strtolower($p['email'] ?? $p['recipient'] ?? $p['address'] ?? '');
-        $type     = str_contains($event, 'soft') ? 'soft' : 'hard';
+        // Bloc D (17/09/2026) : arbitrage rouvert — module vendu mondialement,
+        // ce chemin générique est le chemin RÉEL (pas marginal) pour la
+        // majorité des ESP hors Mailgun/SendGrid/Postmark (fournisseurs
+        // régionaux : Brevo, OVH, Amazon SES, etc.). L'ancien défaut
+        // (tout événement sans le mot "soft" -> 'hard') bloquait
+        // DÉFINITIVEMENT une adresse cliente réelle dès qu'un format
+        // d'événement ambigu/inconnu était rencontré — isBounced() ne
+        // réhabilite jamais un 'hard' automatiquement (seule une action BO
+        // manuelle le peut), contrairement à un 'soft' qui expire seul
+        // après CFG_SOFT_EXPIRY_MONTHS. Un défaut ambigu doit échouer vers
+        // le sens RÉVERSIBLE : seul un marqueur explicite de permanence
+        // ('hard'/'permanent') classe désormais en hard ; tout le reste
+        // (y compris totalement inconnu) reste 'soft'.
+        $type     = (str_contains($event, 'hard') || str_contains($event, 'permanent')) ? 'hard' : 'soft';
         $reason   = $p['reason'] ?? $p['message'] ?? $p['description'] ?? $event;
         // Round 273 : pas de champ dédié standard pour un ESP générique —
         // event_id vide fait fail-open dans bounceEventAlreadyProcessed()

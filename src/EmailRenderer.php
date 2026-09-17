@@ -453,7 +453,7 @@ class EmailRenderer
         // Reformate le tableau produits PrestaShop
         $this->reformatProductsHtml($params['templateVars']);
 
-        $this->injectSocialVars($params['templateVars']);
+        $this->injectSocialVars($params['templateVars'], $this->resolveShopId($params));
 
         // â”€â”€ Injecte la signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ($this->config->isSignatureEnabled()) {
@@ -1124,9 +1124,23 @@ class EmailRenderer
      *
      * @param array $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
      */
-    private function injectSocialVars(array &$templateVars): void
+    private function injectSocialVars(array &$templateVars, ?int $idShop = null): void
     {
-        $links = $this->config->getSocialLinks();
+        // Bloc D (17/09/2026) : $idShop transmis explicitement — même
+        // correctif déjà appliqué à la signature (round 138)/au sujet
+        // (round 357)/au multi-expéditeur (round 351) dans ce même fichier,
+        // jamais porté ici. $this->config est construit UNE FOIS avec le
+        // contexte AMBIANT au moment de l'instanciation d'EmailRenderer,
+        // pas la boutique réelle du destinataire de CET envoi — un
+        // cron/envoi programmé traitant un email pour la boutique B pouvait
+        // afficher les liens réseaux sociaux configurés pour la boutique A.
+        // $idShop reste optionnel (null) pour le second appelant
+        // (buildCompiledHtml(), aperçu BO / renvoi historique — pas de
+        // destinataire réel dont il faudrait connaître la boutique,
+        // contexte ambiant correct par conception, cf. commentaire round 125).
+        $links = $idShop !== null
+            ? (new \ConfigManager($this->module, $idShop))->getSocialLinks()
+            : $this->config->getSocialLinks();
 
         $labels = [
             'instagram' => 'Instagram',
