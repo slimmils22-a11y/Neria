@@ -6318,6 +6318,15 @@ class HealthCheckManager
             $offenders[] = "neria.php : save_seasonal_campaign ne refuse plus une date annuelle impossible — régression du correctif bloc 4 (18/09/2026) : une date mal saisie (ex. 25-12 en JJ-MM) redeviendrait silencieusement le 1er janvier avec un message de succès";
         }
 
+        // Bloc 4 (18/09/2026) : le bouton du template private_sale pointait
+        // vers {history_url} (historique de commandes) — reliquat d'un
+        // correctif de dépannage (round 22 : {sale_url} jamais injecté).
+        // Les autres templates de campagne utilisent {shop_url}.
+        $psTpl364 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/private_sale.html');
+        if ($psTpl364 === '' || strpos($psTpl364, 'href="{shop_url}"') === false || strpos($psTpl364, '{history_url}') !== false) {
+            $offenders[] = "mails/themes/neria_global/core/private_sale.html : le bouton ne pointe plus vers {shop_url} — régression du correctif bloc 4 (18/09/2026) : le bouton « Accéder à la vente privée » enverrait de nouveau le client vers son historique de commandes";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
