@@ -6293,6 +6293,20 @@ class HealthCheckManager
             $offenders[] = "data/admin_translations.json cite de nouveau le template inexistant 'special_offer' (aide/exemples des campagnes saisonnières) — régression du correctif bloc 4 (18/09/2026) : le marchand chercherait un modèle introuvable dans la liste";
         }
 
+        // Bloc 4 (18/09/2026) : seasonal.tpl envoyait l'INDEX du segment (0..4)
+        // au lieu de son slug ; array_filter() supprimait "0" et la requête
+        // comparait seg.segment IN ('1','2','3','4') : aucune campagne
+        // saisonnière créée par le formulaire par défaut ne ciblait personne.
+        $seasTpl364 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/seasonal.tpl');
+        $seasMgr364 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        if ($seasTpl364 === ''
+            || strpos($seasTpl364, "name=\"seasonal_segments[]\" value=\"{\$segLabel|escape:'html'}\"") === false
+            || $seasMgr364 === ''
+            || strpos($seasMgr364, 'self::normalizeSegments((string) ($campaign[\'target_segment\']') === false
+        ) {
+            $offenders[] = "Campagnes saisonnières : seasonal.tpl n'envoie plus le SLUG du segment, ou getEligibleCustomers() n'utilise plus normalizeSegments() — régression du correctif bloc 4 (18/09/2026) : une campagne créée avec le formulaire par défaut ne cibleraient de nouveau aucun client";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
