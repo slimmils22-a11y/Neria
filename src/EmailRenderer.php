@@ -1409,6 +1409,15 @@ class EmailRenderer
             $fallbacks = $this->config->getFirstnameFallbacks();
             $fallback  = $fallbacks[$lang] ?? $fallbacks['en'] ?? 'Dear Guest';
             $templateVars['{firstname}'] = $fallback;
+            // Bloc 3 (18/09/2026) : marque explicitement que {firstname} est
+            // une PHRASE de politesse de repli ("Dear Guest"), pas un vrai
+            // prénom court — la Salutation horaire (buildCompiledHtml())
+            // concatène normalement {time_greeting} + ", " + {firstname} en
+            // traitant ce dernier comme un prénom réel ; sans ce marqueur,
+            // un envoi sans client identifié produit une salutation cassée
+            // ("Hello, Dear Guest," au lieu de "Good evening," ou de la
+            // formule dear_customer d'origine).
+            $templateVars['__firstname_is_fallback'] = true;
             $template = trim((string) ($templateVars['{template_name}'] ?? ''));
             (new WatchdogManager($this->module))->info(
                 $template
@@ -1417,6 +1426,7 @@ class EmailRenderer
             );
         } catch (\Throwable $e) {
             $templateVars['{firstname}'] = 'Dear Guest';
+            $templateVars['__firstname_is_fallback'] = true;
             (new WatchdogManager($this->module))->warning(
                 WatchdogManager::i18nMsg('watchdog.fallback_firstname_error', ['error' => $e->getMessage()])
             );
@@ -3042,7 +3052,16 @@ class EmailRenderer
             // Insère directement la valeur (pas un token {firstname} à
             // résoudre plus tard) — échappement nécessaire ici même,
             // symétrique à celui appliqué plus bas pour le reste du HTML.
-            $plugFirstname = htmlspecialchars((string) ($templateVars['{firstname}'] ?? ''), ENT_QUOTES, 'UTF-8');
+            // Bloc 3 (18/09/2026) : si {firstname} est la PHRASE de repli
+            // ("Dear Guest", injectFirstnameFallback()) et non un vrai
+            // prénom, on ne la concatène pas après la salutation horaire —
+            // "Good evening, Dear Guest," était grammaticalement cassé
+            // (deux formules de politesse empilées). La salutation horaire
+            // seule ("Good evening,") reste une formule complète et
+            // élégante quand aucun client n'est identifié.
+            $plugFirstname = !empty($templateVars['__firstname_is_fallback'])
+                ? ''
+                : htmlspecialchars((string) ($templateVars['{firstname}'] ?? ''), ENT_QUOTES, 'UTF-8');
             if (isset($nameHonorifics[$lang])) {
                 $h = $nameHonorifics[$lang];
                 $plugSalutation = ($plugFirstname !== '' ? $plugFirstname . $h['suffix'] . $h['sep'] : '')

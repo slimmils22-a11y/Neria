@@ -1088,26 +1088,35 @@ class ConfigManager
     /** Retourne les salutations horaires par langue × créneau (morning/afternoon/evening/night) */
     public function getTimeGreetings(): array
     {
+        // Bloc 3 (18/09/2026) : créneau 'night' harmonisé sur la formule
+        // 'evening' de chaque langue — l'ancien défaut retombait sur une
+        // salutation familière ("Hello", "Hallo", "Salve", "Hola", "Olá",
+        // "Hej"...) dans la quasi-totalité des langues, cassant le registre
+        // soutenu établi par les 3 autres créneaux (ex. "Good morning" /
+        // "Good afternoon" / "Good evening" en anglais). Une maison de luxe
+        // ne distingue pas soir/nuit dans sa correspondance — "Good
+        // evening," reste approprié à minuit. Repéré via un envoi réel de
+        // test (bloc 3) tombé sur ce créneau.
         $defaults = [
-            'fr' => ['morning' => 'Bonjour',          'afternoon' => 'Bonjour',         'evening' => 'Bonsoir',         'night' => 'Bonjour'],
-            'en' => ['morning' => 'Good morning',     'afternoon' => 'Good afternoon',  'evening' => 'Good evening',    'night' => 'Hello'],
-            'de' => ['morning' => 'Guten Morgen',     'afternoon' => 'Guten Tag',       'evening' => 'Guten Abend',     'night' => 'Hallo'],
-            'it' => ['morning' => 'Buongiorno',       'afternoon' => 'Buon pomeriggio', 'evening' => 'Buonasera',       'night' => 'Salve'],
-            'es' => ['morning' => 'Buenos días',      'afternoon' => 'Buenas tardes',   'evening' => 'Buenas noches',   'night' => 'Hola'],
-            'pt' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Olá'],
-            'br' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Olá'],
-            'gb' => ['morning' => 'Good morning',     'afternoon' => 'Good afternoon',  'evening' => 'Good evening',    'night' => 'Hello'],
-            'ar' => ['morning' => 'صباح الخير',       'afternoon' => 'مساء الخير',      'evening' => 'مساء النور',      'night' => 'أهلاً'],
-            'ja' => ['morning' => 'おはようございます', 'afternoon' => 'こんにちは',       'evening' => 'こんばんは',       'night' => 'こんにちは'],
+            'fr' => ['morning' => 'Bonjour',          'afternoon' => 'Bonjour',         'evening' => 'Bonsoir',         'night' => 'Bonsoir'],
+            'en' => ['morning' => 'Good morning',     'afternoon' => 'Good afternoon',  'evening' => 'Good evening',    'night' => 'Good evening'],
+            'de' => ['morning' => 'Guten Morgen',     'afternoon' => 'Guten Tag',       'evening' => 'Guten Abend',     'night' => 'Guten Abend'],
+            'it' => ['morning' => 'Buongiorno',       'afternoon' => 'Buon pomeriggio', 'evening' => 'Buonasera',       'night' => 'Buonasera'],
+            'es' => ['morning' => 'Buenos días',      'afternoon' => 'Buenas tardes',   'evening' => 'Buenas noches',   'night' => 'Buenas noches'],
+            'pt' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Boa noite'],
+            'br' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Boa noite'],
+            'gb' => ['morning' => 'Good morning',     'afternoon' => 'Good afternoon',  'evening' => 'Good evening',    'night' => 'Good evening'],
+            'ar' => ['morning' => 'صباح الخير',       'afternoon' => 'مساء الخير',      'evening' => 'مساء النور',      'night' => 'مساء النور'],
+            'ja' => ['morning' => 'おはようございます', 'afternoon' => 'こんにちは',       'evening' => 'こんばんは',       'night' => 'こんばんは'],
             'ko' => ['morning' => '좋은 아침이에요',    'afternoon' => '안녕하세요',       'evening' => '안녕하세요',       'night' => '안녕하세요'],
-            'zh' => ['morning' => '早上好',            'afternoon' => '下午好',          'evening' => '晚上好',           'night' => '您好'],
-            'tw' => ['morning' => '早安',              'afternoon' => '午安',            'evening' => '晚安',             'night' => '您好'],
-            'ru' => ['morning' => 'Доброе утро',      'afternoon' => 'Добрый день',     'evening' => 'Добрый вечер',    'night' => 'Здравствуйте'],
-            'tr' => ['morning' => 'Günaydın',         'afternoon' => 'İyi günler',      'evening' => 'İyi akşamlar',    'night' => 'Merhaba'],
-            'sv' => ['morning' => 'God morgon',       'afternoon' => 'God dag',         'evening' => 'God kväll',       'night' => 'Hej'],
-            'no' => ['morning' => 'God morgen',       'afternoon' => 'God dag',         'evening' => 'God kveld',       'night' => 'Hei'],
-            'da' => ['morning' => 'God morgen',       'afternoon' => 'God dag',         'evening' => 'God aften',       'night' => 'Hej'],
-            'nl' => ['morning' => 'Goedemorgen',      'afternoon' => 'Goedemiddag',     'evening' => 'Goedenavond',     'night' => 'Hallo'],
+            'zh' => ['morning' => '早上好',            'afternoon' => '下午好',          'evening' => '晚上好',           'night' => '晚上好'],
+            'tw' => ['morning' => '早安',              'afternoon' => '午安',            'evening' => '晚安',             'night' => '晚安'],
+            'ru' => ['morning' => 'Доброе утро',      'afternoon' => 'Добрый день',     'evening' => 'Добрый вечер',    'night' => 'Добрый вечер'],
+            'tr' => ['morning' => 'Günaydın',         'afternoon' => 'İyi günler',      'evening' => 'İyi akşamlar',    'night' => 'İyi akşamlar'],
+            'sv' => ['morning' => 'God morgon',       'afternoon' => 'God dag',         'evening' => 'God kväll',       'night' => 'God kväll'],
+            'no' => ['morning' => 'God morgen',       'afternoon' => 'God dag',         'evening' => 'God kveld',       'night' => 'God kveld'],
+            'da' => ['morning' => 'God morgen',       'afternoon' => 'God dag',         'evening' => 'God aften',       'night' => 'God aften'],
+            'nl' => ['morning' => 'Goedemorgen',      'afternoon' => 'Goedemiddag',     'evening' => 'Goedenavond',     'night' => 'Goedenavond'],
         ];
         $saved = $this->get(self::KEY_TIME_GREETINGS);
         if (!$saved) {
