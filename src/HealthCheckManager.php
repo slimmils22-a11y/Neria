@@ -6265,6 +6265,17 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer::injectFirstnameFallback()/la Salutation horaire ne gèrent plus le marqueur __firstname_is_fallback — régression du correctif bloc 3 (18/09/2026) : un envoi sans client identifié afficherait de nouveau une salutation cassée du type 'Good evening, Dear Guest,'";
         }
 
+        // Bloc 4 (18/09/2026) : le libellé 'auto.trigger_segments' du panneau
+        // Automatisations énumérait "Champions, Loyaux, À risque…" alors que
+        // les 5 segments réels (onglet Segments) sont Ambassadeur/Fidèle/
+        // Tiède/Dormant/Fantôme — le libellé ne doit plus nommer de segments.
+        $atSrc364 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/admin_translations.json');
+        if ($atSrc364 === ''
+            || preg_match('/"auto\.trigger_segments":\s*\{[^}]*Champion/u', $atSrc364) === 1
+        ) {
+            $offenders[] = "data/admin_translations.json : 'auto.trigger_segments' réénumère de nouveau des noms de segments (Champions…) qui n'existent pas dans l'onglet Segments — régression du correctif bloc 4 (18/09/2026)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
