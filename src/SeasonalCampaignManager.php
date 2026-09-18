@@ -166,10 +166,18 @@ class SeasonalCampaignManager
     // sans log ni alerte pour le marchand qui la croit active.
     private static function normalizeAnnualDate(string $raw): string
     {
-        if (preg_match('/^(\d{2})-(\d{2})$/', $raw, $m) && checkdate((int) $m[1], (int) $m[2], 2000)) {
-            return $raw;
-        }
-        return '01-01';
+        return self::isValidAnnualDate($raw) ? $raw : '01-01';
+    }
+
+    /**
+     * Bloc 4 (18/09/2026) : le contrôleur BO refuse désormais une date impossible
+     * (ex. '25-12' saisi en JJ-MM, '13-45') au lieu de la remplacer en
+     * silence par le 1er janvier via normalizeAnnualDate() — la campagne
+     * aurait alors été envoyée à TOUS les clients le mauvais jour.
+     */
+    public static function isValidAnnualDate(string $raw): bool
+    {
+        return (bool) (preg_match('/^(\d{2})-(\d{2})$/', $raw, $m) && checkdate((int) $m[1], (int) $m[2], 2000));
     }
 
     public function create(array $data): int

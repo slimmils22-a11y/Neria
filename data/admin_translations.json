@@ -66401,6 +66401,27 @@
         "nl": "Deze herinnering voor einde levensduur van het product bestaat niet meer of behoort tot een andere winkel — er is niets verwijderd.",
         "gb": "This product end-of-life reminder no longer exists or belongs to another shop — nothing was removed."
     },
+    "msg.seasonal_invalid_date": {
+        "fr": "Date invalide — utilisez le format MM-JJ (mois puis jour), par exemple 12-25 pour le 25 décembre. Aucune campagne enregistrée.",
+        "en": "Invalid date — use MM-DD format (month first), for example 12-25 for December 25. Nothing was saved.",
+        "de": "Ungültiges Datum — verwenden Sie das Format MM-TT (zuerst der Monat), zum Beispiel 12-25 für den 25. Dezember. Es wurde nichts gespeichert.",
+        "it": "Data non valida — usare il formato MM-GG (prima il mese), ad esempio 12-25 per il 25 dicembre. Nessun salvataggio effettuato.",
+        "es": "Fecha no válida — utilice el formato MM-DD (primero el mes), por ejemplo 12-25 para el 25 de diciembre. No se guardó nada.",
+        "pt": "Data inválida — utilize o formato MM-DD (primeiro o mês), por exemplo 12-25 para 25 de dezembro. Nada foi guardado.",
+        "br": "Data inválida — use o formato MM-DD (primeiro o mês), por exemplo 12-25 para 25 de dezembro. Nada foi salvo.",
+        "ar": "تاريخ غير صالح — استخدموا الصيغة شهر-يوم (MM-DD)، مثلاً 12-25 ليوم 25 ديسمبر. لم يتم حفظ أي شيء.",
+        "ja": "無効な日付です。MM-DD形式（月が先）でご入力ください。例：12月25日は12-25。何も保存されていません。",
+        "ko": "유효하지 않은 날짜입니다. MM-DD 형식(월 먼저)으로 입력해 주세요. 예: 12월 25일은 12-25. 아무것도 저장되지 않았습니다.",
+        "zh": "日期无效——请使用 MM-DD 格式（先月后日），例如 12-25 表示 12 月 25 日。未保存任何内容。",
+        "tw": "日期無效——請使用 MM-DD 格式（先月後日），例如 12-25 表示 12 月 25 日。未儲存任何內容。",
+        "ru": "Недопустимая дата — используйте формат ММ-ДД (сначала месяц), например 12-25 для 25 декабря. Ничего не сохранено.",
+        "tr": "Geçersiz tarih — AA-GG biçimini kullanın (önce ay), örneğin 25 Aralık için 12-25. Hiçbir şey kaydedilmedi.",
+        "sv": "Ogiltigt datum — använd formatet MM-DD (månad först), till exempel 12-25 för 25 december. Ingenting sparades.",
+        "no": "Ugyldig dato — bruk formatet MM-DD (måned først), for eksempel 12-25 for 25. desember. Ingenting ble lagret.",
+        "da": "Ugyldig dato — brug formatet MM-DD (måned først), for eksempel 12-25 for 25. december. Intet blev gemt.",
+        "nl": "Ongeldige datum — gebruik het formaat MM-DD (eerst de maand), bijvoorbeeld 12-25 voor 25 december. Er is niets opgeslagen.",
+        "gb": "Invalid date — use MM-DD format (month first), for example 12-25 for December 25. Nothing was saved."
+    },
     "msg.seasonal_campaign_not_found": {
         "fr": "Cette campagne saisonnière n'existe plus ou appartient à une autre boutique — aucune modification effectuée.",
         "en": "This seasonal campaign no longer exists or belongs to another shop — no change was made.",

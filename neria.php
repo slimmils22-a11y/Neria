@@ -6328,7 +6328,10 @@ class Neria extends Module
             // toggle() renvoient désormais un bool (Affected_Rows() > 0)
             // au lieu de void ; create() insère toujours une nouvelle
             // ligne (pas de clause WHERE pouvant échouer silencieusement).
-            if ($id > 0) {
+            // Bloc 4 : date impossible refusée explicitement (voir isValidAnnualDate()).
+            if (!SeasonalCampaignManager::isValidAnnualDate((string) $data['annual_date'])) {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seasonal_invalid_date'));
+            } elseif ($id > 0) {
                 if ($mgr->update($id, $data)) {
                     $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_updated'));
                 } else {
