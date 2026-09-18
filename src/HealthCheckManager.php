@@ -6250,6 +6250,21 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer::injectSocialVars() n'est plus appelée avec resolveShopId(\$params) dans le chemin d'envoi réel — régression de l'arbitrage bloc D (17/09/2026) : les liens réseaux sociaux d'une AUTRE boutique pourraient de nouveau s'afficher dans un email traité pour la boutique consultée";
         }
 
+        // Bloc 3 (18/09/2026) : EmailRenderer::injectFirstnameFallback()
+        // marque désormais explicitement templateVars['__firstname_is_fallback']
+        // — la Salutation horaire (compileNeriaTemplate()) doit ignorer ce
+        // marqueur et ne PAS concaténer {firstname} après {time_greeting}
+        // quand il vaut true, sinon "Good evening, Dear Guest," (deux
+        // formules de politesse empilées) redevient possible dès qu'un
+        // envoi cible une adresse sans client PrestaShop identifié — bug
+        // réel découvert via un envoi manuel de test (bloc 3).
+        if ($erSrc361d === ''
+            || strpos($erSrc361d, "\$templateVars['__firstname_is_fallback'] = true;") === false
+            || strpos($erSrc361d, "!empty(\$templateVars['__firstname_is_fallback'])") === false
+        ) {
+            $offenders[] = "EmailRenderer::injectFirstnameFallback()/la Salutation horaire ne gèrent plus le marqueur __firstname_is_fallback — régression du correctif bloc 3 (18/09/2026) : un envoi sans client identifié afficherait de nouveau une salutation cassée du type 'Good evening, Dear Guest,'";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
