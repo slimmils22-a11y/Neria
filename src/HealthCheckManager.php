@@ -6307,6 +6307,17 @@ class HealthCheckManager
             $offenders[] = "Campagnes saisonnières : seasonal.tpl n'envoie plus le SLUG du segment, ou getEligibleCustomers() n'utilise plus normalizeSegments() — régression du correctif bloc 4 (18/09/2026) : une campagne créée avec le formulaire par défaut ne cibleraient de nouveau aucun client";
         }
 
+        // Bloc 4 (18/09/2026) : une date de campagne saisonnière impossible
+        // ('25-12', '13-45') était acceptée avec « Campagne créée » puis
+        // remplacée en silence par le 1er janvier.
+        $neriaSrc364b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc364b === ''
+            || strpos($neriaSrc364b, "SeasonalCampaignManager::isValidAnnualDate((string) \$data['annual_date'])") === false
+            || strpos($neriaSrc364b, "AdminTranslator::t('msg.seasonal_invalid_date')") === false
+        ) {
+            $offenders[] = "neria.php : save_seasonal_campaign ne refuse plus une date annuelle impossible — régression du correctif bloc 4 (18/09/2026) : une date mal saisie (ex. 25-12 en JJ-MM) redeviendrait silencieusement le 1er janvier avec un message de succès";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
