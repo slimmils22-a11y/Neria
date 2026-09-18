@@ -6286,6 +6286,13 @@ class HealthCheckManager
             $offenders[] = "views/templates/admin/calendar.tpl : le libellé « envoi le » est de nouveau codé en dur en français ou n'utilise plus la clé calendar.send_on_prefix — régression du correctif bloc 4 (18/09/2026)";
         }
 
+        // Bloc 4 (18/09/2026) : l'aide/les exemples des campagnes saisonnières
+        // renvoyaient vers un template 'special_offer' qui n'a jamais existé
+        // (absent de la liste déroulante, limitée aux templates d'envoi manuel).
+        if ($atSrc364 === '' || strpos($atSrc364, 'special_offer') !== false) {
+            $offenders[] = "data/admin_translations.json cite de nouveau le template inexistant 'special_offer' (aide/exemples des campagnes saisonnières) — régression du correctif bloc 4 (18/09/2026) : le marchand chercherait un modèle introuvable dans la liste";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
