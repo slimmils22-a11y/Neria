@@ -213,8 +213,8 @@
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
           {foreach $seasonal_segments as $segKey => $segLabel}
             <label class="ns-pill">
-              <input type="checkbox" name="seasonal_segments[]" value="{$segKey|escape:'html'}"
-                {if $is_edit && isset($seasonal_edit_seg_map[$segKey])} checked
+              <input type="checkbox" name="seasonal_segments[]" value="{$segLabel|escape:'html'}"
+                {if $is_edit && isset($seasonal_edit_seg_map[$segLabel])} checked
                 {elseif !$is_edit} checked
                 {/if}>
               {$segLabel|escape:'html'}

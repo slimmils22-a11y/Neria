@@ -582,13 +582,54 @@ class SeasonalCampaignManager
     // CIBLAGE
     // ============================================================
 
+    /**
+     * Liste de segments (CSV stocké) -> slugs réels de SegmentManager.
+     *
+     * Bloc 4 (18/09/2026) : le formulaire BO envoyait l'INDEX du segment
+     * (0..4) au lieu de son slug, et array_filter() supprimait le "0" —
+     * toute campagne créée avec le formulaire par défaut stockait "1,2,3,4",
+     * comparé à seg.segment IN ('1','2','3','4') : aucun client ne
+     * correspondait jamais. Les lignes déjà stockées ainsi sont lues ici :
+     * un index numérique est converti en slug, et l'ensemble exact
+     * {1,2,3,4} (= formulaire par défaut, Ambassadeur perdu par le bug)
+     * signifie "tous les segments" (aucun filtre).
+     *
+     * @return string[]
+     */
+    public static function normalizeSegments(string $csv): array
+    {
+        $tokens = array_values(array_filter(array_map('trim', explode(',', $csv)), static fn($t) => $t !== ''));
+        if ($tokens === []) {
+            return [];
+        }
+        $all = SegmentManager::getAllSegments();
+        $numeric = array_filter($tokens, 'ctype_digit');
+        if (count($numeric) === count($tokens)) {
+            $set = array_map('intval', $tokens);
+            sort($set);
+            if ($set === [1, 2, 3, 4]) {
+                return [];
+            }
+        }
+        $out = [];
+        foreach ($tokens as $t) {
+            if (ctype_digit($t)) {
+                $t = $all[(int) $t] ?? '';
+            }
+            if ($t !== '' && in_array($t, $all, true)) {
+                $out[$t] = $t;
+            }
+        }
+        return array_values($out);
+    }
+
     public function getEligibleCustomers(array $campaign): array
     {
         $where   = [];
         $joins   = '';
 
         // Filtre segment
-        $segments = array_filter(array_map('trim', explode(',', $campaign['target_segment'] ?? '')));
+        $segments = self::normalizeSegments((string) ($campaign['target_segment'] ?? ''));
         if (!empty($segments)) {
             $safeSegs = implode(',', array_map(fn($s) => "'" . pSQL($s) . "'", $segments));
             $joins   .= " INNER JOIN `{$this->prefix}neria_customer_segment` seg

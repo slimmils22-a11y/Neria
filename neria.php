@@ -6317,7 +6317,7 @@ class Neria extends Module
                 'annual_date'    => Tools::getValue('seasonal_annual_date', '01-01'),
                 'days_before'    => $daysBefore,
                 'is_active'      => (int) (bool) Tools::getValue('seasonal_is_active', 1),
-                'target_segment' => implode(',', array_filter((array) Tools::getValue('seasonal_segments', []))),
+                'target_segment' => implode(',', SeasonalCampaignManager::normalizeSegments(implode(',', (array) Tools::getValue('seasonal_segments', [])))),
                 'target_gender'  => (int) Tools::getValue('seasonal_gender', 0),
                 'target_lang'    => implode(',', array_filter((array) Tools::getValue('seasonal_langs', []))),
                 'min_age'        => $minAge,
@@ -7160,7 +7160,7 @@ class Neria extends Module
                 if ($editId > 0 && class_exists('SeasonalCampaignManager')) {
                     $c = (new SeasonalCampaignManager($this))->getById($editId);
                     if ($c && $c['target_segment'] !== '') {
-                        return array_flip(array_filter(array_map('trim', explode(',', $c['target_segment']))));
+                        return array_flip(SeasonalCampaignManager::normalizeSegments((string) $c['target_segment']));
                     }
                 }
                 return [];
