@@ -3485,6 +3485,27 @@
         "nl": "Nooit verzonden",
         "gb": "Never sent"
     },
+    "calendar.send_on_prefix": {
+        "fr": "→ envoi le ",
+        "en": "→ sending on ",
+        "de": "→ Versand am ",
+        "it": "→ invio il ",
+        "es": "→ envío el ",
+        "pt": "→ envio em ",
+        "br": "→ envio em ",
+        "ar": "← الإرسال في ",
+        "ja": "→ 送信日：",
+        "ko": "→ 발송일: ",
+        "zh": "→ 发送日期：",
+        "tw": "→ 發送日期：",
+        "ru": "→ отправка: ",
+        "tr": "→ gönderim: ",
+        "sv": "→ skickas den ",
+        "no": "→ sendes ",
+        "da": "→ sendes den ",
+        "nl": "→ verzending op ",
+        "gb": "→ sending on "
+    },
     "calendar.no_events": {
         "fr": "Aucune occasion configurée. Ajoutez-en une ci-dessous.",
         "en": "No occasions configured yet. Add one below.",

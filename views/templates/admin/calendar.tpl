@@ -69,7 +69,7 @@
           {if $ev.display_info.next_event_date}
             📅 {$ev.display_info.next_event_date}
             {if $ev.display_info.next_send_date}
-              <br><span class="neria-hint" style="font-size:11px;">→ envoi le {$ev.display_info.next_send_date}</span>
+              <br><span class="neria-hint" style="font-size:11px;">{neria_admin key='calendar.send_on_prefix'}{$ev.display_info.next_send_date}</span>
             {/if}
           {else}
             <span class="neria-hint">—</span>
