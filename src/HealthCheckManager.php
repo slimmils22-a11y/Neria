@@ -6276,6 +6276,16 @@ class HealthCheckManager
             $offenders[] = "data/admin_translations.json : 'auto.trigger_segments' réénumère de nouveau des noms de segments (Champions…) qui n'existent pas dans l'onglet Segments — régression du correctif bloc 4 (18/09/2026)";
         }
 
+        // Bloc 4 (18/09/2026) : calendar.tpl affichait "→ envoi le <date>" en
+        // français codé en dur pour les 19 langues du BO.
+        $calTpl364 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/calendar.tpl');
+        if ($calTpl364 === ''
+            || strpos($calTpl364, '→ envoi le') !== false
+            || strpos($calTpl364, "neria_admin key='calendar.send_on_prefix'") === false
+        ) {
+            $offenders[] = "views/templates/admin/calendar.tpl : le libellé « envoi le » est de nouveau codé en dur en français ou n'utilise plus la clé calendar.send_on_prefix — régression du correctif bloc 4 (18/09/2026)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
