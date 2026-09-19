@@ -6367,6 +6367,21 @@ class HealthCheckManager
             $offenders[] = "ABTestManager::getEligibleTemplates() liste de nouveau un template inexistant (back_in_stock / referral_invitation) ou a perdu waitlist_available — régression du correctif bloc 5 (19/09/2026) : le BO proposerait un test A/B sur un email qui n'existe pas";
         }
 
+        // Bloc 5 (19/09/2026) : la page publique de traçabilité (cible du QR
+        // code du certificat, scannée sur téléphone) était un simple
+        // <section> servi brut : ni <title>, ni <html lang>, ni viewport
+        // mobile, ni thème. Elle doit rester un document HTML complet
+        // (comme preferences.tpl/unsubscribe.tpl).
+        $certTpl365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/front/certificate.tpl');
+        if ($certTpl365 === ''
+            || stripos($certTpl365, '<!DOCTYPE html>') === false
+            || stripos($certTpl365, '<title>') === false
+            || strpos($certTpl365, 'name="viewport"') === false
+            || strpos($certTpl365, '<html lang=') === false
+        ) {
+            $offenders[] = "views/templates/front/certificate.tpl n'est plus un document HTML complet (DOCTYPE/title/viewport/lang) — régression du correctif bloc 5 (19/09/2026) : la page publique du QR code du certificat s'afficherait de nouveau sans titre ni adaptation mobile";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
