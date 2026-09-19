@@ -6562,6 +6562,22 @@ class HealthCheckManager
             $offenders[] = "Webhook de bounces : le contrôleur n'utilise plus BounceManager::authenticateWebhook() (en-tête HMAC + jeton d'URL + signature Mailgun avec fenêtre anti-rejeu), ou le BO n'affiche plus l'URL avec jeton — régression du correctif bloc 6 (19/09/2026) : le point d'entrée redeviendrait inutilisable avec Mailgun, SendGrid et Postmark";
         }
 
+        // Bloc 6 (19/09/2026) : (1) phrase du seuil de soft bounce (onglet Bounces)
+        // assemblée avec un nom répété dans les 19 langues ; (2) webhooks
+        // sortants : URL http:// acceptée alors que l'UI exige HTTPS, et pas
+        // d'en-tête User-Agent.
+        $bncTpl366 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/bounces.tpl');
+        $whMgr366  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        $neriaSrc366d = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($bncTpl366 === '' || $whMgr366 === '' || $neriaSrc366d === ''
+            || strpos($bncTpl366, "bounces.failures_unit'}</strong> {neria_admin key='bounces.auto_block_body_post'") !== false
+            || strpos($whMgr366, 'public static function isAcceptableEndpoint(') === false
+            || substr_count($whMgr366, "'User-Agent: Neria-Webhook/' . \\Neria::VERSION") !== 2
+            || strpos($neriaSrc366d, 'WebhookManager::isAcceptableEndpoint($whUrl)') === false
+        ) {
+            $offenders[] = "Bounces/Webhooks : la phrase du seuil de soft bounce répète de nouveau le nom (failures_unit injecté avant auto_block_body_post), ou l'enregistrement d'une URL de webhook n'exige plus HTTPS (isAcceptableEndpoint), ou le User-Agent Neria-Webhook a disparu des requêtes sortantes — régression du correctif bloc 6 (19/09/2026)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
