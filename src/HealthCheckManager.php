@@ -6327,6 +6327,21 @@ class HealthCheckManager
             $offenders[] = "mails/themes/neria_global/core/private_sale.html : le bouton ne pointe plus vers {shop_url} — régression du correctif bloc 4 (18/09/2026) : le bouton « Accéder à la vente privée » enverrait de nouveau le client vers son historique de commandes";
         }
 
+        // Bloc 5 (19/09/2026) : les icônes de palier de fidélité utilisaient
+        // &#127949;/&#127948;/&#127947; (moto, golfeur, haltérophile) au lieu
+        // des médailles &#129353;/&#129352;/&#129351;, et deux libellés de la
+        // vue Historique client étaient codés en dur en français.
+        $cfgTpl365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/configure.tpl');
+        $hisTpl365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/_customer_history_content.tpl');
+        if ($cfgTpl365 === '' || $hisTpl365 === ''
+            || preg_match('/&#12794[789];/', $cfgTpl365 . $hisTpl365) === 1
+            || strpos($cfgTpl365, '&#129353;') === false
+            || strpos($hisTpl365, "neria_admin key='history.loyalty_max_tier'") === false
+            || strpos($hisTpl365, "neria_admin key='history.loyalty_rewards_received'") === false
+        ) {
+            $offenders[] = "Vues fidélité (configure.tpl / _customer_history_content.tpl) : icônes de palier redevenues moto/golfeur/haltérophile (&#127947;-&#127949;) ou libellés « Palier maximum atteint »/« Bons reçus » de nouveau codés en dur en français — régression du correctif bloc 5 (19/09/2026)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
