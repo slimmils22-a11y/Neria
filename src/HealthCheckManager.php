@@ -6342,6 +6342,17 @@ class HealthCheckManager
             $offenders[] = "Vues fidélité (configure.tpl / _customer_history_content.tpl) : icônes de palier redevenues moto/golfeur/haltérophile (&#127947;-&#127949;) ou libellés « Palier maximum atteint »/« Bons reçus » de nouveau codés en dur en français — régression du correctif bloc 5 (19/09/2026)";
         }
 
+        // Bloc 5 (19/09/2026) : LoyaltyManager::getTiers() renvoyait
+        // DEFAULT_TIERS avec les noms français "Argent"/"Or" quelle que soit
+        // la langue de la boutique (visibles dans les emails de palier).
+        $loyMgr365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($loyMgr365 === ''
+            || strpos($loyMgr365, 'return self::defaultTiersForLang(self::shopDefaultLangCode());') === false
+            || strpos($loyMgr365, 'return self::DEFAULT_TIERS;') !== false
+        ) {
+            $offenders[] = "LoyaltyManager::getTiers() ne localise plus les noms de palier par défaut selon la langue de la boutique — régression du correctif bloc 5 (19/09/2026) : une boutique non francophone enverrait de nouveau « Argent »/« Or » à ses clients";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
