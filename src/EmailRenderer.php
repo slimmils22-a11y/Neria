@@ -1019,6 +1019,29 @@ class EmailRenderer
     }
 
     /**
+     * Bloc 5 (19/09/2026) : 83 templates HTML (et 210 lignes .txt) écrivent
+     * "{neria_trad key='x'} :" — espace insécable AVANT les deux-points, ce qui
+     * est la typographie FRANÇAISE. Rendu tel quel dans les 18 autres langues
+     * ("Piece :", "Serial number :", "Seriennummer :"…) : fautif en anglais,
+     * allemand, espagnol, etc. Le japonais et le chinois utilisent les deux-
+     * points pleine chasse, le coréen/arabe/latin le deux-points collé.
+     * Appliqué à la source du template AVANT la résolution des {neria_trad}.
+     */
+    public static function localizeLabelColons(string $source, string $lang): string
+    {
+        if ($lang === 'fr' || $source === '') {
+            return $source;
+        }
+        $colon = in_array($lang, ['ja', 'zh', 'tw'], true) ? "\u{FF1A}" : ':';
+        $out = preg_replace(
+            '/(\{neria_trad\s+key=[\'"][a-z0-9_]+[\'"]\s*\})[ \x{00A0}]:/u',
+            '${1}' . $colon,
+            $source
+        );
+        return $out ?? $source;
+    }
+
+    /**
      * Neutralise le HTML dangereux d'une valeur de traduction avant de
      * l'injecter dans un email.
      *
@@ -2584,6 +2607,8 @@ class EmailRenderer
         $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
 
         $engine   = $this->engine;
+        // Bloc 5 : ponctuation du libellé selon la langue (voir localizeLabelColons()).
+        $compiled = self::localizeLabelColons($compiled, $lang);
         $compiled = preg_replace_callback(
             '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
             function ($mm) use ($engine, $template, $lang, $abtestMgr) {
@@ -3098,6 +3123,8 @@ class EmailRenderer
             );
         }
 
+        // Bloc 5 : ponctuation du libellé selon la langue (voir localizeLabelColons()).
+        $compiled = self::localizeLabelColons($compiled, $lang);
         $compiled = preg_replace_callback(
             '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
             function ($m) use ($engine, $template, $lang, $idShop) {
@@ -3347,6 +3374,8 @@ class EmailRenderer
             // `<a href=...>` en plus de l'URL déjà dupliquée juste après par
             // le template lui-même, sur 15 templates transactionnels
             // fréquents (bankwire, order_conf, payment, refund, shipped...).
+            // Bloc 5 : ponctuation du libellé selon la langue (voir localizeLabelColons()).
+            $compiledTxt = self::localizeLabelColons($compiledTxt, $lang);
             $compiledTxt = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
                 function ($m) use ($engine, $template, $lang, $idShop) {
