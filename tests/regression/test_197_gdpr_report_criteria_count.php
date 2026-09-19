@@ -19,7 +19,11 @@ require_once __DIR__ . '/bootstrap.php';
 
 function run_test(): array
 {
-    require_once _PS_MODULE_DIR_ . 'neria/src/GdprAuditManager.php';
+    foreach (['CryptoManager', 'NeriaTools', 'TranslationEngine', 'AdminTranslator', 'GdprAuditManager'] as $c) {
+        require_once _PS_MODULE_DIR_ . 'neria/src/' . $c . '.php';
+    }
+    // Bloc 6 : le rapport suit la langue du BO — ce test vérifie le libellé français.
+    \AdminTranslator::setLang('fr');
 
     $mgr = new GdprAuditManager(_PS_MODULE_DIR_ . 'neria');
 
