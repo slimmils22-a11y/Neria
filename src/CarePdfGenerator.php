@@ -126,7 +126,7 @@ class CarePdfGenerator
             foreach ($rows as $label => $value) {
                 CertificateManager::pdfSetFont($pdf, $fontSans, 'B', 9);
                 $pdf->SetTextColor(130, 100, 50);
-                $pdf->SetXY(25, $y);
+                $pdf->SetXY(25, $y - 0.8);
                 $pdf->Cell(50, 7, mb_strtoupper($label), 0, 0, 'L');
 
                 CertificateManager::pdfSetFont($pdf, $fontSans, '', 10);
@@ -154,12 +154,9 @@ class CarePdfGenerator
             $pdf->MultiCell(160, 6.5, $clean($careInstructions), 0, 'L');
             $y = $pdf->GetY() + 12;
 
-            // Note + signature.
-            CertificateManager::pdfSetFont($pdf, $fontSans, '', 9);
-            $pdf->SetTextColor(100, 100, 100);
-            $pdf->SetXY(25, $y);
-            $pdf->MultiCell(160, 5, $t('care_certificate_note'), 0, 'C');
-            $y = $pdf->GetY() + 10;
+            // Signature. La note de l'email (« certificat joint à cet email »)
+            // n'a pas sa place DANS le PDF : elle n'est donc pas reprise ici.
+            $y += 6;
 
             $pdf->SetDrawColor(179, 139, 89);
             $pdf->SetLineWidth(0.5);
