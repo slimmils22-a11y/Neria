@@ -10,7 +10,7 @@
 --------------------------------
 {product_name}
 
-{neria_trad key='extended_warranty_btn'} : {history_url}
+{neria_trad key='extended_warranty_btn'} : {terms_url}
 
 {neria_trad key='extended_warranty_note'}
 

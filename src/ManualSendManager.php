@@ -56,7 +56,7 @@ class ManualSendManager
         // Commande
         'order_name', 'id_order', 'date', 'payment',
         // Liens
-        'history_url', 'guest_tracking_url', 'contact_page_url', 'tracking_url', 'order_url', 'order_link',
+        'history_url', 'guest_tracking_url', 'contact_page_url', 'terms_url', 'tracking_url', 'order_url', 'order_link',
         'followup', 'link', 'url', 'contact_url', 'review_url', 'product_url', 'product_link',
         // Transport / adresses
         'carrier', 'carrier_name',

@@ -863,6 +863,7 @@ class EmailRenderer
                 '{history_url}'        => $this->context->link->getPageLink('history', true, $idLang),
                 '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $idLang),
                 '{contact_page_url}'   => $this->context->link->getPageLink('contact', true, $idLang),
+                '{terms_url}'          => $this->resolveTermsUrl($idLang),
                 '{custom_message}'     => '',
                 '{custom_message_txt}' => '',
                 '{subject}'            => $subject,
@@ -1017,6 +1018,27 @@ class EmailRenderer
                 return self::sanitizeTranslationHtml($engine->get($template, $key, $lang, $idShop));
             }
         );
+    }
+
+    /**
+     * Bloc 5 (19/09/2026) : URL de la page « Conditions » de la boutique
+     * (CMS PS_CONDITIONS_CMS_ID) — repli sur l'accueil si aucune page n'est
+     * configurée. Alimente {terms_url} (bouton « Voir les conditions »).
+     */
+    private function resolveTermsUrl(int $idLang): string
+    {
+        try {
+            $idCms = (int) \Configuration::get('PS_CONDITIONS_CMS_ID');
+            if ($idCms > 0) {
+                $url = (string) $this->context->link->getCMSLink($idCms, null, null, $idLang);
+                if ($url !== '') {
+                    return $url;
+                }
+            }
+        } catch (\Throwable $e) {
+            // repli ci-dessous
+        }
+        return (string) $this->context->link->getBaseLink();
     }
 
     /**
@@ -2407,6 +2429,7 @@ class EmailRenderer
             'history_url'            => '#',
             'guest_tracking_url'     => '#',
             'contact_page_url'       => '#',
+            'terms_url'              => '#',
             'products'               => $this->getFakeProductsList(),
             'discounts'              => '',
         ];
@@ -2832,6 +2855,7 @@ class EmailRenderer
             '{history_url}'        => '#',
             '{guest_tracking_url}' => '#',
             '{contact_page_url}'   => '#',
+            '{terms_url}'          => '#',
             '{tracking_url}'       => '#',
             '{order_url}'          => '#',
             '{order_link}'         => '#',
@@ -3202,6 +3226,7 @@ class EmailRenderer
             '{history_url}'        => $this->context->link->getPageLink('history', true, $urlIdLang),
             '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $urlIdLang),
             '{contact_page_url}'   => $this->context->link->getPageLink('contact', true, $urlIdLang),
+            '{terms_url}'          => $this->resolveTermsUrl($urlIdLang),
         ];
         $compiled = strtr($compiled, $psCommon);
 

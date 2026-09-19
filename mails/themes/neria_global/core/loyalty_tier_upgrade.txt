@@ -12,7 +12,7 @@
 {neria_trad key='loyalty_voucher_intro'}
 {voucher_code} — {neria_trad key='loyalty_voucher_value'} : {voucher_amount}
 
-{neria_trad key='loyalty_tier_btn'} : {history_url}
+{neria_trad key='loyalty_tier_btn'} : {shop_url}
 
 {neria_trad key='loyalty_tier_note'}
 

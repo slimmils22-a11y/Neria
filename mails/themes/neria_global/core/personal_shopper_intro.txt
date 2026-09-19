@@ -8,7 +8,7 @@
 --------------------------------
 {neria_trad key='shopper_name_label'} : {shopper_name}
 
-{neria_trad key='shopper_btn'} : {shop_url}
+{neria_trad key='shopper_btn'} : {contact_page_url}
 
 {neria_trad key='shopper_note'}
 

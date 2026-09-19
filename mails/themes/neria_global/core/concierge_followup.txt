@@ -7,7 +7,7 @@
 {neria_trad key='concierge_followup_title'}
 --------------------------------
 
-{neria_trad key='concierge_followup_btn'} : {shop_url}
+{neria_trad key='concierge_followup_btn'} : {contact_page_url}
 
 {neria_trad key='concierge_followup_note'}
 

@@ -6,7 +6,7 @@
 
 {neria_trad key='milestone_message'}
 {milestone_voucher_block_txt}
-{neria_trad key='milestone_btn'} : {history_url}
+{neria_trad key='milestone_btn'} : {shop_url}
 
 {neria_trad key='milestone_note'}
 

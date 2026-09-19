@@ -6,7 +6,7 @@
 
 {neria_trad key='first_anniversary_message'}
 
-{neria_trad key='first_anniversary_btn'} : {history_url}
+{neria_trad key='first_anniversary_btn'} : {shop_url}
 
 {neria_trad key='first_anniversary_note'}
 
