@@ -6544,6 +6544,24 @@ class HealthCheckManager
             $offenders[] = "RGPD : Neria n'est plus branché sur le crochet actionExportGDPRData (liste des crochets, hookActionExportGDPRData() ou GdprAuditManager::exportCustomerData()) — régression du correctif bloc 6 (19/09/2026) : une demande d'accès aux données personnelles ne contiendrait plus rien de ce que Neria conserve sur le client";
         }
 
+        // Bloc 6 (19/09/2026) : le webhook de bounces entrant n'acceptait que
+        // l'en-tête X-Neria-Signature, qu'aucun ESP annoncé (Mailgun, SendGrid,
+        // Postmark) n'envoie : il était inutilisable en conditions réelles.
+        $bncCtl366 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/bounce.php');
+        $bncMgr366 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        $neriaSrc366c = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($bncCtl366 === '' || $bncMgr366 === '' || $neriaSrc366c === ''
+            || strpos($bncCtl366, '->authenticateWebhook(') === false
+            || strpos($bncCtl366, '->verifyWebhookSignature(') !== false
+            || strpos($bncMgr366, 'public function authenticateWebhook(') === false
+            || strpos($bncMgr366, 'public static function getWebhookToken(') === false
+            || strpos($bncMgr366, "'neria-bounce-webhook-url'") === false
+            || strpos($bncMgr366, "abs(time() - (int) \$ts) <= 900") === false
+            || strpos($neriaSrc366c, 'BounceManager::getWebhookUrlWithToken()') === false
+        ) {
+            $offenders[] = "Webhook de bounces : le contrôleur n'utilise plus BounceManager::authenticateWebhook() (en-tête HMAC + jeton d'URL + signature Mailgun avec fenêtre anti-rejeu), ou le BO n'affiche plus l'URL avec jeton — régression du correctif bloc 6 (19/09/2026) : le point d'entrée redeviendrait inutilisable avec Mailgun, SendGrid et Postmark";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
