@@ -8,7 +8,7 @@
 --------------------------------
 {neria_trad key='order_reference_label'} : {order_name}
 
-{neria_trad key='tax_refund_btn'} : {shop_url}
+{neria_trad key='tax_refund_btn'} : {contact_page_url}
 
 {neria_trad key='tax_refund_note'}
 

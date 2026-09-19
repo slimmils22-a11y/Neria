@@ -10,7 +10,7 @@
 --------------------------------
 {product_name}
 
-{neria_trad key='repair_completed_btn'} : {history_url}
+{neria_trad key='repair_completed_btn'} : {contact_page_url}
 
 {neria_trad key='repair_completed_note'}
 

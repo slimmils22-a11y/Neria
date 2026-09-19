@@ -12,7 +12,7 @@
 
 {neria_trad key='product_recall_action'}
 --------------------------------
-{neria_trad key='product_recall_btn'} : {history_url}
+{neria_trad key='product_recall_btn'} : {contact_page_url}
 
 {neria_trad key='product_recall_note'}
 

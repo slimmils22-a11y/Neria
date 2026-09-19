@@ -12,8 +12,6 @@
 
 {neria_trad key='care_certificate_instructions'} : {care_instructions}
 
-{neria_trad key='care_certificate_btn'} : {shop_url}
-
 {neria_trad key='care_certificate_note'}
 
 {neria_trad key='care_certificate_signature'}

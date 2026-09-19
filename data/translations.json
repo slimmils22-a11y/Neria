@@ -14787,7 +14787,7 @@
             "care_certificate_materials": "Matériaux",
             "care_certificate_instructions": "Instructions d'entretien",
             "care_certificate_btn": "Télécharger le certificat",
-            "care_certificate_note": "Conservez ce certificat pour les futures consultations.",
+            "care_certificate_note": "Votre certificat est joint à cet email au format PDF. Conservez-le pour référence ultérieure.",
             "care_certificate_signature": "Fiers de la qualité de notre savoir-faire,"
         },
         "en": {
@@ -14800,7 +14800,7 @@
             "care_certificate_materials": "Materials",
             "care_certificate_instructions": "Care instructions",
             "care_certificate_btn": "Download the certificate",
-            "care_certificate_note": "Keep this certificate for future reference.",
+            "care_certificate_note": "Your certificate is attached to this email as a PDF. Please keep it for future reference.",
             "care_certificate_signature": "Proud of the quality of our craftsmanship,"
         },
         "de": {
@@ -14813,7 +14813,7 @@
             "care_certificate_materials": "Materialien",
             "care_certificate_instructions": "Pflegeanleitung",
             "care_certificate_btn": "Zertifikat herunterladen",
-            "care_certificate_note": "Bewahren Sie dieses Zertifikat für zukünftige Nachschläge auf.",
+            "care_certificate_note": "Ihr Zertifikat ist dieser E-Mail als PDF beigefügt. Bitte bewahren Sie es zur späteren Verwendung auf.",
             "care_certificate_signature": "Stolz auf die Qualität unseres Handwerks,"
         },
         "it": {
@@ -14826,7 +14826,7 @@
             "care_certificate_materials": "Materiali",
             "care_certificate_instructions": "Istruzioni per la cura",
             "care_certificate_btn": "Scarica il certificato",
-            "care_certificate_note": "Conservare questo certificato per future consultazioni.",
+            "care_certificate_note": "Il Vostro certificato è allegato a questa email in formato PDF. Vi preghiamo di conservarlo per riferimento futuro.",
             "care_certificate_signature": "Orgogliosi della qualità della nostra maestria,"
         },
         "es": {
@@ -14839,7 +14839,7 @@
             "care_certificate_materials": "Materiales",
             "care_certificate_instructions": "Instrucciones de cuidado",
             "care_certificate_btn": "Descargar el certificado",
-            "care_certificate_note": "Conserve este certificado para futuras consultas.",
+            "care_certificate_note": "Su certificado se adjunta a este correo en formato PDF. Consérvelo para futuras consultas.",
             "care_certificate_signature": "Orgullosos de la calidad de nuestra artesanía,"
         },
         "pt": {
@@ -14852,7 +14852,7 @@
             "care_certificate_materials": "Materiais",
             "care_certificate_instructions": "Instruções de cuidado",
             "care_certificate_btn": "Baixar o certificado",
-            "care_certificate_note": "Guarde este certificado para futuras consultas.",
+            "care_certificate_note": "O seu certificado segue em anexo a este email em formato PDF. Guarde-o para consulta futura.",
             "care_certificate_signature": "Orgulhosos da qualidade do nosso artesanato,"
         },
         "br": {
@@ -14865,7 +14865,7 @@
             "care_certificate_materials": "Materiais",
             "care_certificate_instructions": "Instruções de cuidado",
             "care_certificate_btn": "Baixar o certificado",
-            "care_certificate_note": "Guarde este certificado para futuras consultas.",
+            "care_certificate_note": "Seu certificado segue em anexo a este e-mail em formato PDF. Guarde-o para consulta futura.",
             "care_certificate_signature": "Orgulhosos da qualidade do nosso artesanato,"
         },
         "ar": {
@@ -14878,7 +14878,7 @@
             "care_certificate_materials": "المواد",
             "care_certificate_instructions": "تعليمات العناية",
             "care_certificate_btn": "تحميل الشهادة",
-            "care_certificate_note": "احتفظوا بهذه الشهادة للاطلاع عليها في المستقبل.",
+            "care_certificate_note": "شهادتكم مرفقة بهذه الرسالة بصيغة PDF. يرجى الاحتفاظ بها للرجوع إليها لاحقاً.",
             "care_certificate_signature": "فخورون بجودة حرفتنا،"
         },
         "ja": {
@@ -14891,7 +14891,7 @@
             "care_certificate_materials": "素材",
             "care_certificate_instructions": "お手入れ方法",
             "care_certificate_btn": "証明書をダウンロード",
-            "care_certificate_note": "この証明書は今後の参考のために保管してください。",
+            "care_certificate_note": "証明書はPDFファイルとして本メールに添付しております。今後の参考として大切に保管してください。",
             "care_certificate_signature": "当社の技術の質に誇りを持って、"
         },
         "ko": {
@@ -14904,7 +14904,7 @@
             "care_certificate_materials": "재료",
             "care_certificate_instructions": "관리 지침",
             "care_certificate_btn": "증명서 다운로드",
-            "care_certificate_note": "이 증명서를 향후 참조를 위해 보관하십시오.",
+            "care_certificate_note": "인증서는 PDF 파일로 이 이메일에 첨부되어 있습니다. 추후 참고를 위해 보관해 주시기 바랍니다.",
             "care_certificate_signature": "저희 장인 정신의 질에 자부심을 가지고,"
         },
         "zh": {
@@ -14917,7 +14917,7 @@
             "care_certificate_materials": "材质",
             "care_certificate_instructions": "保养说明",
             "care_certificate_btn": "下载证书",
-            "care_certificate_note": "请妥善保管此证书以备将来查阅。",
+            "care_certificate_note": "您的证书已作为 PDF 附件随本邮件发送。请妥善保存以备日后参考。",
             "care_certificate_signature": "为我们的工艺品质感到自豪，"
         },
         "tw": {
@@ -14930,7 +14930,7 @@
             "care_certificate_materials": "材質",
             "care_certificate_instructions": "保養說明",
             "care_certificate_btn": "下載證書",
-            "care_certificate_note": "請妥善保管此證書以備將來查閱。",
+            "care_certificate_note": "您的證書已作為 PDF 附件隨本郵件寄出。請妥善保存以備日後參考。",
             "care_certificate_signature": "為我們的工藝品質感到自豪，"
         },
         "ru": {
@@ -14943,7 +14943,7 @@
             "care_certificate_materials": "Материалы",
             "care_certificate_instructions": "Инструкции по уходу",
             "care_certificate_btn": "Скачать сертификат",
-            "care_certificate_note": "Сохраните этот сертификат для будущих консультаций.",
+            "care_certificate_note": "Ваш сертификат прилагается к этому письму в формате PDF. Пожалуйста, сохраните его для дальнейшего использования.",
             "care_certificate_signature": "Гордимся качеством нашего мастерства,"
         },
         "tr": {
@@ -14956,7 +14956,7 @@
             "care_certificate_materials": "Malzemeler",
             "care_certificate_instructions": "Bakım talimatları",
             "care_certificate_btn": "Sertifikayı indir",
-            "care_certificate_note": "Bu sertifikayı gelecekte başvurmak üzere saklayın.",
+            "care_certificate_note": "Sertifikanız bu e-postaya PDF olarak eklenmiştir. Lütfen ileride başvurmak üzere saklayınız.",
             "care_certificate_signature": "Zanaatımızın kalitesiyle gurur duyarak,"
         },
         "sv": {
@@ -14969,7 +14969,7 @@
             "care_certificate_materials": "Material",
             "care_certificate_instructions": "Vårdinstruktioner",
             "care_certificate_btn": "Ladda ner intyget",
-            "care_certificate_note": "Förvara detta intyg för framtida referens.",
+            "care_certificate_note": "Ert certifikat bifogas detta e-postmeddelande som PDF. Vänligen spara det för framtida bruk.",
             "care_certificate_signature": "Stolta över kvaliteten på vårt hantverk,"
         },
         "no": {
@@ -14982,7 +14982,7 @@
             "care_certificate_materials": "Materialer",
             "care_certificate_instructions": "Stellinstruksjoner",
             "care_certificate_btn": "Last ned attesten",
-            "care_certificate_note": "Oppbevar denne attesten for fremtidig referanse.",
+            "care_certificate_note": "Sertifikatet ditt er vedlagt denne e-posten som PDF. Vennligst ta vare på det for senere bruk.",
             "care_certificate_signature": "Stolte av kvaliteten på håndverket vårt,"
         },
         "da": {
@@ -14995,7 +14995,7 @@
             "care_certificate_materials": "Materialer",
             "care_certificate_instructions": "Plejeinstruktioner",
             "care_certificate_btn": "Download certifikatet",
-            "care_certificate_note": "Gem dette certifikat til fremtidig reference.",
+            "care_certificate_note": "Dit certifikat er vedhæftet denne e-mail som PDF. Gem det til fremtidig brug.",
             "care_certificate_signature": "Stolte over kvaliteten af vores håndværk,"
         },
         "nl": {
@@ -15008,7 +15008,7 @@
             "care_certificate_materials": "Materialen",
             "care_certificate_instructions": "Verzorgingsinstructies",
             "care_certificate_btn": "Download het certificaat",
-            "care_certificate_note": "Bewaar dit certificaat voor toekomstige raadpleging.",
+            "care_certificate_note": "Uw certificaat is als pdf aan deze e-mail toegevoegd. Bewaar het voor toekomstig gebruik.",
             "care_certificate_signature": "Trots op de kwaliteit van ons vakmanschap,"
         },
         "gb": {
@@ -15021,7 +15021,7 @@
             "care_certificate_materials": "Materials",
             "care_certificate_instructions": "Care instructions",
             "care_certificate_btn": "Download the certificate",
-            "care_certificate_note": "Keep this certificate for future reference.",
+            "care_certificate_note": "Your certificate is attached to this email as a PDF. Please keep it for future reference.",
             "care_certificate_signature": "Proud of the quality of our craftsmanship,"
         }
     },
@@ -18218,7 +18218,7 @@
             "dear_customer": "Madame, Monsieur,",
             "repair_completed_intro": "Nous avons le plaisir de vous informer que la réparation ou la retouche de votre pièce est désormais achevée.",
             "repair_completed_details": "Détails de l'intervention",
-            "repair_completed_btn": "Organiser le retour",
+            "repair_completed_btn": "Contacter notre équipe",
             "repair_completed_note": "Notre équipe vous contactera pour convenir des modalités de retour.",
             "repair_completed_signature": "Nous sommes heureux de vous servir,",
             "order_reference_label": "Référence commande"
@@ -18229,7 +18229,7 @@
             "dear_customer": "Dear Valued Guest,",
             "repair_completed_intro": "We are pleased to inform you that the repair or alteration of your piece is now complete.",
             "repair_completed_details": "Service details",
-            "repair_completed_btn": "Arrange return",
+            "repair_completed_btn": "Contact our team",
             "repair_completed_note": "Our team will contact you to agree on return arrangements.",
             "repair_completed_signature": "We are happy to serve you,",
             "order_reference_label": "Order reference"
@@ -18240,7 +18240,7 @@
             "dear_customer": "Sehr geehrte Damen und Herren,",
             "repair_completed_intro": "Wir freuen uns, Ihnen mitzuteilen, dass die Reparatur oder Änderung Ihres Stücks nun abgeschlossen ist.",
             "repair_completed_details": "Details des Eingriffs",
-            "repair_completed_btn": "Rückgabe organisieren",
+            "repair_completed_btn": "Unser Team kontaktieren",
             "repair_completed_note": "Unser Team wird Sie kontaktieren, um die Rückgabemodalitäten zu vereinbaren.",
             "repair_completed_signature": "Wir freuen uns, Ihnen zu dienen,",
             "order_reference_label": "Bestellreferenz"
@@ -18251,7 +18251,7 @@
             "dear_customer": "Gentile Cliente,",
             "repair_completed_intro": "Siamo lieti di informarVi che la riparazione o la modifica del Vostro pezzo è ora completata.",
             "repair_completed_details": "Dettagli dell'intervento",
-            "repair_completed_btn": "Organizzare il reso",
+            "repair_completed_btn": "Contattare il nostro team",
             "repair_completed_note": "Il nostro team Vi contatterà per concordare le modalità di restituzione.",
             "repair_completed_signature": "Siamo lieti di servirVi,",
             "order_reference_label": "Riferimento ordine"
@@ -18262,7 +18262,7 @@
             "dear_customer": "Estimado cliente,",
             "repair_completed_intro": "Nos complace informarle que la reparación o modificación de su pieza ha finalizado.",
             "repair_completed_details": "Detalles de la intervención",
-            "repair_completed_btn": "Organizar la devolución",
+            "repair_completed_btn": "Contactar con nuestro equipo",
             "repair_completed_note": "Nuestro equipo se pondrá en contacto con usted para acordar las condiciones de la devolución.",
             "repair_completed_signature": "Nos complace servirle,",
             "order_reference_label": "Referencia del pedido"
@@ -18273,7 +18273,7 @@
             "dear_customer": "Prezado Cliente,",
             "repair_completed_intro": "Temos o prazer de o informar que a reparação ou alteração da sua peça está agora concluída.",
             "repair_completed_details": "Detalhes da intervenção",
-            "repair_completed_btn": "Organizar a devolução",
+            "repair_completed_btn": "Contactar a nossa equipa",
             "repair_completed_note": "A nossa equipa entrará em contacto consigo para acordar as condições de devolução.",
             "repair_completed_signature": "Temos o prazer de o servir,",
             "order_reference_label": "Referência da encomenda"
@@ -18284,7 +18284,7 @@
             "dear_customer": "Prezado Cliente,",
             "repair_completed_intro": "Temos o prazer de informar que o reparo ou a modificação da sua peça já foi concluído.",
             "repair_completed_details": "Detalhes da intervenção",
-            "repair_completed_btn": "Organizar a devolução",
+            "repair_completed_btn": "Entrar em contato com nossa equipe",
             "repair_completed_note": "Nossa equipe entrará em contato com você para combinar as condições de devolução.",
             "repair_completed_signature": "Temos o prazer de atender você,",
             "order_reference_label": "Referência do pedido"
@@ -18295,7 +18295,7 @@
             "dear_customer": "ضيفنا الكريم،",
             "repair_completed_intro": "يسعدنا إعلامكم أن إصلاح أو تعديل قطعتكم قد اكتمل الآن.",
             "repair_completed_details": "تفاصيل التدخل",
-            "repair_completed_btn": "ترتيب الإرجاع",
+            "repair_completed_btn": "تواصلوا مع فريقنا",
             "repair_completed_note": "سيتواصل فريقنا معكم للاتفاق على شروط الإرجاع.",
             "repair_completed_signature": "يسعدنا خدمتكم،",
             "order_reference_label": "مرجع الطلب"
@@ -18306,7 +18306,7 @@
             "dear_customer": "{lastname} {firstname} 様",
             "repair_completed_intro": "お客様の作品の修理またはお直しが完了したことをお知らせします。",
             "repair_completed_details": "対応の詳細",
-            "repair_completed_btn": "返送を手配",
+            "repair_completed_btn": "担当チームに問い合わせる",
             "repair_completed_note": "チームが返送の詳細についてご連絡いたします。",
             "repair_completed_signature": "お役に立てて幸いです、",
             "order_reference_label": "注文番号"
@@ -18317,7 +18317,7 @@
             "dear_customer": "{lastname} {firstname} 고객님께,",
             "repair_completed_intro": "고객님의 작품 수리 또는 수선이 완료되었음을 알려드립니다.",
             "repair_completed_details": "작업 세부 정보",
-            "repair_completed_btn": "반송 준비",
+            "repair_completed_btn": "담당 팀에 문의하기",
             "repair_completed_note": "팀이 반송 절차에 대해 연락드릴 것입니다.",
             "repair_completed_signature": "기쁘게 도와드립니다,",
             "order_reference_label": "주문 참조 번호"
@@ -18328,7 +18328,7 @@
             "dear_customer": "尊敬的客人，",
             "repair_completed_intro": "我们很高兴通知您，您作品的维修或修改现已完成。",
             "repair_completed_details": "处理详情",
-            "repair_completed_btn": "安排退送",
+            "repair_completed_btn": "联系我们的团队",
             "repair_completed_note": "我们的团队将与您联系，商定退送事宜。",
             "repair_completed_signature": "很高兴为您服务，",
             "order_reference_label": "订单编号"
@@ -18339,7 +18339,7 @@
             "dear_customer": "尊敬的客人，",
             "repair_completed_intro": "我們很高興通知您，您作品的維修或修改現已完成。",
             "repair_completed_details": "處理詳情",
-            "repair_completed_btn": "安排退送",
+            "repair_completed_btn": "聯絡我們的團隊",
             "repair_completed_note": "我們的團隊將與您聯繫，商定退送事宜。",
             "repair_completed_signature": "很高興為您服務，",
             "order_reference_label": "訂單編號"
@@ -18350,7 +18350,7 @@
             "dear_customer": "Уважаемый гость,",
             "repair_completed_intro": "Мы рады сообщить Вам, что ремонт или переделка Вашего изделия теперь завершены.",
             "repair_completed_details": "Детали вмешательства",
-            "repair_completed_btn": "Организовать возврат",
+            "repair_completed_btn": "Связаться с нашей командой",
             "repair_completed_note": "Наша команда свяжется с Вами, чтобы согласовать условия возврата.",
             "repair_completed_signature": "Мы рады служить Вам,",
             "order_reference_label": "Номер заказа"
@@ -18361,7 +18361,7 @@
             "dear_customer": "Sayın Değerli Misafirimiz,",
             "repair_completed_intro": "Parçanızın tamiri veya değişikliğinin tamamlandığını bildirmekten mutluluk duyarız.",
             "repair_completed_details": "Müdahale detayları",
-            "repair_completed_btn": "İadeyi düzenle",
+            "repair_completed_btn": "Ekibimizle iletişime geçin",
             "repair_completed_note": "Ekibimiz, iade koşullarını kararlaştırmak için sizinle iletişime geçecektir.",
             "repair_completed_signature": "Size hizmet etmekten mutluluk duyuyoruz,",
             "order_reference_label": "Sipariş referansı"
@@ -18372,7 +18372,7 @@
             "dear_customer": "Bästa kund,",
             "repair_completed_intro": "Vi är glada att meddela att reparationen eller ändringen av ditt stycke är slutförd.",
             "repair_completed_details": "Insatsdetaljer",
-            "repair_completed_btn": "Ordna retur",
+            "repair_completed_btn": "Kontakta vårt team",
             "repair_completed_note": "Vårt team kommer att kontakta dig för att komma överens om returvillkoren.",
             "repair_completed_signature": "Vi är glada att tjäna dig,",
             "order_reference_label": "Beställningsreferens"
@@ -18383,7 +18383,7 @@
             "dear_customer": "Kjære kunde,",
             "repair_completed_intro": "Vi er glade for å informere deg om at reparasjonen eller endringen av gjenstanden din nå er fullført.",
             "repair_completed_details": "Detaljer om inngrepet",
-            "repair_completed_btn": "Ordne retur",
+            "repair_completed_btn": "Kontakt vårt team",
             "repair_completed_note": "Teamet vårt vil kontakte deg for å bli enige om returvilkårene.",
             "repair_completed_signature": "Vi er glade for å betjene deg,",
             "order_reference_label": "Bestillingsreferanse"
@@ -18394,7 +18394,7 @@
             "dear_customer": "Kære kunde,",
             "repair_completed_intro": "Vi er glade for at informere dig om, at reparationen eller ændringen af dit stykke nu er fuldført.",
             "repair_completed_details": "Indgrebsdetaljer",
-            "repair_completed_btn": "Arranger retur",
+            "repair_completed_btn": "Kontakt vores team",
             "repair_completed_note": "Vores team vil kontakte dig for at blive enige om returvilkårene.",
             "repair_completed_signature": "Vi er glade for at betjene dig,",
             "order_reference_label": "Ordrereference"
@@ -18405,7 +18405,7 @@
             "dear_customer": "Geachte klant,",
             "repair_completed_intro": "Wij zijn verheugd u te kunnen meedelen dat de reparatie of aanpassing van uw stuk nu is voltooid.",
             "repair_completed_details": "Interventiedetails",
-            "repair_completed_btn": "Retour regelen",
+            "repair_completed_btn": "Neem contact op met ons team",
             "repair_completed_note": "Ons team zal contact met u opnemen om de retourvoorwaarden af te spreken.",
             "repair_completed_signature": "Wij zijn blij u te kunnen dienen,",
             "order_reference_label": "Orderreferentie"
@@ -18416,7 +18416,7 @@
             "dear_customer": "Dear Valued Guest,",
             "repair_completed_intro": "We are pleased to inform you that the repair or alteration of your piece is now complete.",
             "repair_completed_details": "Service details",
-            "repair_completed_btn": "Arrange return",
+            "repair_completed_btn": "Contact our team",
             "repair_completed_note": "Our team will contact you to agree on return arrangements.",
             "repair_completed_signature": "We are happy to serve you,",
             "order_reference_label": "Order reference"
@@ -18872,7 +18872,7 @@
             "product_recall_details": "Détails du rappel",
             "product_recall_product_label": "Produit concerné",
             "product_recall_action": "Que faire ?",
-            "product_recall_btn": "En savoir plus",
+            "product_recall_btn": "Nous contacter",
             "product_recall_note": "Notre équipe est à votre disposition pour toute question. Nous vous remercions de votre compréhension.",
             "product_recall_signature": "Avec toute notre considération,",
             "order_reference_label": "Référence commande"
@@ -18885,7 +18885,7 @@
             "product_recall_details": "Recall details",
             "product_recall_product_label": "Product concerned",
             "product_recall_action": "What to do?",
-            "product_recall_btn": "Learn more",
+            "product_recall_btn": "Contact us",
             "product_recall_note": "Our team is at your disposal for any questions. We thank you for your understanding.",
             "product_recall_signature": "With all our consideration,",
             "order_reference_label": "Order reference"
@@ -18898,7 +18898,7 @@
             "product_recall_details": "Rückrufdetails",
             "product_recall_product_label": "Betroffenes Produkt",
             "product_recall_action": "Was tun?",
-            "product_recall_btn": "Mehr erfahren",
+            "product_recall_btn": "Kontakt aufnehmen",
             "product_recall_note": "Unser Team steht Ihnen für alle Fragen zur Verfügung. Wir danken Ihnen für Ihr Verständnis.",
             "product_recall_signature": "Mit all unserer Wertschätzung,",
             "order_reference_label": "Bestellreferenz"
@@ -18911,7 +18911,7 @@
             "product_recall_details": "Dettagli del richiamo",
             "product_recall_product_label": "Prodotto interessato",
             "product_recall_action": "Cosa fare?",
-            "product_recall_btn": "Scopri di più",
+            "product_recall_btn": "Contattarci",
             "product_recall_note": "Il nostro team è a Vostra disposizione per ogni domanda. Vi ringraziamo per la Vostra comprensione.",
             "product_recall_signature": "Con tutta la nostra considerazione,",
             "order_reference_label": "Riferimento ordine"
@@ -18924,7 +18924,7 @@
             "product_recall_details": "Detalles de la retirada",
             "product_recall_product_label": "Producto afectado",
             "product_recall_action": "¿Qué hacer?",
-            "product_recall_btn": "Saber más",
+            "product_recall_btn": "Contáctenos",
             "product_recall_note": "Nuestro equipo está a su disposición para cualquier pregunta. Le agradecemos su comprensión.",
             "product_recall_signature": "Con toda nuestra consideración,",
             "order_reference_label": "Referencia del pedido"
@@ -18937,7 +18937,7 @@
             "product_recall_details": "Detalhes da recolha",
             "product_recall_product_label": "Produto em causa",
             "product_recall_action": "O que fazer?",
-            "product_recall_btn": "Saber mais",
+            "product_recall_btn": "Contacte-nos",
             "product_recall_note": "A nossa equipa está à sua disposição para qualquer questão. Agradecemos a sua compreensão.",
             "product_recall_signature": "Com toda a nossa consideração,",
             "order_reference_label": "Referência da encomenda"
@@ -18950,7 +18950,7 @@
             "product_recall_details": "Detalhes da recolha",
             "product_recall_product_label": "Produto em questão",
             "product_recall_action": "O que fazer?",
-            "product_recall_btn": "Saber mais",
+            "product_recall_btn": "Entre em contato",
             "product_recall_note": "Nossa equipe está à sua disposição para qualquer dúvida. Agradecemos a sua compreensão.",
             "product_recall_signature": "Com toda a nossa consideração,",
             "order_reference_label": "Referência do pedido"
@@ -18963,7 +18963,7 @@
             "product_recall_details": "تفاصيل الاستدعاء",
             "product_recall_product_label": "المنتج المعني",
             "product_recall_action": "ماذا تفعل؟",
-            "product_recall_btn": "اعرف المزيد",
+            "product_recall_btn": "تواصلوا معنا",
             "product_recall_note": "فريقنا رهن إشارتكم لأي استفسار. نشكركم على تفهمكم.",
             "product_recall_signature": "بكل تقديرنا،",
             "order_reference_label": "مرجع الطلب"
@@ -18976,7 +18976,7 @@
             "product_recall_details": "リコールの詳細",
             "product_recall_product_label": "対象製品",
             "product_recall_action": "どうすればよいですか？",
-            "product_recall_btn": "詳細を見る",
+            "product_recall_btn": "お問い合わせ",
             "product_recall_note": "ご質問はいつでもスタッフまでお尋ねください。ご理解のほど、よろしくお願い申し上げます。",
             "product_recall_signature": "心からの敬意を込めて、",
             "order_reference_label": "注文番号"
@@ -18989,7 +18989,7 @@
             "product_recall_details": "리콜 세부 정보",
             "product_recall_product_label": "해당 제품",
             "product_recall_action": "어떻게 해야 합니까?",
-            "product_recall_btn": "자세히 알아보기",
+            "product_recall_btn": "문의하기",
             "product_recall_note": "문의 사항이 있으면 저희 팀이 도와드리겠습니다. 양해해 주셔서 감사합니다.",
             "product_recall_signature": "깊은 존경을 담아,",
             "order_reference_label": "주문 참조 번호"
@@ -19002,7 +19002,7 @@
             "product_recall_details": "召回详情",
             "product_recall_product_label": "涉及产品",
             "product_recall_action": "如何处理？",
-            "product_recall_btn": "了解更多",
+            "product_recall_btn": "联系我们",
             "product_recall_note": "我们的团队随时为您解答疑问。感谢您的理解。",
             "product_recall_signature": "致以我们全部的敬意，",
             "order_reference_label": "订单编号"
@@ -19015,7 +19015,7 @@
             "product_recall_details": "召回詳情",
             "product_recall_product_label": "涉及產品",
             "product_recall_action": "如何處理？",
-            "product_recall_btn": "了解更多",
+            "product_recall_btn": "聯絡我們",
             "product_recall_note": "我們的團隊隨時為您解答疑問。感謝您的理解。",
             "product_recall_signature": "致以我們全部的敬意，",
             "order_reference_label": "訂單編號"
@@ -19028,7 +19028,7 @@
             "product_recall_details": "Детали отзыва",
             "product_recall_product_label": "Затронутый товар",
             "product_recall_action": "Что делать?",
-            "product_recall_btn": "Узнать больше",
+            "product_recall_btn": "Связаться с нами",
             "product_recall_note": "Наша команда в Вашем распоряжении для любых вопросов. Благодарим Вас за понимание.",
             "product_recall_signature": "С искренним уважением,",
             "order_reference_label": "Номер заказа"
@@ -19041,7 +19041,7 @@
             "product_recall_details": "Geri çağırma detayları",
             "product_recall_product_label": "İlgili ürün",
             "product_recall_action": "Ne yapmalı?",
-            "product_recall_btn": "Daha fazla bilgi",
+            "product_recall_btn": "Bize ulaşın",
             "product_recall_note": "Herhangi bir sorunuz için ekibimiz hizmetinizdedir. Anlayışınız için teşekkür ederiz.",
             "product_recall_signature": "Tüm saygımızla,",
             "order_reference_label": "Sipariş referansı"
@@ -19054,7 +19054,7 @@
             "product_recall_details": "Återkallelsedetaljer",
             "product_recall_product_label": "Berörd produkt",
             "product_recall_action": "Vad ska du göra?",
-            "product_recall_btn": "Läs mer",
+            "product_recall_btn": "Kontakta oss",
             "product_recall_note": "Vårt team står till din tjänst för frågor. Vi tackar dig för din förståelse.",
             "product_recall_signature": "Med all vår respekt,",
             "order_reference_label": "Beställningsreferens"
@@ -19067,7 +19067,7 @@
             "product_recall_details": "Tilbakekallingsdetaljer",
             "product_recall_product_label": "Berørt produkt",
             "product_recall_action": "Hva skal du gjøre?",
-            "product_recall_btn": "Les mer",
+            "product_recall_btn": "Kontakt oss",
             "product_recall_note": "Teamet vårt står til din tjeneste for spørsmål. Vi takker deg for din forståelse.",
             "product_recall_signature": "Med all vår respekt,",
             "order_reference_label": "Bestillingsreferanse"
@@ -19080,7 +19080,7 @@
             "product_recall_details": "Tilbagekaldelsesdetaljer",
             "product_recall_product_label": "Berørt produkt",
             "product_recall_action": "Hvad skal du gøre?",
-            "product_recall_btn": "Læs mere",
+            "product_recall_btn": "Kontakt os",
             "product_recall_note": "Vores team står til din rådighed for spørgsmål. Vi takker dig for din forståelse.",
             "product_recall_signature": "Med al vores respekt,",
             "order_reference_label": "Ordrereference"
@@ -19093,7 +19093,7 @@
             "product_recall_details": "Terugroepdetails",
             "product_recall_product_label": "Betrokken product",
             "product_recall_action": "Wat te doen?",
-            "product_recall_btn": "Lees meer",
+            "product_recall_btn": "Neem contact met ons op",
             "product_recall_note": "Ons team staat voor u klaar voor vragen. Wij danken u voor uw begrip.",
             "product_recall_signature": "Met al onze achting,",
             "order_reference_label": "Orderreferentie"
@@ -19106,7 +19106,7 @@
             "product_recall_details": "Recall details",
             "product_recall_product_label": "Product concerned",
             "product_recall_action": "What to do?",
-            "product_recall_btn": "Learn more",
+            "product_recall_btn": "Contact us",
             "product_recall_note": "Our team is at your disposal for any questions. We thank you for your understanding.",
             "product_recall_signature": "With all our consideration,",
             "order_reference_label": "Order reference"
@@ -19866,7 +19866,7 @@
             "dear_customer": "Madame, Monsieur,",
             "tax_refund_intro": "En tant qu'hôte résidant en dehors de l'Union Européenne, vous êtes éligible à une détaxe sur vos achats.",
             "tax_refund_details": "Détails de votre éligibilité",
-            "tax_refund_btn": "Commencer la procédure",
+            "tax_refund_btn": "Contacter notre équipe",
             "tax_refund_note": "Notre équipe vous accompagnera dans les démarches nécessaires.",
             "tax_refund_signature": "À votre service,",
             "order_reference_label": "Référence commande"
@@ -19877,7 +19877,7 @@
             "dear_customer": "Dear Valued Guest,",
             "tax_refund_intro": "As a guest residing outside the European Union, you are eligible for a tax refund on your purchases.",
             "tax_refund_details": "Your eligibility details",
-            "tax_refund_btn": "Start the procedure",
+            "tax_refund_btn": "Contact our team",
             "tax_refund_note": "Our team will assist you with the necessary steps.",
             "tax_refund_signature": "At your service,",
             "order_reference_label": "Order reference"
@@ -19888,7 +19888,7 @@
             "dear_customer": "Sehr geehrte Damen und Herren,",
             "tax_refund_intro": "Als Gast mit Wohnsitz außerhalb der Europäischen Union haben Sie Anspruch auf eine Steuererstattung für Ihre Einkäufe.",
             "tax_refund_details": "Details Ihrer Berechtigung",
-            "tax_refund_btn": "Verfahren starten",
+            "tax_refund_btn": "Unser Team kontaktieren",
             "tax_refund_note": "Unser Team wird Sie bei den notwendigen Schritten begleiten.",
             "tax_refund_signature": "Zu Ihren Diensten,",
             "order_reference_label": "Bestellreferenz"
@@ -19899,7 +19899,7 @@
             "dear_customer": "Gentile Cliente,",
             "tax_refund_intro": "In qualità di ospite residente al di fuori dell'Unione Europea, avete diritto a un rimborso fiscale sui Vostri acquisti.",
             "tax_refund_details": "Dettagli della Vostra idoneità",
-            "tax_refund_btn": "Avviare la procedura",
+            "tax_refund_btn": "Contattare il nostro team",
             "tax_refund_note": "Il nostro team Vi assisterà nelle fasi necessarie.",
             "tax_refund_signature": "Al Vostro servizio,",
             "order_reference_label": "Riferimento ordine"
@@ -19910,7 +19910,7 @@
             "dear_customer": "Estimado cliente,",
             "tax_refund_intro": "Como huésped residente fuera de la Unión Europea, usted es elegible para una devolución de impuestos en sus compras.",
             "tax_refund_details": "Detalles de su elegibilidad",
-            "tax_refund_btn": "Iniciar el procedimiento",
+            "tax_refund_btn": "Contactar con nuestro equipo",
             "tax_refund_note": "Nuestro equipo le ayudará con los pasos necesarios.",
             "tax_refund_signature": "A su servicio,",
             "order_reference_label": "Referencia del pedido"
@@ -19921,7 +19921,7 @@
             "dear_customer": "Prezado Cliente,",
             "tax_refund_intro": "Como hóspede residente fora da União Europeia, é elegível para um reembolso fiscal nas suas compras.",
             "tax_refund_details": "Detalhes da sua elegibilidade",
-            "tax_refund_btn": "Iniciar o procedimento",
+            "tax_refund_btn": "Contactar a nossa equipa",
             "tax_refund_note": "A nossa equipa irá ajudá-lo nos passos necessários.",
             "tax_refund_signature": "Ao seu serviço,",
             "order_reference_label": "Referência da encomenda"
@@ -19932,7 +19932,7 @@
             "dear_customer": "Prezado Cliente,",
             "tax_refund_intro": "Como convidado residente fora da União Europeia, você é elegível para reembolso de impostos em suas compras.",
             "tax_refund_details": "Detalhes da sua elegibilidade",
-            "tax_refund_btn": "Iniciar o procedimento",
+            "tax_refund_btn": "Entrar em contato com nossa equipe",
             "tax_refund_note": "Nossa equipe vai ajudar você nas etapas necessárias.",
             "tax_refund_signature": "Ao seu serviço,",
             "order_reference_label": "Referência do pedido"
@@ -19943,7 +19943,7 @@
             "dear_customer": "ضيفنا الكريم،",
             "tax_refund_intro": "بوصفكم ضيفاً مقيماً خارج الاتحاد الأوروبي، أنتم مؤهلون للحصول على استرداد ضريبي على مشترياتكم.",
             "tax_refund_details": "تفاصيل أهليتكم",
-            "tax_refund_btn": "بدء الإجراء",
+            "tax_refund_btn": "تواصلوا مع فريقنا",
             "tax_refund_note": "سيساعدكم فريقنا في الخطوات اللازمة.",
             "tax_refund_signature": "في خدمتكم،",
             "order_reference_label": "مرجع الطلب"
@@ -19954,7 +19954,7 @@
             "dear_customer": "{lastname} {firstname} 様",
             "tax_refund_intro": "EU域外にお住まいのお客様として、お買い物に対する免税の対象となります。",
             "tax_refund_details": "資格の詳細",
-            "tax_refund_btn": "手続きを開始",
+            "tax_refund_btn": "担当チームに問い合わせる",
             "tax_refund_note": "チームが必要な手続きをサポートいたします。",
             "tax_refund_signature": "お役に立てれば幸いです、",
             "order_reference_label": "注文番号"
@@ -19965,7 +19965,7 @@
             "dear_customer": "{lastname} {firstname} 고객님께,",
             "tax_refund_intro": "EU 외 거주 고객님으로서 구매에 대한 세금 환급 자격이 있습니다.",
             "tax_refund_details": "자격 세부 정보",
-            "tax_refund_btn": "절차 시작",
+            "tax_refund_btn": "담당 팀에 문의하기",
             "tax_refund_note": "저희 팀이 필요한 절차를 도와드리겠습니다.",
             "tax_refund_signature": "도와드리겠습니다,",
             "order_reference_label": "주문 참조 번호"
@@ -19976,7 +19976,7 @@
             "dear_customer": "尊敬的客人，",
             "tax_refund_intro": "作为居住在欧盟以外的贵宾，您有资格获得购物退税。",
             "tax_refund_details": "您的资格详情",
-            "tax_refund_btn": "启动程序",
+            "tax_refund_btn": "联系我们的团队",
             "tax_refund_note": "我们的团队将协助您完成必要步骤。",
             "tax_refund_signature": "随时为您服务，",
             "order_reference_label": "订单编号"
@@ -19987,7 +19987,7 @@
             "dear_customer": "尊敬的客人，",
             "tax_refund_intro": "作為居住在歐盟以外的貴賓，您有資格獲得購物退稅。",
             "tax_refund_details": "您的資格詳情",
-            "tax_refund_btn": "啟動程序",
+            "tax_refund_btn": "聯絡我們的團隊",
             "tax_refund_note": "我們的團隊將協助您完成必要步驟。",
             "tax_refund_signature": "隨時為您服務，",
             "order_reference_label": "訂單編號"
@@ -19998,7 +19998,7 @@
             "dear_customer": "Уважаемый гость,",
             "tax_refund_intro": "Как гость, проживающий за пределами Европейского Союза, Вы имеете право на налоговый возврат с покупок.",
             "tax_refund_details": "Детали Вашего права",
-            "tax_refund_btn": "Начать процедуру",
+            "tax_refund_btn": "Связаться с нашей командой",
             "tax_refund_note": "Наша команда поможет Вам с необходимыми шагами.",
             "tax_refund_signature": "К Вашим услугам,",
             "order_reference_label": "Номер заказа"
@@ -20009,7 +20009,7 @@
             "dear_customer": "Sayın Değerli Misafirimiz,",
             "tax_refund_intro": "Avrupa Birliği dışında ikamet eden bir konuk olarak alışverişlerinizde vergi iadesi almaya hak kazanıyorsunuz.",
             "tax_refund_details": "Uygunluk detayları",
-            "tax_refund_btn": "Prosedürü başlat",
+            "tax_refund_btn": "Ekibimizle iletişime geçin",
             "tax_refund_note": "Ekibimiz gerekli adımlarda size yardımcı olacaktır.",
             "tax_refund_signature": "Hizmetinizde,",
             "order_reference_label": "Sipariş referansı"
@@ -20020,7 +20020,7 @@
             "dear_customer": "Bästa kund,",
             "tax_refund_intro": "Som gäst bosatt utanför Europeiska Unionen är du berättigad till skatteåterbäring på dina köp.",
             "tax_refund_details": "Uppgifter om din behörighet",
-            "tax_refund_btn": "Starta proceduren",
+            "tax_refund_btn": "Kontakta vårt team",
             "tax_refund_note": "Vårt team hjälper dig med de nödvändiga stegen.",
             "tax_refund_signature": "Till din tjänst,",
             "order_reference_label": "Beställningsreferens"
@@ -20031,7 +20031,7 @@
             "dear_customer": "Kjære kunde,",
             "tax_refund_intro": "Som gjest bosatt utenfor Den europeiske union er du berettiget til skatterefusjon på kjøpene dine.",
             "tax_refund_details": "Kvalifikasjonsdetaljer",
-            "tax_refund_btn": "Start prosedyren",
+            "tax_refund_btn": "Kontakt vårt team",
             "tax_refund_note": "Teamet vårt vil hjelpe deg med de nødvendige trinnene.",
             "tax_refund_signature": "Til din tjeneste,",
             "order_reference_label": "Bestillingsreferanse"
@@ -20042,7 +20042,7 @@
             "dear_customer": "Kære kunde,",
             "tax_refund_intro": "Som gæst bosiddende uden for Den Europæiske Union er du berettiget til skatterefusion på dine køb.",
             "tax_refund_details": "Oplysninger om din berettigelse",
-            "tax_refund_btn": "Start proceduren",
+            "tax_refund_btn": "Kontakt vores team",
             "tax_refund_note": "Vores team vil hjælpe dig med de nødvendige trin.",
             "tax_refund_signature": "Til din tjeneste,",
             "order_reference_label": "Ordrereference"
@@ -20053,7 +20053,7 @@
             "dear_customer": "Geachte klant,",
             "tax_refund_intro": "Als gast woonachtig buiten de Europese Unie heeft u recht op btw-teruggave op uw aankopen.",
             "tax_refund_details": "Details van uw geschiktheid",
-            "tax_refund_btn": "Start de procedure",
+            "tax_refund_btn": "Neem contact op met ons team",
             "tax_refund_note": "Ons team zal u begeleiden bij de nodige stappen.",
             "tax_refund_signature": "Tot uw dienst,",
             "order_reference_label": "Orderreferentie"
@@ -20064,7 +20064,7 @@
             "dear_customer": "Dear Valued Guest,",
             "tax_refund_intro": "As a guest residing outside the European Union, you are eligible for a tax refund on your purchases.",
             "tax_refund_details": "Your eligibility details",
-            "tax_refund_btn": "Start the procedure",
+            "tax_refund_btn": "Contact our team",
             "tax_refund_note": "Our team will assist you with the necessary steps.",
             "tax_refund_signature": "At your service,",
             "order_reference_label": "Order reference"
