@@ -992,7 +992,7 @@ document.addEventListener('DOMContentLoaded', function() {
           searchResults.classList.add('active');
           searchInput.setAttribute('aria-expanded', 'true');
           setActiveSearchResult(-1);
-        }).catch(function(){ searchResults.innerHTML = '<div class="neria-search-empty">Erreur de recherche.</div>'; searchResults.classList.add('active'); });
+        }).catch(function(){ searchResults.innerHTML = '<div class="neria-search-empty">{neria_admin key='translations.search_error' esc='javascript'}</div>'; searchResults.classList.add('active'); });
       }, 300);
     });
     searchInput.addEventListener('keydown', function (e) {

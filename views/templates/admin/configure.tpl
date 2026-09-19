@@ -1285,9 +1285,9 @@
       {foreach $loyalty_tiers as $tier}
       <div style="padding:16px; background:var(--neria-bg); border-radius:6px; border:1px solid var(--neria-border);">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-          {if $tier.key === 'bronze'}<span style="font-size:18px; line-height:1;">&#127949;</span>
-          {elseif $tier.key === 'silver'}<span style="font-size:18px; line-height:1;">&#127948;</span>
-          {else}<span style="font-size:18px; line-height:1;">&#127947;</span>{/if}
+          {if $tier.key === 'bronze'}<span style="font-size:18px; line-height:1;">&#129353;</span>
+          {elseif $tier.key === 'silver'}<span style="font-size:18px; line-height:1;">&#129352;</span>
+          {else}<span style="font-size:18px; line-height:1;">&#129351;</span>{/if}
           <input type="text" name="loyalty_name_{$tier.key|escape:'html'}"
                  value="{$tier.name|escape:'html'}"
                  style="flex:1; padding:6px 10px; border:1px solid var(--neria-border); border-radius:4px;

@@ -121,7 +121,7 @@
                      {if $tk === 'gold'}background:#fef9e7; color:#a0520d;
                      {elseif $tk === 'silver'}background:#f4f4f4; color:#5a5a5a;
                      {else}background:#faf0e8; color:#8b4513;{/if}">
-          {if $tk === 'gold'}&#127947;{elseif $tk === 'silver'}&#127948;{else}&#127949;{/if}
+          {if $tk === 'gold'}&#129351;{elseif $tk === 'silver'}&#129352;{else}&#129353;{/if}
           {$loy.tier.name|escape:'html'}
         </span>
       {else}
@@ -148,7 +148,7 @@
       <div style="font-size:10px; color:var(--neria-muted); margin-top:3px; text-align:right;">{$loy.progress_pct}%</div>
     </div>
     {else}
-    <span style="font-size:11px; color:#1a7a40; font-weight:600;">&#127942; Palier maximum atteint</span>
+    <span style="font-size:11px; color:#1a7a40; font-weight:600;">&#127942; {neria_admin key='history.loyalty_max_tier'}</span>
     {/if}
   </div>
 
@@ -174,7 +174,7 @@
   {if $loy.rewards}
   <div style="margin-top:10px; border-top:1px solid var(--neria-border); padding-top:10px;">
     <span style="font-size:10px; color:var(--neria-muted); font-weight:700; text-transform:uppercase; letter-spacing:.06em;">
-      Bons reçus :
+      {neria_admin key='history.loyalty_rewards_received'}
     </span>
     {foreach $loy.rewards as $rew}
     <span style="margin-left:8px; font-size:11px; font-weight:600; color:var(--neria-accent);
