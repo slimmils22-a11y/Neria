@@ -332,6 +332,8 @@ class Neria extends Module
 
             // ── RGPD : purge à la suppression d'un client ──────────
             'actionDeleteGDPRCustomer',
+            // Bloc 6 : droit d'accès/portabilité — export des données Neria d'un client.
+            'actionExportGDPRData',
     ];
 
     /**
@@ -1869,6 +1871,32 @@ class Neria extends Module
         }, $this);
     }
 
+    /**
+     * Bloc 6 (19/09/2026) : droit d'accès et de portabilité. Appelé par le module
+     * RGPD de PrestaShop (psgdpr) avec le tableau du client ; retourne une chaîne
+     * JSON (contrat du crochet, voir productcomments/ps_emailsubscription) que
+     * psgdpr intègre à l'export sous le nom d'affichage du module.
+     *
+     * @param array<string, mixed>|object $customer
+     */
+    public function hookActionExportGDPRData($customer): string
+    {
+        return NeriaErrorHandler::wrapHookString('hookActionExportGDPRData', function () use ($customer): string {
+            if (!class_exists('GdprAuditManager')) {
+                return (string) json_encode([]);
+            }
+            $data       = (array) $customer;
+            $idCustomer = (int) ($data['id'] ?? $data['id_customer'] ?? 0);
+            $email      = (string) ($data['email'] ?? '');
+            if ($idCustomer <= 0 && $email === '') {
+                return (string) json_encode([]);
+            }
+            $export = (new GdprAuditManager($this->getLocalPath()))->exportCustomerData($idCustomer, $email);
+
+            return (string) json_encode($export, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+        }, $this);
+    }
+
     private function hookActionDeleteGDPRCustomerImpl($customer): void
     {
         if (!class_exists('GdprAuditManager')) {
@@ -1884,7 +1912,11 @@ class Neria extends Module
         // dans GdprAuditManager::purgeCustomerData()).
         $idShop     = (int) ($data['id_shop'] ?? 0);
 
-        if ($idCustomer <= 0 || $email === '') {
+        // Bloc 6 (19/09/2026) : le crochet exige un email, mais PLUS un id client —
+        // psgdpr peut demander l'effacement d'une simple ADRESSE (destinataire sans
+        // compte : newsletter, envoi manuel, bounce). Un id à 0 ne déclenche que la
+        // purge par email (voir GdprAuditManager::purgeCustomerData()).
+        if ($email === '' || ($idCustomer <= 0 && !Validate::isEmail($email))) {
             return;
         }
 

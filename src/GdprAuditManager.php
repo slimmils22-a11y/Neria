@@ -860,6 +860,93 @@ class GdprAuditManager
      * Purge toutes les données personnelles Neria d'un client (hook RGPD PS).
      * Appelé par hookActionDeleteGDPRCustomer quand un marchand supprime un compte.
      */
+    /**
+     * Bloc 6 (19/09/2026) : DROIT D'ACCÈS / PORTABILITÉ (RGPD art. 15 et 20).
+     * Rassemble les données personnelles que Neria détient sur un client, pour
+     * le crochet `actionExportGDPRData` du module RGPD de PrestaShop (psgdpr),
+     * qui les intègre à l'export remis à la personne. Avant ce correctif, Neria
+     * n'était pas branché sur ce crochet : une demande d'accès n'incluait rien
+     * de ce que le module conserve (historique d'envois, préférences, points de
+     * fidélité, certificats, adresses en rebond…).
+     *
+     * Périmètre : mêmes tables que l'effacement (REGISTRY, colonne client) +
+     * certificats + préférences/bounces retrouvés par email. Ne renvoie jamais
+     * de secret (jeton de suivi, chemins de fichiers). Les instantanés de
+     * variables (chiffrés au repos) sont déchiffrés pour être lisibles.
+     * Plafonné à 5000 lignes par table.
+     *
+     * @return array<string, array<int, array<string, mixed>>> table => lignes
+     */
+    public function exportCustomerData(int $idCustomer, string $email): array
+    {
+        $out   = [];
+        $limit = 5000;
+        $email = strtolower(trim($email));
+        $strip = ['tracking_token', 'pdf_path', 'signature_path'];
+
+        $fetch = function (string $sql) use ($limit): array {
+            $rows = $this->db->executeS($sql . ' LIMIT ' . $limit, true, false);
+            return is_array($rows) ? $rows : [];
+        };
+        $clean = function (array $rows) use ($strip): array {
+            foreach ($rows as &$row) {
+                foreach ($strip as $k) {
+                    unset($row[$k]);
+                }
+                if (isset($row['rendered_vars']) && $row['rendered_vars'] !== '') {
+                    $raw = (string) $row['rendered_vars'];
+                    if (class_exists('CryptoManager')) {
+                        $raw = \CryptoManager::decrypt($raw);
+                    }
+                    $decoded = json_decode($raw, true);
+                    $row['rendered_vars'] = is_array($decoded) ? $decoded : null;
+                }
+            }
+            unset($row);
+            return $rows;
+        };
+        $tableExists = function (string $table): bool {
+            $r = $this->db->executeS("SHOW TABLES LIKE '" . pSQL(_DB_PREFIX_ . $table) . "'");
+            return is_array($r) && !empty($r);
+        };
+
+        if ($idCustomer > 0) {
+            foreach (self::getPiiTablesByCustomer() as $table => $col) {
+                if (!$tableExists($table)) {
+                    continue;
+                }
+                $rows = $fetch("SELECT * FROM `" . _DB_PREFIX_ . $table . "` WHERE `" . $col . "` = " . (int) $idCustomer . ' ORDER BY 1');
+                if ($rows) {
+                    $out[$table] = $clean($rows);
+                }
+            }
+            if ($tableExists('neria_certificate')) {
+                $rows = $fetch("SELECT * FROM `" . _DB_PREFIX_ . "neria_certificate` WHERE `id_customer` = " . (int) $idCustomer . ' ORDER BY 1');
+                if ($rows) {
+                    $out['neria_certificate'] = $clean($rows);
+                }
+            }
+        }
+
+        if ($email !== '') {
+            $emailSql = pSQL($email);
+            if ($tableExists('neria_preferences')) {
+                $rows = $fetch("SELECT * FROM `" . _DB_PREFIX_ . "neria_preferences` WHERE `email` = '" . $emailSql . "' AND `id_customer` = 0 ORDER BY 1");
+                if ($rows) {
+                    $out['neria_preferences'] = array_merge($out['neria_preferences'] ?? [], $clean($rows));
+                }
+            }
+            if ($tableExists('neria_bounces')) {
+                $rows = $fetch("SELECT * FROM `" . _DB_PREFIX_ . "neria_bounces` WHERE `email` = '" . $emailSql . "' ORDER BY 1");
+                if ($rows) {
+                    $out['neria_bounces'] = $clean($rows);
+                }
+            }
+        }
+
+        return $out;
+    }
+
     public function purgeCustomerData(int $idCustomer, string $email, int $idShop = 0): int
     {
         // Round 258 : l'ensemble de cette méthode encadre désormais TOUTES
@@ -886,7 +973,12 @@ class GdprAuditManager
         $this->db->execute('START TRANSACTION');
 
         try {
-        foreach (self::getPiiTablesByCustomer() as $table => $col) {
+        // Bloc 6 (19/09/2026) : effacement PAR EMAIL SEUL (personne sans compte,
+        // psgdpr deleteCustomer('email')) → $idCustomer vaut 0. Sans cette garde,
+        // « DELETE ... WHERE id_customer = 0 » supprimait les lignes de TOUS les
+        // destinataires anonymes (envois manuels vers des adresses libres, etc.).
+        // Seule la purge par email (ci-dessous) s'applique alors.
+        foreach ($idCustomer > 0 ? self::getPiiTablesByCustomer() : [] as $table => $col) {
             $full = _DB_PREFIX_ . $table;
             // Vérifie que la table existe avant de DELETE
             $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($full) . "'");
