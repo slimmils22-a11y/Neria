@@ -1060,7 +1060,7 @@ class ABTestManager
             'first_anniversary',
             'relationship_anniversary',
             'milestone_order',
-            'back_in_stock',
+            'waitlist_available',
             'loyalty_recap',
             'loyalty_tier_upgrade',
             'loyalty_reward_expiry',
@@ -1085,7 +1085,6 @@ class ABTestManager
             // confirmation elle-même à un client ayant décoché "newsletter"
             // — nonsensique puisque cet email EST l'action d'inscription.
             'newsletter_voucher',
-            'referral_invitation',
             'private_invitation',
             'private_sale',
             'early_access',
