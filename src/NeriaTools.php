@@ -1181,6 +1181,8 @@ class NeriaTools
         // devise par défaut de la boutique plutôt que de propager une
         // devise vide.
         if (!\Validate::isLoadedObject($currency)) {
+            // Repli ULTIME (devise reçue non chargée) : aucun id_shop n'est connu ici ; mieux vaut
+            // la devise par défaut que du texte sans devise. // default-currency-ok
             $fallback = \Currency::getDefaultCurrency();
             if ($fallback instanceof \Currency && \Validate::isLoadedObject($fallback)) {
                 $currency = $fallback;

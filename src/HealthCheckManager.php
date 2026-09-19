@@ -6638,6 +6638,24 @@ class HealthCheckManager
             $offenders[] = "Diagnostic bloc 7 (fausses alertes) : la normalisation des fins de ligne de readModuleSrc(), le comptage réel de campaign_empty_seg (getSegmentCounts), les champs de l'envoi manuel dans le contrôle .txt, les actions AJAX silencieuses, newsletter_voucher dans StatsManager ou le lien QR scopé du certificat a disparu — régression du correctif bloc 7 (19/09/2026) : alertes injustifiées chez les marchands ou contrôle de nouveau inopérant";
         }
 
+        // Bloc 7 (19/09/2026) : 5 contrôles prospectifs du diagnostic qui affichaient des faux
+        // positifs permanents chez tous les marchands (commentaires lus comme du code,
+        // `id_customer`` pris pour la table client, replis marqués, clés déjà remplacées par un
+        // upgrade ultérieur, assigns Smarty intermédiaires suivis d'un |escape). Aiguilles
+        // fractionnées : ce fichier se lit lui-même.
+        $hcSelf811 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        $toolsSrc811 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($hcSelf811 === '' || $toolsSrc811 === ''
+            || strpos($hcSelf811, '$lineStart' . '814 = strrpos(') === false
+            || strpos($hcSelf811, '(?<!id_)' . 'customer`') === false
+            || strpos($hcSelf811, "'default-currency' " . ". '-ok'") === false
+            || strpos($hcSelf811, '$supers' . 'eded = false;') === false
+            || strpos($hcSelf811, 'preg_quote($av' . '[1]') === false
+            || strpos($toolsSrc811, 'default-currency' . '-ok') === false
+        ) {
+            $offenders[] = "Diagnostic bloc 7 (contrôles prospectifs) : l'ignorance des commentaires (displayPrice/devise par défaut), l'exclusion de `id_customer` dans le contrôle client-par-email, le marqueur de repli de devise, la détection des clés UNIQUE déjà remplacées ou la lecture des assigns REQUEST_URI échappés a disparu — régression du correctif bloc 7 (19/09/2026) : fausses alertes permanentes chez les marchands";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
@@ -13976,6 +13994,15 @@ class HealthCheckManager
                 $callStart = $pos + strlen('NeriaTools::displayPrice');
                 $searchFrom = $pos + 1;
 
+                // Bloc 7 (19/09/2026) : occurrence située dans un COMMENTAIRE (« // NeriaTools::
+                // displayPrice($idLang) — … », EmailRenderer) : ce n'est pas un appel.
+                $lineStart814 = strrpos(substr($content, 0, $pos), "
+");
+                $prefix814 = ltrim(substr($content, $lineStart814 === false ? 0 : $lineStart814 + 1, $pos - ($lineStart814 === false ? 0 : $lineStart814 + 1)));
+                if (strncmp($prefix814, '//', 2) === 0 || strncmp($prefix814, '*', 1) === 0 || strncmp($prefix814, '/*', 2) === 0 || strncmp($prefix814, '#', 1) === 0) {
+                    continue;
+                }
+
                 // Apparie la parenthèse fermante de l'appel
                 $depth = 0;
                 $argsEnd = null;
@@ -14168,7 +14195,9 @@ class HealthCheckManager
             $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
 
             if (!preg_match_all(
-                '/customer`([\s\S]{0,200}?)\bemail\b[^=\n]{0,15}=([\s\S]{0,200})/i',
+                // Bloc 7 (19/09/2026) : (?<!id_) — la colonne `id_customer` des tables neria_* (préférences,
+                // certificats…) déclenchait le motif « customer` » : 5 faux positifs permanents.
+                '/(?<!id_)customer`([\s\S]{0,200}?)\bemail\b[^=\n]{0,15}=([\s\S]{0,200})/i',
                 $content,
                 $m,
                 PREG_OFFSET_CAPTURE
@@ -14240,6 +14269,22 @@ class HealthCheckManager
 
             if (preg_match_all('/Currency::getDefaultCurrency\s*\(\s*\)/i', $content, $m, PREG_OFFSET_CAPTURE)) {
                 foreach ($m[0] as $match) {
+                    // Bloc 7 (19/09/2026) : ignorer (1) une occurrence dans un COMMENTAIRE
+                    // (MonthlyReportManager en citait deux pour expliquer son correctif) et
+                    // (2) un repli ultime marqué « default-currency-ok » sur la ligne ou la
+                    // précédente (NeriaTools::displayPrice, devise non chargée, aucune
+                    // boutique connue à cet endroit).
+                    $ls = strrpos(substr($content, 0, $match[1]), "\n");
+                    $ls = $ls === false ? 0 : $ls + 1;
+                    $prefix = ltrim(substr($content, $ls, $match[1] - $ls));
+                    if (strncmp($prefix, '//', 2) === 0 || strncmp($prefix, '*', 1) === 0 || strncmp($prefix, '/*', 2) === 0) {
+                        continue;
+                    }
+                    $prevLs = strrpos(substr($content, 0, max(0, $ls - 1)), "\n");
+                    $window = substr($content, $prevLs === false ? 0 : $prevLs, $match[1] - ($prevLs === false ? 0 : $prevLs));
+                    if (strpos($window, 'default-currency' . '-ok') !== false) {
+                        continue;
+                    }
                     $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
                     $offenders[] = $relative . ':' . $line;
                 }
@@ -14288,9 +14333,36 @@ class HealthCheckManager
             $content = file_get_contents($file) ?: '';
             $relative = 'upgrade/' . basename($file);
 
-            if (preg_match_all('/UNIQUE\s+KEY\s+`?[a-z0-9_]*`?\s*\(([^)]*)\)/i', $content, $m, PREG_OFFSET_CAPTURE)) {
-                foreach ($m[1] as $i => $colsMatch) {
+            if (preg_match_all('/UNIQUE\s+KEY\s+`?([a-z0-9_]*)`?\s*\(([^)]*)\)/i', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[2] as $i => $colsMatch) {
                     if (stripos($colsMatch[0], 'id_shop') !== false) {
+                        continue;
+                    }
+                    // Bloc 7 (19/09/2026) : deux cas légitimes qui produisaient des faux positifs
+                    // permanents. (1) clé sur `id_order` seul : un id de commande est unique dans
+                    // toute l'installation (déjà signalé comme légitime dans le message du
+                    // contrôle). (2) clé REMPLACÉE par un upgrade ultérieur (uq_customer_product →
+                    // uq_customer_product_shop en 1.0.28, uq_customer_year, uq_col_customer…) : son
+                    // nom est cité avec un DROP dans un autre script — le schéma réel n'a plus
+                    // la clé sans id_shop.
+                    if (preg_match('/^\s*`?id_order`?\s*$/i', $colsMatch[0])) {
+                        continue;
+                    }
+                    $keyName = (string) $m[1][$i][0];
+                    $superseded = false;
+                    if ($keyName !== '') {
+                        foreach (glob($moduleDir . '/upgrade-*.php') ?: [] as $other) {
+                            if ($other === $file) {
+                                continue;
+                            }
+                            $otherSrc = $this->readModuleSrc($other);
+                            if (stripos($otherSrc, 'DROP') !== false && strpos($otherSrc, $keyName) !== false) {
+                                $superseded = true;
+                                break;
+                            }
+                        }
+                    }
+                    if ($superseded) {
                         continue;
                     }
                     $line = substr_count(substr($content, 0, $m[0][$i][1]), "\n") + 1;
@@ -14345,6 +14417,15 @@ class HealthCheckManager
             if (preg_match_all('/\$smarty\.server\.REQUEST_URI[^}]*\}/', $content, $m, PREG_OFFSET_CAPTURE)) {
                 foreach ($m[0] as $match) {
                     if (stripos($match[0], '|escape') !== false || stripos($match[0], '|json_encode') !== false) {
+                        continue;
+                    }
+                    // Bloc 7 (19/09/2026) : `{assign var="x" value=$smarty.server.REQUEST_URI|regex_replace:…}`
+                    // est un assign INTERMÉDIAIRE ; s'il est suivi (même fichier) d'un
+                    // `{assign var="x" value=$x|…|escape:'html'}`, la valeur n'est jamais affichée
+                    // brute (navigation.tpl : $neria_tab_base / $neria_test_base).
+                    if (preg_match('/assign\s+var=["\x27]([a-z_0-9]+)["\x27]\s+value=\s*$/i', substr($content, max(0, $match[1] - 60), min(60, $match[1])), $av) === 1
+                        && preg_match('/assign\s+var=["\x27]' . preg_quote($av[1], '/') . '["\x27]\s+value=\$' . preg_quote($av[1], '/') . '[^}]*\|escape:["\x27]html/i', $content) === 1
+                    ) {
                         continue;
                     }
                     $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
