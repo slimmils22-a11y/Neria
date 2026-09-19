@@ -6431,6 +6431,32 @@ class HealthCheckManager
             $offenders[] = "unboxing_guide : le bouton ne pointe plus vers {contact_page_url}, ou EmailRenderer ne fournit plus cette variable aux envois réels — régression du correctif bloc 5 (19/09/2026) : le lien serait vide ou retomberait sur l'accueil";
         }
 
+        // Bloc 5 (19/09/2026) : 8 templates avaient un bouton dont la cible
+        // ne correspondait pas au libellé (« Voir les conditions » →
+        // historique de commandes, « Contacter mon conseiller » → accueil,
+        // « Découvrir ma sélection » → historique…). Table cible attendue :
+        $btnMap365 = [
+            'extended_warranty'      => '{terms_url}',
+            'concierge_followup'     => '{contact_page_url}',
+            'personal_shopper_intro' => '{contact_page_url}',
+            'packaging_choice'       => '{contact_page_url}',
+            'milestone_order'        => '{shop_url}',
+            'loyalty_tier_upgrade'   => '{shop_url}',
+            'loyalty_reward_expiry'  => '{shop_url}',
+            'first_anniversary'      => '{shop_url}',
+        ];
+        $btnBad365 = [];
+        foreach ($btnMap365 as $tplName365 => $expected365) {
+            $tplSrc365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/' . $tplName365 . '.html');
+            if ($tplSrc365 === '' || preg_match('/<a href="' . preg_quote($expected365, '/') . '"[^>]*class="neria-btn"/', $tplSrc365) !== 1) {
+                $btnBad365[] = $tplName365;
+            }
+        }
+        $erSrc365d = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($btnBad365 !== [] || $erSrc365d === '' || substr_count($erSrc365d, "'{terms_url}'") < 3) {
+            $offenders[] = "Boutons d'email dont la cible ne correspond plus au libellé (" . implode(', ', $btnBad365) . ") ou {terms_url} n'est plus fourni aux envois réels par EmailRenderer — régression du correctif bloc 5 (19/09/2026)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
