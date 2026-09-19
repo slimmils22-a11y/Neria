@@ -862,6 +862,7 @@ class EmailRenderer
                 '{shop_url}'           => $this->context->link->getBaseLink(),
                 '{history_url}'        => $this->context->link->getPageLink('history', true, $idLang),
                 '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $idLang),
+                '{contact_page_url}'   => $this->context->link->getPageLink('contact', true, $idLang),
                 '{custom_message}'     => '',
                 '{custom_message_txt}' => '',
                 '{subject}'            => $subject,
@@ -2405,6 +2406,7 @@ class EmailRenderer
             'invoice_block_html'     => '<p>12 rue de la Paix<br>75001 Paris</p>',
             'history_url'            => '#',
             'guest_tracking_url'     => '#',
+            'contact_page_url'       => '#',
             'products'               => $this->getFakeProductsList(),
             'discounts'              => '',
         ];
@@ -2829,6 +2831,7 @@ class EmailRenderer
             // ── Liens (aperçu : ancres neutres) ────────────────────
             '{history_url}'        => '#',
             '{guest_tracking_url}' => '#',
+            '{contact_page_url}'   => '#',
             '{tracking_url}'       => '#',
             '{order_url}'          => '#',
             '{order_link}'         => '#',
@@ -3198,6 +3201,7 @@ class EmailRenderer
             '{shop_url}'           => $baseUrl,
             '{history_url}'        => $this->context->link->getPageLink('history', true, $urlIdLang),
             '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $urlIdLang),
+            '{contact_page_url}'   => $this->context->link->getPageLink('contact', true, $urlIdLang),
         ];
         $compiled = strtr($compiled, $psCommon);
 
