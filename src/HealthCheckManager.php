@@ -6353,6 +6353,20 @@ class HealthCheckManager
             $offenders[] = "LoyaltyManager::getTiers() ne localise plus les noms de palier par défaut selon la langue de la boutique — régression du correctif bloc 5 (19/09/2026) : une boutique non francophone enverrait de nouveau « Argent »/« Or » à ses clients";
         }
 
+        // Bloc 5 (19/09/2026) : ABTestManager::getEligibleTemplates() listait
+        // 'back_in_stock' et 'referral_invitation', deux templates qui
+        // n'existent pas (le vrai nom du premier est 'waitlist_available',
+        // le second n'a aucun template) : affichés en slug brut dans le BO,
+        // et un test A/B créé dessus ne pouvait jamais produire de résultat.
+        $abSrc365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
+        if ($abSrc365 === ''
+            || strpos($abSrc365, "'back_in_stock',") !== false
+            || strpos($abSrc365, "'referral_invitation',") !== false
+            || strpos($abSrc365, "'waitlist_available',") === false
+        ) {
+            $offenders[] = "ABTestManager::getEligibleTemplates() liste de nouveau un template inexistant (back_in_stock / referral_invitation) ou a perdu waitlist_available — régression du correctif bloc 5 (19/09/2026) : le BO proposerait un test A/B sur un email qui n'existe pas";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
