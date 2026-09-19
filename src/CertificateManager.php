@@ -925,8 +925,13 @@ class CertificateManager
             \Context::getContext()->shop = $originalShop;
         }
 
+        // Bloc 5 (19/09/2026) : {firstname} recevait le NOM COMPLET (« Slim Test »)
+        // — la Salutation horaire affichait « Good evening, Slim Test, ». Le
+        // prénom réel est lu depuis le client de la commande ; vide = laisse
+        // EmailRenderer::injectFirstnameFallback() gérer l'absence de prénom.
+        $firstname = trim((string) (new \Customer((int) $order->id_customer))->firstname);
         $vars = [
-            '{firstname}'      => $customerName,
+            '{firstname}'      => $firstname,
             '{customer_name}'  => $customerName,
             '{product_name}'   => $productName,
             '{serial_number}'  => $serial,
