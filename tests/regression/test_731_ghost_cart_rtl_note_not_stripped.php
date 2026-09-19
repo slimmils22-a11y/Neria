@@ -62,7 +62,10 @@ function run_test(): array
     neria_assert($src !== false, 'Impossible de lire src/EmailRenderer.php');
     $posCompile = strpos($src, 'private function compileNeriaTemplate(');
     neria_assert($posCompile !== false, 'compileNeriaTemplate() introuvable');
-    $windowCompile = substr($src, $posCompile, 17000);
+    // Bloc 5 (19/09/2026) : fenêtre élargie 17000→18000 octets — l'ajout de
+    // localizeLabelColons() et de {contact_page_url} dans compileNeriaTemplate()
+    // a repoussé la propagation de {neria_is_rtl} (offset mesuré : ~17011).
+    $windowCompile = substr($src, $posCompile, 18000);
     neria_assert(
         strpos($windowCompile, "\$templateVars['{neria_is_rtl}'] = \$this->engine->isRtl(\$lang);") !== false,
         "compileNeriaTemplate() (envoi réel) ne propage plus {neria_is_rtl} dans templateVars — régression du bug corrigé le 13/09/2026 (round 350) pour le chemin d'envoi réel"
