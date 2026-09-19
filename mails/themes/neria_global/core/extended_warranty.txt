@@ -8,7 +8,9 @@
 
 {neria_trad key='extended_warranty_details'}
 --------------------------------
-{product_name}
+{product_name}{if warranty_period}
+{neria_trad key='extended_warranty_period_label'} : {warranty_period}{/if}{if warranty_end_date}
+{neria_trad key='extended_warranty_end_label'} : {warranty_end_date}{/if}
 
 {neria_trad key='extended_warranty_btn'} : {terms_url}
 

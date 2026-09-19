@@ -20,6 +20,8 @@
 
 <div class="neria-info-box">
   <p><strong>{product_name}</strong></p>
+  {if warranty_period}<p><strong>{neria_trad key='extended_warranty_period_label'} :</strong> {warranty_period}</p>{/if}
+  {if warranty_end_date}<p><strong>{neria_trad key='extended_warranty_end_label'} :</strong> {warranty_end_date}</p>{/if}
 </div>
 
 <!-- BOUTON -->

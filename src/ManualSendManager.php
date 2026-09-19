@@ -101,6 +101,24 @@ class ManualSendManager
             'ru' => 'Даты', 'tr' => 'Tarihler', 'sv' => 'Datum', 'no' => 'Datoer',
             'da' => 'Datoer', 'nl' => 'Data',
         ],
+        'warranty_period' => [
+            'fr' => 'Durée de la garantie (facultatif)', 'en' => 'Warranty period (optional)', 'de' => 'Garantiedauer (optional)',
+            'it' => 'Durata della garanzia (facoltativo)', 'es' => 'Duración de la garantía (opcional)', 'pt' => 'Duração da garantia (opcional)',
+            'br' => 'Duração da garantia (opcional)', 'ar' => 'مدة الضمان (اختياري)', 'ja' => '保証期間（任意）',
+            'ko' => '보증 기간 (선택)', 'zh' => '保修期限（可选）', 'tw' => '保固期限（選填）',
+            'ru' => 'Срок гарантии (необязательно)', 'tr' => 'Garanti süresi (isteğe bağlı)', 'sv' => 'Garantitid (valfritt)',
+            'no' => 'Garantitid (valgfritt)', 'da' => 'Garantiperiode (valgfrit)', 'nl' => 'Garantieperiode (optioneel)',
+            'gb' => 'Warranty period (optional)',
+        ],
+        'warranty_end_date' => [
+            'fr' => 'Valable jusqu\'au (facultatif)', 'en' => 'Valid until (optional)', 'de' => 'Gültig bis (optional)',
+            'it' => 'Valida fino al (facoltativo)', 'es' => 'Válida hasta (opcional)', 'pt' => 'Válida até (opcional)',
+            'br' => 'Válida até (opcional)', 'ar' => 'صالح حتى (اختياري)', 'ja' => '有効期限（任意）',
+            'ko' => '유효 기간 (선택)', 'zh' => '有效期至（可选）', 'tw' => '有效期限至（選填）',
+            'ru' => 'Действует до (необязательно)', 'tr' => 'Geçerlilik tarihi (isteğe bağlı)', 'sv' => 'Giltig till (valfritt)',
+            'no' => 'Gyldig til (valgfritt)', 'da' => 'Gyldig til (valgfrit)', 'nl' => 'Geldig tot (optioneel)',
+            'gb' => 'Valid until (optional)',
+        ],
         'voucher_usage' => [
             'fr' => "Conditions d'utilisation", 'en' => 'Terms of use', 'gb' => 'Terms of use',
             'de' => 'Nutzungsbedingungen', 'it' => "Condizioni d'uso",
@@ -444,7 +462,8 @@ class ManualSendManager
         $set = self::FIELD_LABEL_I18N[$var];
         $iso = strtolower($adminIso);
 
-        return $set[$iso] ?? $set[substr($iso, 0, 2)] ?? $set['en'] ?? '';
+        // Chaque entrée de FIELD_LABEL_I18N porte au minimum la clé 'en'.
+        return $set[$iso] ?? $set[substr($iso, 0, 2)] ?? $set['en'];
     }
 
     /**
