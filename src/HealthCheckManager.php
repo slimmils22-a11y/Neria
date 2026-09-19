@@ -6518,6 +6518,32 @@ class HealthCheckManager
             $offenders[] = "data/translations.json : la note d'unboxing_guide redit le libellé du bouton, ou celle d'extended_warranty parle de nouveau d'une « specified period » générique — régression du correctif bloc 5 (19/09/2026)";
         }
 
+        // Bloc 6 (19/09/2026) : l'effacement RGPD par ADRESSE EMAIL SEULE (sans
+        // compte client) était ignoré par le crochet, et le purger avec id = 0
+        // sans garde aurait supprimé les lignes de tous les anonymes.
+        $neriaSrc366 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $gdprSrc366  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($neriaSrc366 === '' || $gdprSrc366 === ''
+            || strpos($neriaSrc366, "if (\$email === '' || (\$idCustomer <= 0 && !Validate::isEmail(\$email))) {") === false
+            || strpos($gdprSrc366, 'foreach ($idCustomer > 0 ? self::getPiiTablesByCustomer() : [] as $table => $col) {') === false
+        ) {
+            $offenders[] = "RGPD : le crochet actionDeleteGDPRCustomer n'accepte plus l'effacement par email seul, ou purgeCustomerData() a perdu sa garde id_customer > 0 — régression du correctif bloc 6 (19/09/2026) : une personne sans compte ne pourrait plus exercer son droit à l'effacement, ou pire, une purge à id 0 effacerait les données de tous les destinataires anonymes";
+        }
+
+        // Bloc 6 (19/09/2026) : Neria n'était pas branché sur actionExportGDPRData
+        // (droit d'accès/portabilité, art. 15 et 20) : une demande d'accès d'un
+        // client via psgdpr n'incluait rien de ce que le module conserve.
+        $neriaSrc366b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $gdprSrc366b  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($neriaSrc366b === '' || $gdprSrc366b === ''
+            || strpos($neriaSrc366b, "'actionExportGDPRData',") === false
+            || strpos($neriaSrc366b, 'public function hookActionExportGDPRData(') === false
+            || strpos($neriaSrc366b, '->exportCustomerData(') === false
+            || strpos($gdprSrc366b, 'public function exportCustomerData(') === false
+        ) {
+            $offenders[] = "RGPD : Neria n'est plus branché sur le crochet actionExportGDPRData (liste des crochets, hookActionExportGDPRData() ou GdprAuditManager::exportCustomerData()) — régression du correctif bloc 6 (19/09/2026) : une demande d'accès aux données personnelles ne contiendrait plus rien de ce que Neria conserve sur le client";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
