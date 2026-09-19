@@ -6399,6 +6399,24 @@ class HealthCheckManager
             $offenders[] = "help.tpl / CertificateManager : texte français codé en dur de retour (" . implode(' | ', $frLeft365) . ") ou repli « Produit #N » — régression du correctif bloc 5 (19/09/2026) : ces textes s'afficheraient en français dans les 19 langues";
         }
 
+        // Bloc 5 (19/09/2026) : (1) l'email de certificat passait le nom
+        // complet à {firstname} ; (2) la typographie française "libellé :"
+        // (espace avant les deux-points) s'affichait dans toutes les langues.
+        $certSrc365b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        $erSrc365b   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($certSrc365b === ''
+            || preg_match('/\'\{firstname\}\'\s*=>\s*\$firstname,/', $certSrc365b) !== 1
+            || preg_match('/\'\{firstname\}\'\s*=>\s*\$customerName/', $certSrc365b) === 1
+        ) {
+            $offenders[] = "CertificateManager::sendCertificateEmail() alimente de nouveau {firstname} avec le nom complet — régression du correctif bloc 5 (19/09/2026) : l'email de certificat afficherait « Good evening, Prénom Nom, »";
+        }
+        if ($erSrc365b === ''
+            || substr_count($erSrc365b, 'self::localizeLabelColons(') !== 3
+            || strpos($erSrc365b, 'public static function localizeLabelColons(') === false
+        ) {
+            $offenders[] = "EmailRenderer : localizeLabelColons() n'est plus appelé aux 3 sites de résolution des {neria_trad} — régression du correctif bloc 5 (19/09/2026) : la typographie française « libellé : » redeviendrait visible dans toutes les langues";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
@@ -6940,7 +6958,11 @@ class HealthCheckManager
             $offenders[] = 'CertificateManager.php introuvable (garde-fou round 179)';
         } else {
             $posSendCert179 = strpos($certSrc179, 'private function sendCertificateEmail(');
-            $sendCertBody179 = $posSendCert179 !== false ? substr($certSrc179, $posSendCert179, 4000) : '';
+            // Bloc 5 (19/09/2026) : fenêtre élargie 4000→4800 — la lecture du prénom
+            // réel du client (correctif {firstname} de l'email de certificat, avec
+            // son commentaire explicatif) a repoussé la revérification BounceManager
+            // plus loin dans le corps de la méthode ; la garde elle-même est intacte.
+            $sendCertBody179 = $posSendCert179 !== false ? substr($certSrc179, $posSendCert179, 4800) : '';
             if ($posSendCert179 === false || strpos($sendCertBody179, "\\BounceManager::isBounced(\$to)") === false) {
                 $offenders[] = "CertificateManager::sendCertificateEmail() ne revérifie plus bounce/blacklist/préférences/cooldown avant Mail::Send() — régression du bug corrigé le 16/08/2026 (round 179) : un certificat émis à une adresse bloquée serait de nouveau marqué comme envoyé avec succès";
             }
