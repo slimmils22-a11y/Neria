@@ -6444,6 +6444,9 @@ class HealthCheckManager
             'loyalty_tier_upgrade'   => '{shop_url}',
             'loyalty_reward_expiry'  => '{shop_url}',
             'first_anniversary'      => '{shop_url}',
+            'repair_completed'       => '{contact_page_url}',
+            'tax_refund_eligible'    => '{contact_page_url}',
+            'product_recall'         => '{contact_page_url}',
         ];
         $btnBad365 = [];
         foreach ($btnMap365 as $tplName365 => $expected365) {
@@ -6455,6 +6458,22 @@ class HealthCheckManager
         $erSrc365d = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
         if ($btnBad365 !== [] || $erSrc365d === '' || substr_count($erSrc365d, "'{terms_url}'") < 3) {
             $offenders[] = "Boutons d'email dont la cible ne correspond plus au libellé (" . implode(', ', $btnBad365) . ") ou {terms_url} n'est plus fourni aux envois réels par EmailRenderer — régression du correctif bloc 5 (19/09/2026)";
+        }
+
+        // Bloc 5 (19/09/2026) : l'email care_certificate annonçait un certificat
+        // d'entretien personnalisé avec un bouton « Télécharger » qui menait à
+        // l'accueil, sans aucun fichier. Le certificat est désormais joint en
+        // PDF (CarePdfGenerator) par l'envoi manuel, et le bouton est supprimé.
+        $careTpl365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/care_certificate.html');
+        $careGen365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CarePdfGenerator.php');
+        $msmSrc365  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($careTpl365 === '' || strpos($careTpl365, 'care_certificate_btn') !== false
+            || $careGen365 === '' || strpos($careGen365, 'public function generate(') === false
+            || $msmSrc365 === '' || strpos($msmSrc365, "\$template === 'care_certificate'") === false
+            || strpos($msmSrc365, "'mime' => 'application/pdf'") === false
+            || preg_match('/null,\s*null,\s*\$attachment,\s*null,\s*_PS_MODULE_DIR_/', $msmSrc365) !== 1
+        ) {
+            $offenders[] = "care_certificate : le bouton « Télécharger le certificat » est revenu, ou CarePdfGenerator/ManualSendManager ne joignent plus le certificat d'entretien en PDF — régression du correctif bloc 5 (19/09/2026) : l'email promettrait de nouveau un certificat sans fichier";
         }
 
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
