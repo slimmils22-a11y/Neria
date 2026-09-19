@@ -30,6 +30,7 @@ function run_test(): array
     neria_assert(strpos($en['content'], 'Brown bear cushion') !== false, "EN : nom de produit absent (ou HTML non neutralisé)");
     neria_assert(strpos($en['content'], '<b>') === false, "EN : balise HTML présente dans le PDF");
     neria_assert(strpos($en['content'], 'Dry clean only.') !== false, "EN : consignes d'entretien absentes");
+    neria_assert(stripos($en['content'], 'attached to this email') === false, "EN : la note de l'email (« certificat joint à cet email ») ne doit pas figurer DANS le PDF");
     neria_assert($en['filename'] === 'care-certificate-brown-bear-cushion.pdf', "EN : nom de fichier inattendu : " . $en['filename']);
 
     $fr = $gen->generate('Coussin', 'Coton', 'Nettoyage à sec.', 'fr', 1, false);
