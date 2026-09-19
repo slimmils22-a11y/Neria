@@ -87,7 +87,11 @@ class HealthCheckManager
     private function readModuleSrc(string $file): string
     {
         if (!array_key_exists($file, $this->srcCache)) {
-            $this->srcCache[$file] = is_file($file) ? (file_get_contents($file) ?: '') : '';
+            // Bloc 7 (19/09/2026) : fins de ligne normalisées en LF. Les garde-fous comparent
+            // des chaînes multi-lignes contenant "\n" ; sur un module livré en CRLF (Windows)
+            // ils échouaient tous à tort (« régression réapparue » sur LoyaltyManager, alors
+            // que le code était correct).
+            $this->srcCache[$file] = is_file($file) ? str_replace("\r\n", "\n", (file_get_contents($file) ?: '')) : '';
         }
 
         return $this->srcCache[$file];
@@ -6613,6 +6617,27 @@ class HealthCheckManager
             $offenders[] = "Diagnostic bloc 7 : le libellé du template certificate_email, le bandeau de santé Watchdog traduit (wdTr), les titres traduits des contrôles du diagnostic ou la tolérance des wrappers safeProductPrice() (Waitlist/Collection/LookCompletion) a disparu — régression du correctif bloc 7 (19/09/2026) : identifiants bruts ou français en BO traduit, ou avertissement permanent injustifié chez tous les marchands";
         }
 
+        // Bloc 7 (19/09/2026) : faux positifs et contrôle mort du diagnostic — (1) fins de ligne
+        // CRLF/LF non normalisées à la lecture (toutes les gardes multi-lignes) ; (2)
+        // campaign_empty_seg appelait une méthode inexistante ; (3) champs de l'envoi manuel
+        // ignorés par le contrôle .txt ; (4) actions AJAX non déclarées silencieuses ;
+        // (5) newsletter_voucher absent du mapping des statistiques ; (6) lien QR du
+        // certificat sans langue/boutique de la commande. Aiguilles fractionnées : ce fichier
+        // se lit lui-même, une aiguille contiguë s'y retrouverait toujours (piège strpos).
+        $hcSelf810 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        $statsSrc810 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        $certSrc810 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($hcSelf810 === '' || $statsSrc810 === '' || $certSrc810 === ''
+            || strpos($hcSelf810, 'is_file($file) ? str_replace("' . '\r\n' . '", "\n", (file_get_contents') === false
+            || strpos($hcSelf810, '$mgr->getSegment' . 'Counts();') === false
+            || strpos($hcSelf810, 'array_keys(\ManualSendManager::FIELD_' . 'LABEL_I18N)') === false
+            || strpos($hcSelf810, "'check_preferences_guard', " . "'check_cooldown_guest_notice', 'product_search',") === false
+            || strpos($statsSrc810, "'newsletter_voucher'],") === false
+            || strpos($certSrc810, "getModuleLink('neria', 'certificate', [], true, (int) \$order->id_lang, (int) \$order->id_shop)") === false
+        ) {
+            $offenders[] = "Diagnostic bloc 7 (fausses alertes) : la normalisation des fins de ligne de readModuleSrc(), le comptage réel de campaign_empty_seg (getSegmentCounts), les champs de l'envoi manuel dans le contrôle .txt, les actions AJAX silencieuses, newsletter_voucher dans StatsManager ou le lien QR scopé du certificat a disparu — régression du correctif bloc 7 (19/09/2026) : alertes injustifiées chez les marchands ou contrôle de nouveau inopérant";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
@@ -8203,7 +8228,7 @@ class HealthCheckManager
             }
         }
         $smSrc210 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
-        if ($smSrc210 !== '' && strpos($smSrc210, "pSQL(\$event) . \"'\",\r\n            false\r\n        );") === false) {
+        if ($smSrc210 !== '' && strpos($smSrc210, "pSQL(\$event) . \"'\",\n            false\n        );") === false) {
             $offenders[] = "StatsManager::eventExists() n'a plus \$use_cache=false — régression du bug corrigé le 25/08/2026 (round 210) : le check-then-act appairé au GET_LOCK pourrait de nouveau lire un résultat de cache SQL périmé";
         }
         $bcmSrc210 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
@@ -13328,6 +13353,12 @@ class HealthCheckManager
                 if (preg_match($safeCallerPattern, $code)) {
                     continue;
                 }
+                // Bloc 7 (19/09/2026) : message de JOURNAL Watchdog (technique, jamais montré
+                // à un client) dont le texte est sur la ligne suivant `->warning(` / `->error(`…
+                // — l'appelant n'est pas sur la même ligne, donc le contrôle le signalait à tort.
+                if ($i > 0 && preg_match('/->(?:debug|info|warning|error|critical)\(\s*$/', rtrim((string) $lines[$i - 1]))) {
+                    continue;
+                }
 
                 $offenders[] = basename($file) . ':' . ($i + 1);
             }
@@ -15168,6 +15199,15 @@ class HealthCheckManager
             $content = file_get_contents($srcFile) ?: '';
             if (preg_match_all('/\'(\{[a-z][a-z0-9_]*\})\'/i', $content, $m)) {
                 $sourceVars = array_merge($sourceVars, $m[1]);
+            }
+        }
+        // Bloc 7 (19/09/2026) : référentiel 3 — champs saisis par le marchand dans l'envoi
+        // manuel (ManualSendManager::FIELD_LABEL_I18N : warranty_period, warranty_end_date,
+        // invitation_location…). Ils ne figurent dans le code que comme clés sans accolades,
+        // donc le contrôle signalait à tort extended_warranty.txt comme « jamais peuplé ».
+        if (class_exists('ManualSendManager') && defined('ManualSendManager::FIELD_LABEL_I18N')) {
+            foreach (array_keys(\ManualSendManager::FIELD_LABEL_I18N) as $manualField) {
+                $sourceVars[] = '{' . $manualField . '}';
             }
         }
         $sourceVars = array_unique($sourceVars);
@@ -18819,7 +18859,7 @@ class HealthCheckManager
      */
     private function checkCampaignEmptySegment(): array
     {
-        if (!class_exists('SegmentManager')) {
+        if (!class_exists('SegmentManager') || !class_exists('SeasonalCampaignManager')) {
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.campaign_seg_disabled')];
         }
 
@@ -18851,15 +18891,29 @@ class HealthCheckManager
         $emptySegments = [];
         $mgr = new \SegmentManager($this->module);
 
+        // Bloc 7 (19/09/2026) : ce contrôle appelait SegmentManager::getSegmentCustomerCount(),
+        // méthode qui n'a JAMAIS existé — il finissait en « erreur interne » à chaque
+        // diagnostic dès qu'une campagne ciblait un segment, et n'a donc jamais détecté
+        // un segment vide. On additionne désormais les clients réels des segments
+        // (liste séparée par des virgules, comme SeasonalCampaignManager::normalizeSegments()).
+        $counts = $mgr->getSegmentCounts();
+
         foreach ($campaigns as $c) {
-            $seg = $c['target_segment'];
+            $seg = (string) $c['target_segment'];
             try {
-                $customerCount = $mgr->getSegmentCustomerCount($seg);
+                $segments = \SeasonalCampaignManager::normalizeSegments($seg);
+                if ($segments === []) {
+                    continue; // « tous les clients » ou valeur non reconnue : rien à signaler
+                }
+                $customerCount = 0;
+                foreach ($segments as $one) {
+                    $customerCount += (int) ($counts[$one] ?? 0);
+                }
                 if ($customerCount === 0) {
                     $emptySegments[] = AdminTranslator::tVars('health.campaign_empty_item', ['name' => $c['name'], 'segment' => $seg]);
                 }
-            } catch (\Exception $e) {
-                // Silencieux — méthode peut ne pas exister sur toutes les versions
+            } catch (\Throwable $e) {
+                // Un contrôle de confort ne doit jamais faire échouer le diagnostic complet.
             }
         }
 
@@ -19865,6 +19919,8 @@ class HealthCheckManager
             'dismiss_design_wizard', 'process_queue_now', 'send_report_now',
             'run_full_diagnostic', 'run_code_diagnostic', 'send_test', 'search_customers',
             'load_translations',
+            // Bloc 7 (19/09/2026) : réponses JSON AJAX (die(json_encode(...))) — pas de bannière.
+            'check_preferences_guard', 'check_cooldown_guest_notice', 'product_search',
         ];
 
         preg_match_all(
@@ -19877,6 +19933,15 @@ class HealthCheckManager
         $noBanner = [];
         foreach ($m[1] as [$name, $offset]) {
             if (in_array($name, $silentByDesign, true) || in_array($name, $noBanner, true)) {
+                continue;
+            }
+            // Bloc 7 (19/09/2026) : ignorer une occurrence située dans un COMMENTAIRE.
+            // La 1re occurrence de 'repair_module_version' est un commentaire (ligne 126) :
+            // le contrôle mesurait alors le bloc `{` suivant, sans rapport, et signalait
+            // à tort une action pourtant dotée de ses bannières.
+            $lineStart = strrpos(substr($source, 0, (int) $offset), "\n");
+            $linePrefix = ltrim(substr($source, $lineStart === false ? 0 : $lineStart + 1, (int) $offset - ($lineStart === false ? 0 : $lineStart + 1)));
+            if (strncmp($linePrefix, '//', 2) === 0 || strncmp($linePrefix, '*', 1) === 0 || strncmp($linePrefix, '/*', 2) === 0) {
                 continue;
             }
             $braceStart = strpos($source, '{', $offset);
