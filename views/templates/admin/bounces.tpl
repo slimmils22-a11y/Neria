@@ -334,7 +334,7 @@
         <div>
           <p class="nb-step__title">{neria_admin key='bounces.auto_block_title'}</p>
           <p class="nb-step__body">
-            {neria_admin key='bounces.auto_block_body_pre'} <strong>{$bounce_soft_threshold} {neria_admin key='bounces.failures_unit'}</strong> {neria_admin key='bounces.auto_block_body_post'}
+            {neria_admin key='bounces.auto_block_body_pre'} <strong>{$bounce_soft_threshold}</strong> {neria_admin key='bounces.auto_block_body_post'}
           </p>
         </div>
       </li>
