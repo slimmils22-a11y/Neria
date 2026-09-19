@@ -978,4 +978,87 @@ class BounceManager
     {
         return \Context::getContext()->link->getModuleLink('neria', 'bounce', [], true);
     }
+
+    /**
+     * Bloc 6 (19/09/2026) : jeton d'accès à placer dans l'URL du webhook
+     * (?token=…). Dérivé du secret par HMAC — jamais le secret lui-même, pour
+     * qu'une URL divulguée (journaux d'accès, capture d'écran) ne révèle pas
+     * le secret. Vide tant qu'aucun secret n'est configuré.
+     */
+    public static function getWebhookToken(): string
+    {
+        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CFG_WEBHOOK_SECRET));
+        return $secret === '' ? '' : hash_hmac('sha256', 'neria-bounce-webhook-url', $secret);
+    }
+
+    /** URL du webhook telle qu'à coller chez l'ESP : avec le jeton dès qu'un secret existe. */
+    public static function getWebhookUrlWithToken(): string
+    {
+        $url   = self::getWebhookUrl();
+        $token = self::getWebhookToken();
+        if ($token === '') {
+            return $url;
+        }
+        return $url . (strpos($url, '?') !== false ? '&' : '?') . 'token=' . $token;
+    }
+
+    /**
+     * Bloc 6 (19/09/2026) : authentification d'une notification entrante.
+     *
+     * Avant ce correctif, SEUL l'en-tête `X-Neria-Signature` (HMAC hexadécimal
+     * du corps) était accepté — un en-tête qu'AUCUN des fournisseurs annoncés
+     * (Mailgun, SendGrid, Postmark) n'envoie : Mailgun signe dans le corps
+     * (HMAC de timestamp+token avec sa propre clé), SendGrid utilise une
+     * signature ECDSA et Postmark n'en a pas par défaut. Le point d'entrée
+     * était donc inutilisable avec les fournisseurs pour lesquels il est
+     * documenté. Trois moyens sont désormais acceptés (le premier suffit) :
+     *
+     *  1. en-tête X-Neria-Signature (hex brut ou « sha256=<hex> ») — expéditeurs
+     *     personnalisés, Zapier/Make ;
+     *  2. jeton dans l'URL (?token=…) — SendGrid, Postmark et tout ESP qui
+     *     accepte une URL de rappel libre ;
+     *  3. signature native Mailgun (signature.timestamp/token/signature dans le
+     *     corps, HMAC-SHA256(timestamp.token) avec la « HTTP webhook signing
+     *     key » collée comme secret, horodatage à ±15 minutes contre le rejeu).
+     *
+     * Toujours faux tant qu'aucun secret n'est configuré.
+     *
+     * @param array<string, mixed> $payload
+     */
+    public function authenticateWebhook(string $rawBody, array $payload, string $headerSignature, string $urlToken): bool
+    {
+        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CFG_WEBHOOK_SECRET));
+        if ($secret === '') {
+            return false;
+        }
+
+        // 1. En-tête X-Neria-Signature.
+        $sig = preg_replace('/^sha256=/i', '', trim($headerSignature));
+        if ($sig !== '' && $this->verifyWebhookSignature($rawBody, (string) $sig)) {
+            return true;
+        }
+
+        // 2. Jeton d'URL (comparaison à temps constant).
+        $expectedToken = self::getWebhookToken();
+        if ($urlToken !== '' && $expectedToken !== '' && hash_equals($expectedToken, $urlToken)) {
+            return true;
+        }
+
+        // 3. Signature native Mailgun.
+        $mg = $payload['signature'] ?? null;
+        if (is_array($mg)
+            && isset($mg['timestamp'], $mg['token'], $mg['signature'])
+            && is_scalar($mg['timestamp']) && is_scalar($mg['token']) && is_scalar($mg['signature'])
+        ) {
+            $ts = (string) $mg['timestamp'];
+            if (ctype_digit($ts) && abs(time() - (int) $ts) <= 900) {
+                $expected = hash_hmac('sha256', $ts . (string) $mg['token'], $secret);
+                if (hash_equals($expected, strtolower((string) $mg['signature']))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

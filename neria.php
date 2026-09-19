@@ -7221,7 +7221,7 @@ class Neria extends Module
             'bounce_stats'          => class_exists('BounceManager') ? (new BounceManager($this))->getBounceStats() : [],
             'bounce_enabled'        => (bool) Configuration::get(BounceManager::CFG_ENABLED),
             'bounce_soft_threshold' => (int) Configuration::get(BounceManager::CFG_SOFT_THRESHOLD) ?: 3,
-            'bounce_webhook_url'    => class_exists('BounceManager') ? BounceManager::getWebhookUrl() : '',
+            'bounce_webhook_url'    => class_exists('BounceManager') ? BounceManager::getWebhookUrlWithToken() : '',
             'bounce_webhook_secret' => CryptoManager::decrypt((string) Configuration::get(BounceManager::CFG_WEBHOOK_SECRET)),
             'bounce_cfg'            => [
                 'host'     => (string) Configuration::get(BounceManager::CFG_IMAP_HOST),

@@ -80,7 +80,8 @@ class NeriaBounceModuleFrontController extends ModuleFrontController
                 $this->jsonResponse(['error' => 'Webhook secret not configured — configure it in the Bounces tab before use.'], 403);
                 return;
             }
-            if (!$mgr->verifyWebhookSignature($rawBody, $signature)) {
+            // Bloc 6 : en-tête HMAC, jeton d'URL ou signature native Mailgun (voir BounceManager::authenticateWebhook()).
+            if (!$mgr->authenticateWebhook((string) $rawBody, $payload, (string) $signature, (string) ($_GET['token'] ?? ''))) {
                 $this->jsonResponse(['error' => 'Invalid signature'], 401);
                 return;
             }
