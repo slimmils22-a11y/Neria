@@ -811,6 +811,34 @@ class ManualSendManager
         // (transport SMTP/Symfony Mailer PS9) remontait non interceptée
         // jusqu'à neria.php::postProcess(), page d'erreur fatale pour
         // l'employé BO.
+        // Bloc 5 (19/09/2026) : l'email care_certificate annonce « un certificat
+        // d'entretien personnalisé » — il est désormais réellement joint en PDF
+        // (CarePdfGenerator), dans la langue du client. Un échec de génération
+        // n'empêche pas l'envoi (le contenu complet reste dans le corps de
+        // l'email) mais est signalé au Watchdog.
+        $attachment = null;
+        if ($template === 'care_certificate' && class_exists('CarePdfGenerator')) {
+            $careLang = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: 'en');
+            $care = (new \CarePdfGenerator($this->module))->generate(
+                (string) ($contentVars['product_name'] ?? ''),
+                (string) ($contentVars['product_materials'] ?? ''),
+                (string) ($contentVars['care_instructions'] ?? ''),
+                $careLang,
+                $idShop
+            );
+            if (isset($care['content'])) {
+                $attachment = ['content' => $care['content'], 'name' => $care['filename'], 'mime' => 'application/pdf'];
+            } else {
+                $this->watchdog()->warning(
+                    "Certificat d'entretien : PDF non généré (" . ($care['error'] ?? '?') . ') — email envoyé sans pièce jointe',
+                    $template,
+                    'ManualSendManager'
+                );
+            }
+        }
+
         try {
             $sent = \Mail::Send(
                 $idLang,
@@ -821,7 +849,7 @@ class ManualSendManager
                 $toName !== '' ? $toName : null,
                 null,
                 null,
-                null,
+                $attachment,
                 null,
                 _PS_MODULE_DIR_ . 'neria/mails/',
                 false,

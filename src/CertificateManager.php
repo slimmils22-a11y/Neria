@@ -413,7 +413,7 @@ class CertificateManager
      *
      * @return array{0: string, 1: string, 2: bool} [$fontSans, $fontSerif, $isRtl]
      */
-    private function pdfFontsForLang(string $lang): array
+    public static function pdfFontsForLang(string $lang): array
     {
         switch ($lang) {
             case 'ar':
@@ -441,7 +441,7 @@ class CertificateManager
      * (aealarabiya, cid0*) qui ne fournissent qu'un seul style TCPDF —
      * demander 'B' ou 'I' sur ces polices lève une erreur TCPDF.
      */
-    private function pdfSetFont(\TCPDF $pdf, string $family, string $style, int $size): void
+    public static function pdfSetFont(\TCPDF $pdf, string $family, string $style, int $size): void
     {
         $singleStyleFamilies = ['aealarabiya', 'cid0cs', 'cid0ct', 'cid0jp', 'cid0kr'];
         if (in_array($family, $singleStyleFamilies, true)) {
