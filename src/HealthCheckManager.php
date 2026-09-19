@@ -6506,6 +6506,18 @@ class HealthCheckManager
             $offenders[] = "extended_warranty : les champs facultatifs durée/date de fin de garantie ne sont plus gérés (template HTML/TXT ou libellés du formulaire d'envoi manuel) — régression du correctif bloc 5 (19/09/2026) : l'email ne pourrait plus préciser la durée de la garantie";
         }
 
+        // Bloc 5 (19/09/2026) : deux notes d'email faisaient redite — la note
+        // d'unboxing_guide répétait le libellé du bouton voisin, celle
+        // d'extended_warranty parlait d'une « période déterminée » alors que la
+        // durée est désormais affichée au-dessus.
+        $trNotes365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($trNotes365 === ''
+            || preg_match('/"unboxing_note"\s*:\s*"[^"]*(?:first impressions|premières impressions)/u', $trNotes365) === 1
+            || preg_match('/"extended_warranty_note"\s*:\s*"[^"]*specified period/u', $trNotes365) === 1
+        ) {
+            $offenders[] = "data/translations.json : la note d'unboxing_guide redit le libellé du bouton, ou celle d'extended_warranty parle de nouveau d'une « specified period » générique — régression du correctif bloc 5 (19/09/2026)";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
