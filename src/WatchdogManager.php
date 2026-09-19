@@ -944,6 +944,23 @@ class WatchdogManager
      * Score 0-100 basé sur : erreurs récentes, crons en retard, queue bloquée.
      * Distinct de StatsManager::getHealthScore() qui mesure les contrôles de diagnostic.
      */
+    /**
+     * Bloc 7 (19/09/2026) : traduit un message du score de santé dans la langue
+     * du back-office. Le bandeau « Score de santé » de l'onglet Aide (problèmes
+     * détectés + libellé du score) était écrit en français dans un BO de 19
+     * langues. Le texte français d'origine reste le repli.
+     */
+    private function wdTr(string $key, string $fallback): string
+    {
+        if (class_exists('AdminTranslator')) {
+            $v = \AdminTranslator::t($key);
+            if ($v !== '' && $v !== $key) {
+                return $v;
+            }
+        }
+        return $fallback;
+    }
+
     public function getWatchdogHealthScore(): array
     {
         $table  = _DB_PREFIX_ . self::TABLE;
@@ -977,10 +994,10 @@ class WatchdogManager
         $score -= $rc['critical'] * 10;
         if ($rc['error'] > 0 || $rc['critical'] > 0) {
             $tot = $rc['error'] + $rc['critical'];
-            $issues[] = $tot . ' erreur(s)/critique(s) dans les 24 dernières heures';
+            $issues[] = sprintf($this->wdTr('wdscore.issue_errors', '%d erreur(s)/critique(s) dans les 24 dernières heures'), $tot);
         }
         if ($rc['warning'] > 0) {
-            $issues[] = $rc['warning'] . ' avertissement(s) dans les 24 dernières heures';
+            $issues[] = sprintf($this->wdTr('wdscore.issue_warnings', '%d avertissement(s) dans les 24 dernières heures'), $rc['warning']);
         }
 
         // ── Crons en retard ───────────────────────────────────────
@@ -993,18 +1010,18 @@ class WatchdogManager
         }
         if ($lateCt > 0) {
             $score   -= min(25, $lateCt * 10);
-            $issues[] = $lateCt . ' cron(s) en retard (pas d\'exécution depuis > seuil)';
+            $issues[] = sprintf($this->wdTr('wdscore.issue_crons_late', '%d cron(s) en retard (pas d\'exécution depuis > seuil)'), $lateCt);
         }
 
         // ── Queue bloquée ─────────────────────────────────────────
         $queue = $this->getQueueHealth();
         if (!empty($queue['stuck']) && $queue['stuck'] > 0) {
             $score   -= 10;
-            $issues[] = $queue['stuck'] . ' email(s) bloqué(s) dans la file d\'attente';
+            $issues[] = sprintf($this->wdTr('wdscore.issue_queue_stuck', '%d email(s) bloqué(s) dans la file d\'attente'), (int) $queue['stuck']);
         }
         if (!empty($queue['failed']) && $queue['failed'] > 5) {
             $score   -= 5;
-            $issues[] = $queue['failed'] . ' email(s) en échec dans la file';
+            $issues[] = sprintf($this->wdTr('wdscore.issue_queue_failed', '%d email(s) en échec dans la file'), (int) $queue['failed']);
         }
 
         $score = max(0, $score);
@@ -1012,19 +1029,19 @@ class WatchdogManager
         if ($score >= 90) {
             $status = 'excellent';
             $color  = '#16a34a';
-            $label  = 'Excellent';
+            $label  = $this->wdTr('score.grade_excellent', 'Excellent');
         } elseif ($score >= 70) {
             $status = 'good';
             $color  = '#65a30d';
-            $label  = 'Bon';
+            $label  = $this->wdTr('score.grade_good', 'Bon');
         } elseif ($score >= 50) {
             $status = 'warning';
             $color  = '#d97706';
-            $label  = 'Attention';
+            $label  = $this->wdTr('score.grade_attention', 'Attention');
         } else {
             $status = 'critical';
             $color  = '#dc2626';
-            $label  = 'Critique';
+            $label  = $this->wdTr('score.grade_critical', 'Critique');
         }
 
         return [

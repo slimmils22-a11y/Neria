@@ -251,6 +251,27 @@
         "nl": "Onderhoudscertificaat",
         "gb": "Care certificate"
     },
+    "certificate_email": {
+        "fr": "Certificat d'authenticité (envoi)",
+        "en": "Certificate of authenticity (delivery)",
+        "de": "Echtheitszertifikat (Versand)",
+        "it": "Certificato di autenticità (invio)",
+        "es": "Certificado de autenticidad (envío)",
+        "pt": "Certificado de autenticidade (envio)",
+        "br": "Certificado de autenticidade (envio)",
+        "ar": "شهادة الأصالة (الإرسال)",
+        "ja": "真正性証明書（送付）",
+        "ko": "정품 인증서 (발송)",
+        "zh": "真品证书（发送）",
+        "tw": "真品證書（發送）",
+        "ru": "Сертификат подлинности (отправка)",
+        "tr": "Orijinallik sertifikası (gönderim)",
+        "sv": "Äkthetsintyg (utskick)",
+        "no": "Ekthetssertifikat (utsendelse)",
+        "da": "Ægthedscertifikat (udsendelse)",
+        "nl": "Echtheidscertificaat (verzending)",
+        "gb": "Certificate of authenticity (delivery)"
+    },
     "certificate_provenance": {
         "fr": "Certificat de provenance",
         "en": "Certificate of provenance",
