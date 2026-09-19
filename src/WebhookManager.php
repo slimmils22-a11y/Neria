@@ -84,6 +84,20 @@ class WebhookManager
      * (defense in depth contre le DNS rebinding, où le nom de domaine
      * résoudrait différemment entre la sauvegarde et la livraison réelle).
      */
+    /**
+     * Bloc 6 (19/09/2026) : point d'enregistrement d'une URL de webhook. En plus
+     * de la vérification « adresse publique », EXIGE HTTPS : l'interface et le
+     * message d'erreur annoncent une URL HTTPS, mais une URL http:// était
+     * acceptée — les événements (identifiant client, jeton de suivi) auraient
+     * circulé en clair sur Internet. Les URL http:// DÉJÀ enregistrées continuent
+     * d'être livrées (isPublicUrl() seul à la livraison) : seul l'enregistrement
+     * d'une nouvelle URL est durci.
+     */
+    public static function isAcceptableEndpoint(string $url): bool
+    {
+        return stripos(trim($url), 'https://') === 0 && self::isPublicUrl($url);
+    }
+
     public static function isPublicUrl(string $url): bool
     {
         return self::resolvePublicIp($url) !== null;
@@ -630,6 +644,7 @@ class WebhookManager
         $headers = [
             'Content-Type: application/json',
             'X-Neria-Event: ' . $event,
+            'User-Agent: Neria-Webhook/' . \Neria::VERSION,
         ];
 
         if ($secret !== '') {
@@ -739,6 +754,7 @@ class WebhookManager
         $headers = [
             'Content-Type: application/json',
             'X-Neria-Event: test',
+            'User-Agent: Neria-Webhook/' . \Neria::VERSION,
         ];
 
         if ($secret !== '') {

@@ -5453,7 +5453,7 @@ class Neria extends Module
             $whSecret = trim((string) Tools::getValue('webhook_secret', ''));
             $whEvents = Tools::getValue('webhook_events', []);
 
-            if ($whUrl !== '' && !WebhookManager::isPublicUrl($whUrl)) {
+            if ($whUrl !== '' && !WebhookManager::isAcceptableEndpoint($whUrl)) {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.webhook_save_url_invalid'));
             } else {
                 Configuration::updateValue(WebhookManager::CONFIG_URL, $whUrl);
