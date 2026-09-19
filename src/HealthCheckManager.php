@@ -6487,6 +6487,25 @@ class HealthCheckManager
             $offenders[] = "data/translations.json : le pied de page du certificat (certificate_pdf_footer) cite de nouveau « Neria » — régression du correctif bloc 5 (19/09/2026) : un document remis au client final afficherait le nom de l'éditeur du logiciel";
         }
 
+        // Bloc 5 (19/09/2026) : (1) extended_warranty acceptait « valable pour une
+        // période déterminée » sans jamais pouvoir dire laquelle — champs
+        // facultatifs {warranty_period}/{warranty_end_date} (lignes masquées si
+        // vides) ; (2) le bouton d'unboxing_guide pointe vers la page contact,
+        // son libellé doit donc inviter à écrire (« Tell us your first
+        // impressions »), plus « Share the emotion ».
+        $ewTpl365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/extended_warranty.html');
+        $ewTxt365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/extended_warranty.txt');
+        $msmSrc365b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($ewTpl365 === '' || $ewTxt365 === '' || $msmSrc365b === ''
+            || strpos($ewTpl365, '{if warranty_period}') === false
+            || strpos($ewTpl365, '{if warranty_end_date}') === false
+            || strpos($ewTxt365, '{if warranty_period}') === false
+            || strpos($msmSrc365b, "'warranty_period' => [") === false
+            || strpos($msmSrc365b, "'warranty_end_date' => [") === false
+        ) {
+            $offenders[] = "extended_warranty : les champs facultatifs durée/date de fin de garantie ne sont plus gérés (template HTML/TXT ou libellés du formulaire d'envoi manuel) — régression du correctif bloc 5 (19/09/2026) : l'email ne pourrait plus préciser la durée de la garantie";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
