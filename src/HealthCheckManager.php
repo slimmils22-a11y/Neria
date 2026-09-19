@@ -6594,6 +6594,25 @@ class HealthCheckManager
             $offenders[] = "RGPD : le tableau de bord ou le rapport d'audit (GdprAuditManager) n'est plus traduit via AdminTranslator (registre gdpr.reg.*, cartographie gdpr.pii.*, contrôles gdpr.unsub.*, rapport gdpr.report.*) — régression du correctif bloc 6 (19/09/2026) : l'onglet Confidentialité et le PDF redeviendraient français dans les 18 autres langues";
         }
 
+        // Bloc 7 (19/09/2026) : (1) libellé du template certificate_email absent du
+        // dictionnaire des noms de templates ; (2) bandeau de santé Watchdog écrit
+        // en français ; (3) faux positif permanent « getPriceStatic() hors wrapper »
+        // sur Waitlist/Collection/LookCompletion ; (4) 28 contrôles sans titre traduit.
+        $tplLbl809 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/template_labels_i18n.json');
+        $wdSrc809  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        $helpTpl809 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/help.tpl');
+        $hcSelf809 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($tplLbl809 === '' || $wdSrc809 === '' || $helpTpl809 === '' || $hcSelf809 === ''
+            || strpos($tplLbl809, '"certificate_email"') === false
+            || strpos($wdSrc809, "wdTr('wdscore.issue_errors'") === false
+            || strpos($wdSrc809, "wdTr('score.grade_good'") === false
+            || strpos($helpTpl809, "'known_regressions_guard_freshness' => 'help.health_check_known_regressions_guard_freshness'") === false
+            || strpos($helpTpl809, "'behavioral_silence' => 'help.health_check_behavioral_silence'") === false
+            || strpos($hcSelf809, "        \$priceWrapperFiles = ['UpsellManager.php', 'WaitlistManager.php', 'CollectionManager.php', 'LookCompletionManager.php'];") === false
+        ) {
+            $offenders[] = "Diagnostic bloc 7 : le libellé du template certificate_email, le bandeau de santé Watchdog traduit (wdTr), les titres traduits des contrôles du diagnostic ou la tolérance des wrappers safeProductPrice() (Waitlist/Collection/LookCompletion) a disparu — régression du correctif bloc 7 (19/09/2026) : identifiants bruts ou français en BO traduit, ou avertissement permanent injustifié chez tous les marchands";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
@@ -12799,14 +12818,26 @@ class HealthCheckManager
 
             // Piège 2 : appel direct à Product::getPriceStatic() hors du wrapper
             // connu — cette fois sur le code réel uniquement (commentaires exclus).
-            if (preg_match_all('/\\\\?Product::getPriceStatic\s*\(/', $codeOnly, $m)) {
-                $priceStaticCallers[$base] = count($m[0]);
+            if (preg_match_all('/\\\\?Product::getPriceStatic\s*\(/', $codeOnly, $m, PREG_OFFSET_CAPTURE)) {
+                // Bloc 7 (19/09/2026) : on retient aussi si l'appel unique se trouve
+                // DANS le corps de safeProductPrice() de ce fichier.
+                $wrapperPos = strpos($codeOnly, 'function safeProductPrice(');
+                $priceStaticCallers[$base] = [
+                    'count'      => count($m[0]),
+                    'in_wrapper' => $wrapperPos !== false && $m[0][0][1] > $wrapperPos,
+                ];
             }
         }
 
-        // Un seul point d'appel légitime toléré : UpsellManager::safeProductPrice().
-        foreach ($priceStaticCallers as $file => $count) {
-            if ($file !== 'UpsellManager.php' || $count > 1) {
+        // Bloc 7 (19/09/2026) : les 4 gestionnaires qui calculent un prix en cron
+        // (Upsell, Waitlist, Collection, LookCompletion) ont CHACUN leur wrapper
+        // safeProductPrice() (panier/devise transitoires + try/finally). Le contrôle
+        // ne tolérait qu'UpsellManager et affichait donc à TOUS les marchands un
+        // avertissement permanent (faux positif) sur les 3 autres. Un appel est
+        // toléré s'il est unique ET situé dans le safeProductPrice() de son fichier.
+        $priceWrapperFiles = ['UpsellManager.php', 'WaitlistManager.php', 'CollectionManager.php', 'LookCompletionManager.php'];
+        foreach ($priceStaticCallers as $file => $info) {
+            if (!in_array($file, $priceWrapperFiles, true) || $info['count'] > 1 || !$info['in_wrapper']) {
                 $offenders[] = "{$file} : appel(le) Product::getPriceStatic() hors du wrapper protégé — risque de die() non catchable en cron/CLI sans employé ni panier";
             }
         }
