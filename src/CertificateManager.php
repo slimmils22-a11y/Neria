@@ -93,7 +93,7 @@ class CertificateManager
         // ── Produit ───────────────────────────────────────────────
         $idLangProduct = (int) (\Language::getIdByIso($lang) ?: \Context::getContext()->language->id);
         $product = new \Product($idProduct, false, $idLangProduct);
-        $productName = $product->name ?: 'Produit #' . $idProduct;
+        $productName = $product->name ?: '#' . $idProduct;
 
         // ── Numéro de série ───────────────────────────────────────
         // Sous accès concurrent (émissions quasi simultanées), MAX(id_certificate)+1

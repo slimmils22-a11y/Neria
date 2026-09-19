@@ -896,7 +896,7 @@
                 {assign var="occCount" value=$log.occurrence_count|default:1}
                 {if $occCount > 1}
                   <span style="font-size:10px;background:#e8d5b0;color:#5c3d1e;padding:1px 5px;border-radius:10px;font-weight:700;margin-left:3px;"
-                        title="Ce message est apparu {$occCount} fois en 1h">×{$occCount}</span>
+                        title="{neria_admin key='help.occurrences_tooltip' n=$occCount esc='html'}">×{$occCount}</span>
                 {/if}
               </td>
               <td class="col-class">{$log.class}</td>
@@ -1024,7 +1024,17 @@ window.NERIA_HELP_L10N = {
   pdfOpenPrefix:     "{neria_admin key='help.pdf_open_prefix' esc='javascript'}",
   printJournalTitle: "{neria_admin key='help.print_journal_title' esc='javascript'}",
   exportedOn:        "{neria_admin key='help.exported_on' esc='javascript'}",
-  close:             "{neria_admin key='common.close' esc='javascript'}"
+  close:             "{neria_admin key='common.close' esc='javascript'}",
+  journalTitle:      "{neria_admin key='help.share_journal_title' esc='javascript'}",
+  mailBody:          "{neria_admin key='help.share_mail_body' esc='javascript'}",
+  copyText:          "{neria_admin key='help.share_copy_text' esc='javascript'}",
+  del:               "{neria_admin key='help.share_delete' esc='javascript'}",
+  addPlatform:       "{neria_admin key='help.share_add_platform' esc='javascript'}",
+  platformName:      "{neria_admin key='help.share_platform_name' esc='javascript'}",
+  namePlaceholder:   "{neria_admin key='help.share_name_placeholder' esc='javascript'}",
+  urlLabel:          "{neria_admin key='help.share_url_label' esc='javascript'}",
+  urlPlaceholder:    "{neria_admin key='help.share_url_placeholder' esc='javascript'}",
+  addBtn:            "{neria_admin key='help.share_add_btn' esc='javascript'}"
 };
 </script>
 {literal}
@@ -1046,7 +1056,7 @@ window.NERIA_HELP_L10N = {
     { id: 'gmail',     label: 'Gmail',            icon: '📧', url: 'https://mail.google.com/mail/?view=cm&su={title}&body={text}' },
     { id: 'yahoo',     label: 'Yahoo Mail',       icon: '🟣', url: 'https://compose.mail.yahoo.com/?subject={title}&body={text}' },
     { id: 'outlook',   label: 'Outlook',          icon: '🔵', url: 'https://outlook.live.com/mail/0/deeplink/compose?subject={title}&body={text}' },
-    { id: 'copy',      label: 'Copier le texte',  icon: '📋', url: '__copy__' },
+    { id: 'copy',      label: window.NERIA_HELP_L10N.copyText,  icon: '📋', url: '__copy__' },
   ];
 
   function getCustomPlatforms() {
@@ -1059,7 +1069,7 @@ window.NERIA_HELP_L10N = {
   function buildLines() {
     var rows  = document.querySelectorAll('#neria-log-table tbody tr');
     var lines = [
-      'Journal Watchdog Neria — ' + new Date().toLocaleString('fr-FR'),
+      window.NERIA_HELP_L10N.journalTitle + ' — ' + new Date().toLocaleString(),
       window.location.hostname,
       ''
     ];
@@ -1096,8 +1106,8 @@ window.NERIA_HELP_L10N = {
 
     if (isEmail) {
       var mailUrl = p.url
-        .replace('{text}',  encodeURIComponent('Veuillez trouver ci-joint le journal Watchdog Neria.'))
-        .replace('{title}', encodeURIComponent('Journal Watchdog Neria — ' + window.location.hostname))
+        .replace('{text}',  encodeURIComponent(window.NERIA_HELP_L10N.mailBody))
+        .replace('{title}', encodeURIComponent(window.NERIA_HELP_L10N.journalTitle + ' — ' + window.location.hostname))
         .replace('{url}',   encodeURIComponent(window.location.href));
       /* Ouvre le PDF */
       openPdfWindow('');
@@ -1158,14 +1168,14 @@ window.NERIA_HELP_L10N = {
     });
     var thEl  = document.querySelector('#neria-log-table thead');
     var thead = thEl ? thEl.outerHTML : '';
-    var now   = new Date().toLocaleString('fr-FR');
+    var now   = new Date().toLocaleString();
     var host  = window.location.hostname;
     var noticeHtml = notice
       ? '<div style="background:#fff8e6;border:1px solid #ffe082;border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:#7a5800;">'
         + '📎 ' + notice + '</div>'
       : '';
     var html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
-      + '<title>Neria — Journal Watchdog</title>'
+      + '<title>' + window.NERIA_HELP_L10N.journalTitle + '</title>'
       + '<style>'
       + 'body{font-family:sans-serif;font-size:11px;margin:24px;color:#222;}'
       + '.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #b38b59;padding-bottom:10px;margin-bottom:18px;}'
@@ -1211,10 +1221,10 @@ window.NERIA_HELP_L10N = {
       if (p.custom) {
         var del = document.createElement('span');
         del.textContent = '✕';
-        del.title = 'Supprimer';
+        del.title = window.NERIA_HELP_L10N.del;
         del.setAttribute('role', 'button');
         del.setAttribute('tabindex', '0');
-        del.setAttribute('aria-label', 'Supprimer ' + p.label);
+        del.setAttribute('aria-label', window.NERIA_HELP_L10N.del + ' ' + p.label);
         del.style.cssText = 'margin-left:auto;color:#aaa;font-size:11px;cursor:pointer;';
         var deletePlatform = function (e) {
           e.stopPropagation();
@@ -1234,7 +1244,7 @@ window.NERIA_HELP_L10N = {
       btn.addEventListener('mouseenter', function(){ btn.style.background = '#f5f5f5'; });
       btn.addEventListener('mouseleave', function(){ btn.style.background = 'none'; });
       btn.addEventListener('click', function () {
-        openPlatform(p, 'Journal Watchdog Neria');
+        openPlatform(p, window.NERIA_HELP_L10N.journalTitle);
         closeDrop();
       });
       li.appendChild(btn);
@@ -1248,12 +1258,12 @@ window.NERIA_HELP_L10N = {
 
     var addLi = document.createElement('li');
     addLi.style.cssText = 'list-style:none;padding:8px 14px;';
-    addLi.innerHTML = '<div style="font-size:11px;font-weight:600;color:#888;margin-bottom:6px;" id="neria-share-add-label">➕ Ajouter une plateforme</div>'
-      + '<label for="neria-share-add-name" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Nom de la plateforme</label>'
-      + '<input id="neria-share-add-name" placeholder="Nom (ex: Slack)" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:5px;box-sizing:border-box;">'
-      + '<label for="neria-share-add-url" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">URL de partage</label>'
-      + '<input id="neria-share-add-url"  placeholder="URL avec {text} et {title}" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:6px;box-sizing:border-box;">'
-      + '<button id="neria-share-add-btn" type="button" style="font-size:11px;padding:4px 10px;background:#b38b59;color:#fff;border:none;border-radius:4px;cursor:pointer;">Ajouter</button>';
+    addLi.innerHTML = '<div style="font-size:11px;font-weight:600;color:#888;margin-bottom:6px;" id="neria-share-add-label">➕ ' + window.NERIA_HELP_L10N.addPlatform + '</div>'
+      + '<label for="neria-share-add-name" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">' + window.NERIA_HELP_L10N.platformName + '</label>'
+      + '<input id="neria-share-add-name" placeholder="' + window.NERIA_HELP_L10N.namePlaceholder + '" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:5px;box-sizing:border-box;">'
+      + '<label for="neria-share-add-url" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">' + window.NERIA_HELP_L10N.urlLabel + '</label>'
+      + '<input id="neria-share-add-url"  placeholder="' + window.NERIA_HELP_L10N.urlPlaceholder + '" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:6px;box-sizing:border-box;">'
+      + '<button id="neria-share-add-btn" type="button" style="font-size:11px;padding:4px 10px;background:#b38b59;color:#fff;border:none;border-radius:4px;cursor:pointer;">' + window.NERIA_HELP_L10N.addBtn + '</button>';
     drop.appendChild(addLi);
 
     document.getElementById('neria-share-add-btn').addEventListener('click', function () {
