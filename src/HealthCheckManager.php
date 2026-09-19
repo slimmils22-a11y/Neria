@@ -6476,6 +6476,17 @@ class HealthCheckManager
             $offenders[] = "care_certificate : le bouton « Télécharger le certificat » est revenu, ou CarePdfGenerator/ManualSendManager ne joignent plus le certificat d'entretien en PDF — régression du correctif bloc 5 (19/09/2026) : l'email promettrait de nouveau un certificat sans fichier";
         }
 
+        // Bloc 5 (19/09/2026) : le pied de page du certificat d'authenticité
+        // (PDF remis au client final) écrivait « … via Neria Luxury Email
+        // Suite » — mention de l'éditeur du logiciel incompatible avec un
+        // document de marque blanche signé par la maison.
+        $trSrc365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($trSrc365 === ''
+            || preg_match('/"certificate_pdf_footer"\s*:\s*"[^"]*Neria/u', $trSrc365) === 1
+        ) {
+            $offenders[] = "data/translations.json : le pied de page du certificat (certificate_pdf_footer) cite de nouveau « Neria » — régression du correctif bloc 5 (19/09/2026) : un document remis au client final afficherait le nom de l'éditeur du logiciel";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
