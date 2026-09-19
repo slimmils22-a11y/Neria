@@ -1181,7 +1181,11 @@ class StatsManager
                       // gift_guarantee) — miroir de PreferencesManager::TEMPLATE_CAT,
                       // oublié ici lors du fix round 72.
                       'vip','private_invitation','voucher','voucher_new',
-                      'personal_shopper_intro','concierge_followup','gift_guarantee'],
+                      'personal_shopper_intro','concierge_followup','gift_guarantee',
+                      // Bloc 7 (19/09/2026) : bon de réduction newsletter — même famille que voucher/
+                      // voucher_new ci-dessus ; absent du mapping, il déclenchait un avertissement
+                      // permanent du diagnostic (template_cat_mapping_complete).
+                      'newsletter_voucher'],
         'season'  => ['christmas','valentine','halloween','eid','ramadan',
                       'diwali','lunar_new_year','nowruz','black_friday','new_year',
                       'hanukkah','fathers_day','mothers_day','grandparents_day',

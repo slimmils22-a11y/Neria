@@ -535,7 +535,11 @@ class CertificateManager
             $context = \Context::getContext();
             if ($context !== null && isset($context->link)) {
                 try {
-                    $qrBaseUrl = (string) $context->link->getModuleLink('neria', 'certificate', [], true);
+                    // Bloc 7 (19/09/2026) : langue ET boutique de la COMMANDE passées
+                    // explicitement — sans elles, le lien du QR (imprimé sur le PDF) prenait
+                    // la langue/boutique ambiantes du contexte (employé BO, cron), donc une
+                    // URL du mauvais préfixe de langue ou de la mauvaise boutique.
+                    $qrBaseUrl = (string) $context->link->getModuleLink('neria', 'certificate', [], true, (int) $order->id_lang, (int) $order->id_shop);
                 } catch (\Throwable $e) {
                     $qrBaseUrl = $shopDomain;
                 }
