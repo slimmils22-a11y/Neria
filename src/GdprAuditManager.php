@@ -273,15 +273,34 @@ class GdprAuditManager
     ];
 
     /** Rétrocompatibilité — TABLES dérive de REGISTRY */
+    /**
+     * Bloc 6 (19/09/2026) : traduit un texte d'audit dans la langue du back-office.
+     * Le tableau de bord RGPD (registre des données, contrôles, cartographie) et
+     * son rapport téléchargeable étaient ÉCRITS EN FRANÇAIS dans un BO de 19
+     * langues — GdprAuditManager n'appelait AdminTranslator nulle part. Le texte
+     * français d'origine reste le repli (et la source du registre, dont une
+     * logique interne cherche des mots-clés dans les notes).
+     */
+    private static function tr(string $key, string $fallback): string
+    {
+        if (class_exists('AdminTranslator')) {
+            $v = \AdminTranslator::t($key);
+            if ($v !== '' && $v !== $key) {
+                return $v;
+            }
+        }
+        return $fallback;
+    }
+
     public static function getTables(): array
     {
         return array_map(function ($r) {
             return [
                 'table'    => $r['table'],
                 'date_col' => $r['date_col'],
-                'label'    => $r['label'],
+                'label'    => self::tr('gdpr.reg.' . $r['table'] . '.label', $r['label']),
                 'months'   => $r['months'],
-                'note'     => $r['note'],
+                'note'     => self::tr('gdpr.reg.' . $r['table'] . '.note', $r['note']),
             ];
         }, self::REGISTRY);
     }
@@ -397,11 +416,11 @@ class GdprAuditManager
             && stripos((string) file_get_contents($layoutPath), '{unsubscribe_url}') !== false;
         if (!$layoutOk) { $issues++; }
         $checks[] = [
-            'label'  => 'Lien de désabonnement dans le layout global',
+            'label'  => self::tr('gdpr.unsub.layout.label', 'Lien de désabonnement dans le layout global'),
             'ok'     => $layoutOk,
             'detail' => $layoutOk
-                ? 'Le placeholder {unsubscribe_url} est présent dans layout.html.'
-                : 'Le placeholder {unsubscribe_url} est absent du layout — tous les emails sont non conformes.',
+                ? self::tr('gdpr.unsub.layout.ok', 'Le placeholder {unsubscribe_url} est présent dans layout.html.')
+                : self::tr('gdpr.unsub.layout.ko', 'Le placeholder {unsubscribe_url} est absent du layout — tous les emails sont non conformes.'),
         ];
 
         // 1b. Header List-Unsubscribe (RFC 2369 / RFC 8058) — injecté dans neria.php
@@ -410,11 +429,11 @@ class GdprAuditManager
             && stripos((string) file_get_contents($neriaPhpPath), 'List-Unsubscribe') !== false;
         if (!$headerOk) { $issues++; }
         $checks[] = [
-            'label'  => 'Header List-Unsubscribe (RFC 2369 / One-Click RFC 8058)',
+            'label'  => self::tr('gdpr.unsub.header.label', 'Header List-Unsubscribe (RFC 2369 / One-Click RFC 8058)'),
             'ok'     => $headerOk,
             'detail' => $headerOk
-                ? 'Le header est injecté automatiquement sur chaque envoi.'
-                : 'Le header List-Unsubscribe n\'est pas configuré — requis par Gmail, Apple Mail, Outlook.',
+                ? self::tr('gdpr.unsub.header.ok', 'Le header est injecté automatiquement sur chaque envoi.')
+                : self::tr('gdpr.unsub.header.ko', 'Le header List-Unsubscribe n\'est pas configuré — requis par Gmail, Apple Mail, Outlook.'),
         ];
 
         // 1c. Endpoint de désabonnement
@@ -422,11 +441,11 @@ class GdprAuditManager
         $endpointOk   = file_exists($endpointPath);
         if (!$endpointOk) { $issues++; }
         $checks[] = [
-            'label'  => 'Endpoint de désabonnement (controllers/front/unsubscribe.php)',
+            'label'  => self::tr('gdpr.unsub.endpoint.label', 'Endpoint de désabonnement (controllers/front/unsubscribe.php)'),
             'ok'     => $endpointOk,
             'detail' => $endpointOk
-                ? 'Le contrôleur de désabonnement est bien présent.'
-                : 'Le fichier controllers/front/unsubscribe.php est manquant — les liens ne fonctionnent pas.',
+                ? self::tr('gdpr.unsub.endpoint.ok', 'Le contrôleur de désabonnement est bien présent.')
+                : self::tr('gdpr.unsub.endpoint.ko', 'Le fichier controllers/front/unsubscribe.php est manquant — les liens ne fonctionnent pas.'),
         ];
 
         // 1d. Centre de préférences email (consentement granulaire)
@@ -435,11 +454,11 @@ class GdprAuditManager
         $prefsCtrl   = file_exists($this->modulePath . '/controllers/front/preferences.php');
         $prefsOk     = $prefsLayout && $prefsCtrl;
         $checks[] = [
-            'label'  => 'Centre de préférences email (consentement granulaire)',
+            'label'  => self::tr('gdpr.unsub.prefs.label', 'Centre de préférences email (consentement granulaire)'),
             'ok'     => $prefsOk,
             'detail' => $prefsOk
-                ? 'Le lien {preferences_url} est présent dans le layout et le contrôleur est en place.'
-                : 'Le centre de préférences n\'est pas configuré — recommandé pour un consentement granulaire conforme.',
+                ? self::tr('gdpr.unsub.prefs.ok', 'Le lien {preferences_url} est présent dans le layout et le contrôleur est en place.')
+                : self::tr('gdpr.unsub.prefs.ko', 'Le centre de préférences n\'est pas configuré — recommandé pour un consentement granulaire conforme.'),
             'info'   => !$prefsOk,
         ];
 
@@ -451,9 +470,9 @@ class GdprAuditManager
             false
         );
         $checks[] = [
-            'label'  => 'Blacklist de désabonnement',
+            'label'  => self::tr('gdpr.unsub.blacklist.label', 'Blacklist de désabonnement'),
             'ok'     => true,
-            'detail' => $blacklistCount . ' adresse(s) désabonnée(s). La blacklist doit être conservée indéfiniment (preuve de conformité) — aucune purge ne doit être effectuée.',
+            'detail' => sprintf(self::tr('gdpr.unsub.blacklist.detail', '%d adresse(s) désabonnée(s). La blacklist doit être conservée indéfiniment (preuve de conformité) — aucune purge ne doit être effectuée.'), $blacklistCount),
             'info'   => true,
         ];
 
@@ -529,8 +548,8 @@ class GdprAuditManager
             $rows[] = [
                 'table'   => $def['table'],
                 'date_col'=> $dcol,
-                'label'   => $def['label'],
-                'note'    => $def['note'],
+                'label'   => self::tr('gdpr.reg.' . $def['table'] . '.label', $def['label']),
+                'note'    => self::tr('gdpr.reg.' . $def['table'] . '.note', $def['note']),
                 'months'  => $months,
                 'total'   => $total,
                 'oldest'  => $oldest ? \NeriaTools::formatDate($oldest, \AdminTranslator::currentLang()) : '—',
@@ -561,7 +580,7 @@ class GdprAuditManager
             $found   = [];
             foreach (self::PII_VARS as $var => $varLabel) {
                 if (stripos($content, $var) !== false) {
-                    $found[] = $varLabel;
+                    $found[] = self::tr('gdpr.pii.' . trim($var, '{}'), $varLabel);
                 }
             }
             if ($found) {
@@ -570,8 +589,8 @@ class GdprAuditManager
                     'vars'        => $found,
                     'vars_str'    => implode(', ', $found),
                     'legal_basis' => in_array($name, self::CONSENT_TEMPLATES, true)
-                        ? 'Consentement'
-                        : 'Contrat / intérêt légitime',
+                        ? self::tr('gdpr.legal_basis_consent', 'Consentement')
+                        : self::tr('gdpr.legal_basis_default', 'Contrat / intérêt légitime'),
                 ];
             }
         }
@@ -667,8 +686,8 @@ class GdprAuditManager
             if ($entry['has_pii'] && (stripos($note, 'email') !== false || stripos($note, 'clair') !== false)) {
                 $otherPiiTables[] = [
                     'table' => $entry['table'],
-                    'label' => $entry['label'],
-                    'note'  => $note,
+                    'label' => self::tr('gdpr.reg.' . $entry['table'] . '.label', $entry['label']),
+                    'note'  => self::tr('gdpr.reg.' . $entry['table'] . '.note', $note),
                 ];
             }
         }
@@ -1398,13 +1417,14 @@ class GdprAuditManager
         $gradeColors = ['A' => '#4a9e6b', 'B' => '#b8600a', 'C' => '#e05c5c', 'D' => '#8b0000'];
         $gradeColor  = $gradeColors[$score] ?? '#888';
 
+        $t = static fn (string $k, string $f = ''): string => self::tr($k, $f);
         ob_start();
         ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="<?= htmlspecialchars(\AdminTranslator::currentLang()) ?>" dir="<?= \AdminTranslator::isRtl() ? 'rtl' : 'ltr' ?>">
 <head>
 <meta charset="utf-8">
-<title>Rapport RGPD — <?= htmlspecialchars($shopName) ?></title>
+<title><?= htmlspecialchars($t('gdpr.report.heading')) ?> — <?= htmlspecialchars($shopName) ?></title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #2c2c2c; background: #fff; padding: 40px; max-width: 860px; margin: auto; }
@@ -1453,33 +1473,33 @@ class GdprAuditManager
 <body>
 
 <button type="button" class="print-btn no-print" onclick="window.print();">
-  ⬇ Enregistrer en PDF
+  ⬇ <?= htmlspecialchars($t('gdpr.report.save_pdf')) ?>
 </button>
 
 <div class="header">
   <div>
     <div class="logo">✦ Neria</div>
-    <h1>Rapport de conformité RGPD</h1>
+    <h1><?= htmlspecialchars($t('gdpr.report.heading')) ?></h1>
     <p style="font-size:12px;color:#888;margin-top:4px;"><?= htmlspecialchars($shopName) ?></p>
   </div>
   <div class="meta">
-    Généré le <?= $date ?><br>
+    <?= htmlspecialchars($t('gdpr.report_generated_on')) ?> <?= $date ?><br>
     Neria — Luxury Email Suite<br>
-    Document à usage interne
+    <?= htmlspecialchars($t('gdpr.report.internal')) ?>
   </div>
 </div>
 
 <div class="summary">
   <div class="score-badge"><?= $score ?></div>
   <div class="summary-text">
-    <strong>Score de conformité : <?= $score ?></strong>
+    <strong><?= htmlspecialchars($t('gdpr.report.score')) ?> <?= $score ?></strong>
     <?php /* Round 144 : dénominateur corrigé — 4 axes (unsub=3, retention=N, pii=1, crypto=1), il en manquait un ; $issues (numérateur) est bien la somme des 4 axes. */ ?>
-    <p><?= $issues ?> point(s) d'attention identifié(s) sur les <?= count($audit['retention']['rows']) + 3 + 1 + 1 ?> critères analysés.</p>
+    <p><?= htmlspecialchars(sprintf($t('gdpr.report.points'), $issues, count($audit['retention']['rows']) + 3 + 1 + 1)) ?></p>
   </div>
 </div>
 
 <!-- AXE 1 : DÉSABONNEMENT -->
-<h2>1 — Système de désabonnement</h2>
+<h2>1 — <?= htmlspecialchars($t('gdpr.axis1_title')) ?></h2>
 <?php foreach ($audit['unsubscribe']['checks'] as $c): ?>
 <div class="check">
   <span class="check-icon <?= isset($c['info']) ? 'info-icon' : ($c['ok'] ? 'ok' : 'warn') ?>">
@@ -1493,46 +1513,46 @@ class GdprAuditManager
 <?php endforeach; ?>
 
 <!-- AXE 2 : RÉTENTION -->
-<h2>2 — Rétention des données</h2>
+<h2>2 — <?= htmlspecialchars($t('gdpr.axis2_title')) ?></h2>
 <table>
   <thead>
     <tr>
-      <th>Table</th>
-      <th>Limite légale</th>
-      <th>Plus ancienne donnée</th>
-      <th>Enregistrements hors délai</th>
-      <th>Statut</th>
+      <th><?= htmlspecialchars($t('gdpr.col_data')) ?></th>
+      <th><?= htmlspecialchars($t('gdpr.col_limit')) ?></th>
+      <th><?= htmlspecialchars($t('gdpr.col_oldest')) ?></th>
+      <th><?= htmlspecialchars($t('gdpr.col_overdue')) ?></th>
+      <th><?= htmlspecialchars($t('gdpr.col_status')) ?></th>
     </tr>
   </thead>
   <tbody>
     <?php foreach ($audit['retention']['rows'] as $r): ?>
     <tr>
       <td><strong><?= htmlspecialchars($r['label']) ?></strong><br><span style="font-size:10px;color:#aaa;"><?= htmlspecialchars($r['note']) ?></span></td>
-      <td><?= $r['months'] ?> mois</td>
+      <td><?= $r['months'] ?> <?= htmlspecialchars($t('gdpr.months_unit')) ?></td>
       <td><?= $r['oldest'] ?></td>
       <td><?= $r['overdue'] > 0 ? $r['overdue'] : '0' ?></td>
-      <td><?= $r['ok'] ? '<span class="tag-ok">CONFORME</span>' : '<span class="tag-warn">À PURGER</span>' ?></td>
+      <td><?= $r['ok'] ? '<span class="tag-ok">' . htmlspecialchars(mb_strtoupper($t('gdpr.status_compliant'))) . '</span>' : '<span class="tag-warn">' . htmlspecialchars(mb_strtoupper($t('gdpr.status_to_purge'))) . '</span>' ?></td>
     </tr>
     <?php endforeach; ?>
   </tbody>
 </table>
 
 <!-- AXE 3 : DONNÉES PERSONNELLES -->
-<h2>3 — Cartographie des données personnelles</h2>
+<h2>3 — <?= htmlspecialchars($t('gdpr.axis3_title')) ?></h2>
 <?php if ($audit['pii']['legal_in_layout']): ?>
 <div class="check">
   <span class="check-icon ok">✓</span>
   <div>
-    <div class="check-label">Mentions légales dans le layout global</div>
-    <div class="check-detail">Un lien vers les mentions légales de la boutique est présent dans le pied de page de tous les emails.</div>
+    <div class="check-label"><?= htmlspecialchars($t('gdpr.legal_notice_check_label')) ?></div>
+    <div class="check-detail"><?= htmlspecialchars($t('gdpr.legal_notice_ok')) ?></div>
   </div>
 </div>
 <?php else: ?>
 <div class="check">
   <span class="check-icon warn">✕</span>
   <div>
-    <div class="check-label">Mentions légales absentes du layout</div>
-    <div class="check-detail">Aucun lien vers les mentions légales n'a été détecté dans layout.html.</div>
+    <div class="check-label"><?= htmlspecialchars($t('gdpr.legal_notice_check_label')) ?></div>
+    <div class="check-detail"><?= htmlspecialchars($t('gdpr.legal_notice_missing')) ?></div>
   </div>
 </div>
 <?php endif; ?>
@@ -1541,8 +1561,8 @@ class GdprAuditManager
 <table style="margin-top:12px;">
   <thead>
     <tr>
-      <th>Template</th>
-      <th>Données personnelles utilisées</th>
+      <th><?= htmlspecialchars($t('gdpr.col_template')) ?></th>
+      <th><?= htmlspecialchars($t('gdpr.col_personal_data')) ?></th>
     </tr>
   </thead>
   <tbody>
@@ -1557,14 +1577,12 @@ class GdprAuditManager
 <?php endif; ?>
 
 <div class="disclaimer">
-  <strong>Avis de limitation :</strong> Ce rapport est généré automatiquement par Neria à partir de l'analyse des fichiers et des données stockées.
-  Il ne constitue pas un avis juridique et ne remplace pas l'intervention d'un délégué à la protection des données (DPO) ou d'un conseil spécialisé RGPD.
-  La conformité RGPD dépend également de votre politique de confidentialité, de votre registre des traitements et de vos contrats sous-traitants.
+  <strong><?= htmlspecialchars($t('gdpr.disclaimer_title')) ?></strong> <?= htmlspecialchars($t('gdpr.disclaimer_body')) ?>
 </div>
 
 <div class="footer">
   <span>Neria — Luxury Email Suite</span>
-  <span>Rapport généré le <?= $date ?> — Confidentiel</span>
+  <span><?= htmlspecialchars($t('gdpr.report_generated_on')) ?> <?= $date ?> — <?= htmlspecialchars($t('gdpr.report.confidential')) ?></span>
 </div>
 
 </body>
