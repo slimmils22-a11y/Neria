@@ -6382,6 +6382,23 @@ class HealthCheckManager
             $offenders[] = "views/templates/front/certificate.tpl n'est plus un document HTML complet (DOCTYPE/title/viewport/lang) — régression du correctif bloc 5 (19/09/2026) : la page publique du QR code du certificat s'afficherait de nouveau sans titre ni adaptation mobile";
         }
 
+        // Bloc 5 (19/09/2026) : help.tpl (partage du journal Watchdog) et
+        // CertificateManager contenaient du français codé en dur visible dans
+        // les 19 langues du BO / des PDF ("Copier le texte", "Ajouter une
+        // plateforme", "Veuillez trouver ci-joint…", "Supprimer",
+        // toLocaleString('fr-FR'), "Produit #N").
+        $helpTpl365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/help.tpl');
+        $certMgr365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        $frLeft365 = [];
+        foreach (['Copier le texte', 'Ajouter une plateforme', 'Veuillez trouver ci-joint', "'Supprimer'", "fr-FR", 'Ce message est apparu', 'Nom de la plateforme', 'URL de partage'] as $needle365) {
+            if ($helpTpl365 === '' || strpos($helpTpl365, $needle365) !== false) {
+                $frLeft365[] = $needle365;
+            }
+        }
+        if ($frLeft365 !== [] || $certMgr365 === '' || strpos($certMgr365, "'Produit #'") !== false) {
+            $offenders[] = "help.tpl / CertificateManager : texte français codé en dur de retour (" . implode(' | ', $frLeft365) . ") ou repli « Produit #N » — régression du correctif bloc 5 (19/09/2026) : ces textes s'afficheraient en français dans les 19 langues";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
