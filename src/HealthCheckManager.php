@@ -6578,6 +6578,22 @@ class HealthCheckManager
             $offenders[] = "Bounces/Webhooks : la phrase du seuil de soft bounce répète de nouveau le nom (failures_unit injecté avant auto_block_body_post), ou l'enregistrement d'une URL de webhook n'exige plus HTTPS (isAcceptableEndpoint), ou le User-Agent Neria-Webhook a disparu des requêtes sortantes — régression du correctif bloc 6 (19/09/2026)";
         }
 
+        // Bloc 6 (19/09/2026) : le tableau de bord RGPD et son rapport étaient
+        // écrits en français dans un BO de 19 langues (GdprAuditManager
+        // n'appelait pas AdminTranslator). Chaque texte doit passer par tr() et
+        // chaque clé gdpr.reg.<table>.label|note doit exister dans le dictionnaire.
+        $gdprSrc808 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc808 === ''
+            || strpos($gdprSrc808, 'private static function tr(string $key, string $fallback)') === false
+            || strpos($gdprSrc808, "self::tr('gdpr.reg.' . \$r['table'] . '.label'") === false
+            || strpos($gdprSrc808, "self::tr('gdpr.pii.' . trim(\$var, '{}')") === false
+            || strpos($gdprSrc808, "self::tr('gdpr.unsub.layout.label'") === false
+            || strpos($gdprSrc808, "htmlspecialchars(\$t('gdpr.report.heading'))") === false
+            || strpos($gdprSrc808, '<html lang="fr">') !== false
+        ) {
+            $offenders[] = "RGPD : le tableau de bord ou le rapport d'audit (GdprAuditManager) n'est plus traduit via AdminTranslator (registre gdpr.reg.*, cartographie gdpr.pii.*, contrôles gdpr.unsub.*, rapport gdpr.report.*) — régression du correctif bloc 6 (19/09/2026) : l'onglet Confidentialité et le PDF redeviendraient français dans les 18 autres langues";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
