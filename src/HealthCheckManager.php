@@ -6417,6 +6417,20 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer : localizeLabelColons() n'est plus appelé aux 3 sites de résolution des {neria_trad} — régression du correctif bloc 5 (19/09/2026) : la typographie française « libellé : » redeviendrait visible dans toutes les langues";
         }
 
+        // Bloc 5 (19/09/2026) : le bouton « Partager l'émotion » du template
+        // unboxing_guide pointait vers l'accueil ({shop_url}) alors que la
+        // note voisine invite à faire part de ses premières impressions ;
+        // il pointe désormais vers la page contact via {contact_page_url},
+        // variable réellement injectée à l'envoi (contrairement à
+        // {contact_url}, saisie à la main en envoi manuel).
+        $ubTpl365 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/unboxing_guide.html');
+        $erSrc365c = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($ubTpl365 === '' || strpos($ubTpl365, 'href="{contact_page_url}"') === false
+            || $erSrc365c === '' || substr_count($erSrc365c, "'{contact_page_url}'") < 3
+        ) {
+            $offenders[] = "unboxing_guide : le bouton ne pointe plus vers {contact_page_url}, ou EmailRenderer ne fournit plus cette variable aux envois réels — régression du correctif bloc 5 (19/09/2026) : le lien serait vide ou retomberait sur l'accueil";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
