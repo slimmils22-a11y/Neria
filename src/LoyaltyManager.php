@@ -33,6 +33,66 @@ class LoyaltyManager
         ['key' => 'gold',   'name' => 'Or',     'points' => 300, 'amount' => 20, 'is_percent' => false],
     ];
 
+    /**
+     * Bloc 5 (19/09/2026) : noms de palier par défaut par langue (bronze,
+     * argent, or). DEFAULT_TIERS portait "Argent"/"Or" en dur : une boutique
+     * anglaise, allemande, japonaise... voyait "Argent"/"Or" dans le BO ET
+     * dans les emails de palier/bons de réduction envoyés à ses clients tant
+     * que le marchand n'avait pas renommé ses paliers.
+     */
+    const TIER_NAMES = [
+        'fr' => ['Bronze', 'Argent', 'Or'],
+        'en' => ['Bronze', 'Silver', 'Gold'],
+        'gb' => ['Bronze', 'Silver', 'Gold'],
+        'de' => ['Bronze', 'Silber', 'Gold'],
+        'it' => ['Bronzo', 'Argento', 'Oro'],
+        'es' => ['Bronce', 'Plata', 'Oro'],
+        'pt' => ['Bronze', 'Prata', 'Ouro'],
+        'br' => ['Bronze', 'Prata', 'Ouro'],
+        'ar' => ['برونزي', 'فضي', 'ذهبي'],
+        'ja' => ['ブロンズ', 'シルバー', 'ゴールド'],
+        'ko' => ['브론즈', '실버', '골드'],
+        'zh' => ['青铜', '白银', '黄金'],
+        'tw' => ['青銅', '白銀', '黃金'],
+        'ru' => ['Бронза', 'Серебро', 'Золото'],
+        'tr' => ['Bronz', 'Gümüş', 'Altın'],
+        'sv' => ['Brons', 'Silver', 'Guld'],
+        'no' => ['Bronse', 'Sølv', 'Gull'],
+        'da' => ['Bronze', 'Sølv', 'Guld'],
+        'nl' => ['Brons', 'Zilver', 'Goud'],
+    ];
+
+    /**
+     * Paliers par défaut avec noms dans la langue donnée (code Neria).
+     * Repli anglais pour une langue inconnue.
+     */
+    public static function defaultTiersForLang(string $langCode): array
+    {
+        $names = self::TIER_NAMES[$langCode] ?? self::TIER_NAMES['en'];
+        $tiers = self::DEFAULT_TIERS;
+        foreach ($tiers as $i => $tier) {
+            $tiers[$i]['name'] = $names[$i];
+        }
+        return $tiers;
+    }
+
+    /** Code langue Neria de la langue par défaut de la boutique courante. */
+    private static function shopDefaultLangCode(): string
+    {
+        try {
+            $code = strtolower((string) (new \Language((int) \Configuration::get('PS_LANG_DEFAULT')))->language_code);
+        } catch (\Throwable $e) {
+            return 'en';
+        }
+        return match ($code) {
+            'pt-br' => 'br',
+            'zh-tw' => 'tw',
+            'en-gb' => 'gb',
+            'zh-cn' => 'zh',
+            default => substr($code, 0, 2),
+        };
+    }
+
     private Neria $module;
     private \Db $db;
     private \Context $context;
@@ -781,7 +841,7 @@ class LoyaltyManager
                 return $this->sortTiersByPoints($tiers);
             }
         }
-        return self::DEFAULT_TIERS;
+        return self::defaultTiersForLang(self::shopDefaultLangCode());
     }
 
     private function looksLikeTiers(array $tiers): bool
