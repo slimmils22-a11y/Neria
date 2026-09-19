@@ -4,6 +4,15 @@
  * NERIA — Page de traçabilité publique d'une pièce certifiée
  * i18n : libellés via {neria_admin key='...'} dans la langue du visiteur
  *}
+<!DOCTYPE html>
+<html lang="{$neria_trace_lang|default:'en'|escape:'html':'UTF-8'}" dir="{$neria_trace_dir|default:'ltr'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{$neria_shop_name|escape:'html':'UTF-8'} — {neria_admin key='trace.eyebrow' esc='html'}</title>
+</head>
+<body style="margin:0; background:#ffffff;">
 <section id="neria-trace" dir="{$neria_trace_dir|default:'ltr'}" style="max-width:640px; margin:60px auto; padding:0 20px; font-family:Georgia,'Times New Roman',serif; color:#2c2c2c;">
 
   {if $neria_trace_found}
@@ -75,3 +84,5 @@
 
   <p style="text-align:center; margin-top:24px; font-size:12px; color:#6b6459;">{$neria_shop_name|escape:'html':'UTF-8'}</p>
 </section>
+</body>
+</html>

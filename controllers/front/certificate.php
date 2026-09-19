@@ -81,6 +81,7 @@ class NeriaCertificateModuleFrontController extends ModuleFrontController
             'neria_shop_name' => (string) Configuration::get('PS_SHOP_NAME'),
             'neria_shop_url'  => $this->context->link->getBaseLink(),
             'neria_trace_dir' => class_exists('AdminTranslator') ? AdminTranslator::dir() : 'ltr',
+            'neria_trace_lang' => (string) $this->context->language->iso_code,
         ]);
 
         $this->setTemplate('module:neria/views/templates/front/certificate.tpl');
