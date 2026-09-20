@@ -6676,6 +6676,18 @@ class HealthCheckManager
             $offenders[] = "E-mails bloc 7 : les filets de la signature/du pied de page ne suivent plus le réglage Design « Séparateur » (neria_rule_width injecté aux 3 endroits de EmailRenderer, layout.html), la signature a retrouvé une bordure basse (double filet), ou unboxing_guide a retrouvé les glyphes ①②③ au lieu des pastilles CSS — régression du correctif bloc 7 (19/09/2026)";
         }
 
+        // Constat F-001 (20/09/2026) : la balise <html> de tous les e-mails n'avait pas d'attribut lang
+        // (lecteurs d'écran, correcteur, « Traduire ce message » de Gmail, WCAG 3.1.1). lang/xml:lang
+        // doivent suivre la langue du destinataire, comme dir.
+        $layoutF001 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
+        $rendF001   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($layoutF001 === ''
+            || preg_match('/<html\b[^>]*\slang="\{\$neria_lang\}"[^>]*\sxml:lang="\{\$neria_lang\}"/', $layoutF001) !== 1
+            || substr_count($rendF001, "'{\$neria" . "_lang}'") < 2
+        ) {
+            $offenders[] = "E-mails F-001 : la balise <html> du layout ne porte plus lang/xml:lang (langue du destinataire) ou EmailRenderer n'injecte plus neria_lang dans les deux chemins de compilation — régression du correctif F-001 (20/09/2026, accessibilité WCAG 3.1.1)";
+        }
+
         // Bloc 7 (19/09/2026) : onglet Historique client (CSV, message « aucun client ») et export du
         // journal Watchdog par e-mail (PDF, objet, corps) étaient écrits en français dans un BO de
         // 19 langues. Les textes passent par AdminTranslator ; `s=` du plugin Smarty échappe le %s.
@@ -14058,8 +14070,7 @@ class HealthCheckManager
 
                 // Bloc 7 (19/09/2026) : occurrence située dans un COMMENTAIRE (« // NeriaTools::
                 // displayPrice($idLang) — … », EmailRenderer) : ce n'est pas un appel.
-                $lineStart814 = strrpos(substr($content, 0, $pos), "
-");
+                $lineStart814 = strrpos(substr($content, 0, $pos), "\n");
                 $prefix814 = ltrim(substr($content, $lineStart814 === false ? 0 : $lineStart814 + 1, $pos - ($lineStart814 === false ? 0 : $lineStart814 + 1)));
                 if (strncmp($prefix814, '//', 2) === 0 || strncmp($prefix814, '*', 1) === 0 || strncmp($prefix814, '/*', 2) === 0 || strncmp($prefix814, '#', 1) === 0) {
                     continue;
