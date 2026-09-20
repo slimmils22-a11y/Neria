@@ -575,6 +575,17 @@ class ConfigManager
         }
     }
 
+    /**
+     * Bloc 7 (19/09/2026) : épaisseur des filets STRUCTURELS de l'email (bordure haute de la
+     * signature, bordure haute du pied de page). Ils étaient écrits en dur : le réglage
+     * « Séparateur » de l'onglet Design (aucun / trait / pointillés / double) ne pilotait que
+     * l'<hr class="neria-rule">, jamais ces deux filets — « Aucun » laissait donc des lignes.
+     */
+    public static function getSeparatorLineWidth(string $style): string
+    {
+        return $style === 'none' ? '0' : '1px';
+    }
+
     public static function getCardShadowCss(string $shadow): string
     {
         switch ($shadow) {
