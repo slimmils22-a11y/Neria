@@ -6665,8 +6665,9 @@ class HealthCheckManager
         $rend812   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
         $cfg812    = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
         if ($layout812 === '' || $unbox812 === '' || $rend812 === '' || $cfg812 === ''
-            || substr_count($layout812, 'border-top: {$neria_rule_width} solid #f0e7db;') !== 2
-            || preg_match('/\.neria-signature\s*\{[^}]*border-bottom/', $layout812) === 1
+            || substr_count($layout812, 'border-top: {$neria_rule_width} solid #f0e7db;') !== 1
+            || preg_match('/\.neria-footer\s*\{(?:[^{}]|\{\$[^}]*\})*border-top/', $layout812) === 1
+            || substr_count($layout812, 'border-bottom: {$neria_rule_width} solid {$neria_color_accent};') !== 1
             || substr_count($rend812, 'ConfigManager::getSeparatorLineWidth(') !== 3
             || strpos($cfg812, 'public static function getSeparatorLineWidth(string $style): string') === false
             || substr_count($unbox812, 'border-radius:50%') !== 3
