@@ -8808,7 +8808,7 @@ class Neria extends Module
 
     private function getCalendarKnownKeys(): array
     {
-        return [
+        $events = [
             'christmas'       => 'Noël / Christmas',
             'new_year'        => 'Nouvel An / New Year',
             'valentine'       => 'Saint-Valentin / Valentine\'s Day',
@@ -8829,6 +8829,18 @@ class Neria extends Module
             'nowruz'          => 'Norouz (Nouvel An Persan)',
             'setsubun'        => 'Setsubun (Japon)',
         ];
+
+        // Bloc 7 (19/09/2026) : un seul libellé, dans la langue du BO (auparavant « Noël / Christmas »,
+        // « Fête des Pères / Father's Day »… — français en tête, même dans un BO anglais ou japonais).
+        // Le libellé d'origine reste le repli.
+        foreach ($events as $eventKey => $fallbackLabel) {
+            $translated = AdminTranslator::t('calendar.event.' . $eventKey);
+            if ($translated !== '' && $translated !== 'calendar.event.' . $eventKey) {
+                $events[$eventKey] = $translated;
+            }
+        }
+
+        return $events;
     }
 
     /**
@@ -8837,7 +8849,14 @@ class Neria extends Module
      */
     private function getCountriesListForSelect(): array
     {
-        $idLang = (int) $this->context->language->id;
+        // Bloc 7 (19/09/2026) : noms de pays dans la langue du BO NEURIA (AdminTranslator), pas seulement
+        // celle de l'employé PrestaShop — sinon un BO Neria en anglais listait « Afrique du Sud, Allemagne… ».
+        // Repli sur la langue de l'employé si la langue PrestaShop correspondante n'est pas installée.
+        $idLang   = (int) $this->context->language->id;
+        $boLangId = (int) Language::getIdByIso((string) AdminTranslator::currentLang());
+        if ($boLangId > 0) {
+            $idLang = $boLangId;
+        }
         $rows   = Country::getCountries($idLang, false, false, false);
         $list   = [];
         foreach ($rows as $row) {

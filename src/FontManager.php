@@ -455,10 +455,14 @@ class FontManager
 
         foreach (self::FONT_CATALOG as $name => $data) {
             if ($data['script'] === $script) {
+                // Bloc 7 (19/09/2026) : description traduite dans la langue du BO (clé font.desc.<police>),
+                // le français d'origine reste le repli.
+                $descKey = 'font.desc.' . strtolower(str_replace(' ', '_', $name));
+                $desc    = class_exists('AdminTranslator') ? \AdminTranslator::t($descKey) : $descKey;
                 $fonts[$name] = [
                     'css_family'  => $data['css_family'],
                     'google_url'  => $data['google_url'],
-                    'description' => $data['description'],
+                    'description' => ($desc !== '' && $desc !== $descKey) ? $desc : $data['description'],
                 ];
             }
         }
@@ -474,7 +478,7 @@ class FontManager
      */
     public function getAllScripts(): array
     {
-        return [
+        $scripts = [
             'latin'              => [
                 'label'     => 'Latin',
                 'languages' => ['fr','en','de','it','es','pt','br','gb','tr','sv','no','da','nl'],
@@ -504,6 +508,19 @@ class FontManager
                 'languages' => ['ru'],
             ],
         ];
+
+        // Bloc 7 (19/09/2026) : libellés des scripts (« Arabe », « Coréen »…) traduits dans la langue du BO.
+        foreach ($scripts as $scriptKey => &$scriptData) {
+            if (class_exists('AdminTranslator')) {
+                $label = \AdminTranslator::t('font.script.' . $scriptKey);
+                if ($label !== '' && $label !== 'font.script.' . $scriptKey) {
+                    $scriptData['label'] = $label;
+                }
+            }
+        }
+        unset($scriptData);
+
+        return $scripts;
     }
 
     /**

@@ -48,7 +48,7 @@
                       data-preset-values="{foreach $preset.values as $pk => $pv}{$pk}:{$pv}{if !$pv@last},{/if}{/foreach}">
                 <span class="neria-preset-card__swatch" style="background:{$preset.values.color_accent};"></span>
                 <span class="neria-preset-card__label">{$preset.label}</span>
-                <span class="neria-preset-card__tagline">{$preset.tagline}</span>
+                <span class="neria-preset-card__tagline">{neria_admin key="design.preset.`$presetKey`.tagline"}</span>
               </button>
             {/foreach}
             <button type="button" class="neria-preset-card neria-preset-card--custom" id="neria-preset-custom">
@@ -267,15 +267,8 @@
             <select id="font_heading" name="font_heading" class="neria-select">
               {foreach ['Cormorant Garamond','Playfair Display','EB Garamond','Lora','Libre Baskerville','Cinzel','Josefin Sans','Raleway'] as $fkey}
                 <option value="{$fkey}" {if ($design.font_heading|default:'Cormorant Garamond') === $fkey}selected{/if}>
-                  {if $fkey === 'Cormorant Garamond'}Cormorant Garamond — Élégance classique
-                  {elseif $fkey === 'Playfair Display'}Playfair Display — Éditorial luxe
-                  {elseif $fkey === 'EB Garamond'}EB Garamond — Intemporel lettres
-                  {elseif $fkey === 'Lora'}Lora — Chaleur contemporaine
-                  {elseif $fkey === 'Libre Baskerville'}Libre Baskerville — Sobre et lisible
-                  {elseif $fkey === 'Cinzel'}Cinzel — Prestige romain
-                  {elseif $fkey === 'Josefin Sans'}Josefin Sans — Minimalisme chic
-                  {else}Raleway — Sophistiqué moderne
-                  {/if}
+                  {assign var="fslug" value=$fkey|lower|replace:' ':'_'}
+                  {$fkey} — {neria_admin key="font.heading.`$fslug`"}
                 </option>
               {/foreach}
             </select>
