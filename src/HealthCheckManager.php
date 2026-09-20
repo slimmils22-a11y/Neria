@@ -6702,7 +6702,11 @@ class HealthCheckManager
         $designTpl814 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/design.tpl');
         $fontSrc814   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php');
         $mainSrc814   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
-        if ($designTpl814 === '' || $fontSrc814 === '' || $mainSrc814 === ''
+        $cfgSrc814    = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        $typoTpl814   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/typography.tpl');
+        if ($designTpl814 === '' || $fontSrc814 === '' || $mainSrc814 === '' || $cfgSrc814 === '' || $typoTpl814 === ''
+            || strpos($cfgSrc814, "\Language::getIdByIso((string) \AdminTranslator::currentLang())") === false
+            || strpos($typoTpl814, 'Défauts') !== false
             || strpos($designTpl814, 'design.preset.`$presetKey`.tagline') === false
             || strpos($designTpl814, 'font.heading.`$fslug`') === false
             || strpos($designTpl814, 'Élégance classique') !== false
