@@ -7660,7 +7660,7 @@ class Neria extends Module
             $to = (string) Configuration::get('PS_SHOP_EMAIL');
         }
         if (!Validate::isEmail($to)) {
-            return 'Aucun email destinataire configuré.';
+            return AdminTranslator::t('msg.watchdog_log_no_recipient');
         }
 
         // Récupère les 200 derniers logs
@@ -7705,17 +7705,17 @@ class Neria extends Module
         }
 
         $html = '<h2 style="color:#1a1a2e;font-family:sans-serif;border-bottom:2px solid #b38b59;padding-bottom:8px;">'
-            . 'Neria — Journal Watchdog</h2>'
+            . htmlspecialchars(AdminTranslator::t('watchdoglog.title')) . '</h2>'
             . '<p style="font-family:sans-serif;font-size:10pt;color:#666;">'
-            . htmlspecialchars($shopName) . ' &mdash; ' . $shopDomain . ' &mdash; Exporté le ' . $now
+            . htmlspecialchars($shopName) . ' &mdash; ' . $shopDomain . ' &mdash; ' . htmlspecialchars(AdminTranslator::t('watchdoglog.exported_on')) . ' ' . $now
             . '</p>'
             . '<table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">'
             . '<thead><tr style="background:#1a1a2e;color:#ffffff;">'
-            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Date</th>'
-            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Niveau</th>'
-            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Classe</th>'
-            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Template</th>'
-            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Message</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">' . htmlspecialchars(AdminTranslator::t('history.col_date')) . '</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">' . htmlspecialchars(AdminTranslator::t('watchdoglog.col_level')) . '</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">' . htmlspecialchars(AdminTranslator::t('watchdoglog.col_class')) . '</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">' . htmlspecialchars(AdminTranslator::t('history.col_template')) . '</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">' . htmlspecialchars(AdminTranslator::t('watchdoglog.col_message')) . '</th>'
             . '</tr></thead><tbody>' . $rows . '</tbody></table>';
 
         // Génère le PDF avec TCPDF
@@ -7723,7 +7723,7 @@ class Neria extends Module
             $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
             $pdf->SetCreator('Neria');
             $pdf->SetAuthor($shopName);
-            $pdf->SetTitle('Journal Watchdog Neria');
+            $pdf->SetTitle(AdminTranslator::t('watchdoglog.title'));
             $pdf->SetMargins(10, 10, 10);
             $pdf->SetAutoPageBreak(true, 10);
             $pdf->setPrintHeader(false);
@@ -7732,7 +7732,7 @@ class Neria extends Module
             $pdf->writeHTML($html, true, false, true, false, '');
             $pdfContent = $pdf->Output('watchdog.pdf', 'S');
         } catch (\Throwable $e) {
-            return 'Erreur TCPDF : ' . $e->getMessage();
+            return sprintf(AdminTranslator::t('watchdoglog.tcpdf_error'), $e->getMessage());
         }
 
         // Envoie l'email avec pièce jointe via mail() natif — pas d'assainissement
@@ -7740,7 +7740,7 @@ class Neria extends Module
         // valeurs interpolées (mêmes précautions que sendCertificateEmail).
         $boundary  = '----=_NeriaBoundary_' . md5(uniqid());
         $fromEmail = str_replace(["\r", "\n"], '', (string) Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
-        $subject   = str_replace(["\r", "\n"], '', '[Neria] Journal Watchdog — ' . $shopName . ' — ' . $now);
+        $subject   = str_replace(["\r", "\n"], '', AdminTranslator::t('watchdoglog.subject') . ' — ' . $shopName . ' — ' . $now);
 
         $headers = "MIME-Version: 1.0\r\n"
                  . "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n"
@@ -7750,7 +7750,7 @@ class Neria extends Module
         $body = "--{$boundary}\r\n"
               . "Content-Type: text/plain; charset=UTF-8\r\n"
               . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-              . "Bonjour,\r\n\r\nVeuillez trouver ci-joint le journal Watchdog Neria ({$shopName}).\r\n\r\nExporté le {$now}.\r\n\r\n"
+              . str_replace("\n", "\r\n", sprintf(AdminTranslator::t('watchdoglog.body'), $shopName, $now)) . "\r\n\r\n"
               . "--{$boundary}\r\n"
               . "Content-Type: application/pdf; name=\"watchdog_neria_{$now}.pdf\"\r\n"
               . "Content-Transfer-Encoding: base64\r\n"

@@ -534,7 +534,13 @@ class CustomerEmailHistoryManager
         $emails = $this->getEmails($idCustomer);
 
         $lines   = [];
-        $lines[] = implode(';', ['Date', 'Heure', 'Template', 'Langue', 'Statut']);
+        // Bloc 7 (19/09/2026) : en-têtes et statuts dans la langue du BO (auparavant 'Date', 'Heure',
+        // 'Template', 'Langue', 'Statut', 'Ouvert'/'Envoyé' en dur, même dans un BO anglais ou japonais).
+        $t = static fn (string $k, string $fallback): string => class_exists('AdminTranslator') && \AdminTranslator::t($k) !== $k ? \AdminTranslator::t($k) : $fallback;
+        $lines[] = implode(';', [
+            $t('history.col_date', 'Date'), $t('history.csv_col_time', 'Heure'), $t('history.col_template', 'Template'),
+            $t('history.col_lang', 'Langue'), $t('history.col_status', 'Statut'),
+        ]);
 
         foreach ($emails as $e) {
             $dt = strtotime($e['sent_at']);
@@ -543,7 +549,7 @@ class CustomerEmailHistoryManager
                 date('H:i:s', $dt),
                 $e['template'],
                 $e['lang'],
-                $e['opened'] ? 'Ouvert' : 'Envoyé',
+                $e['opened'] ? $t('history.status_opened', 'Ouvert') : $t('history.status_sent', 'Envoyé'),
             ]);
         }
 

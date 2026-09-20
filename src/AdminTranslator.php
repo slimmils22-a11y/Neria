@@ -192,6 +192,12 @@ class AdminTranslator
             $str = str_replace('%d', (string) $params['n'], $str);
         }
 
+        // Bloc 7 (19/09/2026) : `s=` remplace %s par une valeur HTML-échappée (ex. requête de recherche
+        // « Aucun client trouvé pour « %s » ») — évite de figer l'ordre des mots dans le template.
+        if (isset($params['s'])) {
+            $str = str_replace('%s', htmlspecialchars((string) $params['s'], ENT_QUOTES, 'UTF-8'), $str);
+        }
+
         if (isset($params['esc']) && in_array($params['esc'], ['html', 'javascript'], true)) {
             if (!function_exists('smarty_modifier_escape') && defined('SMARTY_PLUGINS_DIR')) {
                 require_once SMARTY_PLUGINS_DIR . 'modifier.escape.php';

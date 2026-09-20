@@ -50,7 +50,7 @@
         {/foreach}
       </ul>
     {else}
-      <p style="margin-top:10px;color:#888;font-size:13px;">Aucun client trouvé pour « {$neria_hist_q|escape:'html'} ».</p>
+      <p style="margin-top:10px;color:#888;font-size:13px;">{neria_admin key='history.no_customer_found' s=$neria_hist_q}</p>
     {/if}
   {/if}
 </div>
