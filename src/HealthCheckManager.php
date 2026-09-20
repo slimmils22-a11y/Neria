@@ -6696,6 +6696,24 @@ class HealthCheckManager
             $offenders[] = "Historique client / journal Watchdog : le CSV de l'historique (en-têtes et statuts), le message « aucun client », l'objet/le corps/le titre de l'export PDF du journal Watchdog ne passent plus par AdminTranslator, ou le paramètre s= du plugin {neria_admin} a disparu — régression du correctif bloc 7 (19/09/2026) : texte français dans un BO traduit";
         }
 
+        // Bloc 7 (19/09/2026) : onglets Design, Typographie et Calendrier écrits en français dans un BO de
+        // 19 langues (taglines des préréglages, options de police de titre, descriptions de polices, scripts,
+        // noms d'événements « Noël / Christmas », noms de pays).
+        $designTpl814 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/design.tpl');
+        $fontSrc814   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php');
+        $mainSrc814   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($designTpl814 === '' || $fontSrc814 === '' || $mainSrc814 === ''
+            || strpos($designTpl814, 'design.preset.`$presetKey`.tagline') === false
+            || strpos($designTpl814, 'font.heading.`$fslug`') === false
+            || strpos($designTpl814, 'Élégance classique') !== false
+            || strpos($fontSrc814, "'font.desc.' . strtolower(") === false
+            || strpos($fontSrc814, "'font.script.' . \$scriptKey") === false
+            || strpos($mainSrc814, "AdminTranslator::t('calendar.event.' . \$eventKey)") === false
+            || strpos($mainSrc814, 'Language::getIdByIso((string) AdminTranslator::currentLang())') === false
+        ) {
+            $offenders[] = "Design/Typographie/Calendrier : les taglines des préréglages, les options de police de titre, les descriptions de polices, les libellés de scripts, les noms d'événements du Calendrier ou les noms de pays ne passent plus par la langue du BO Neria (AdminTranslator) — régression du correctif bloc 7 (19/09/2026) : français en dur dans un BO traduit";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
