@@ -6676,6 +6676,26 @@ class HealthCheckManager
             $offenders[] = "E-mails bloc 7 : les filets de la signature/du pied de page ne suivent plus le réglage Design « Séparateur » (neria_rule_width injecté aux 3 endroits de EmailRenderer, layout.html), la signature a retrouvé une bordure basse (double filet), ou unboxing_guide a retrouvé les glyphes ①②③ au lieu des pastilles CSS — régression du correctif bloc 7 (19/09/2026)";
         }
 
+        // Bloc 7 (19/09/2026) : onglet Historique client (CSV, message « aucun client ») et export du
+        // journal Watchdog par e-mail (PDF, objet, corps) étaient écrits en français dans un BO de
+        // 19 langues. Les textes passent par AdminTranslator ; `s=` du plugin Smarty échappe le %s.
+        $mainSrc813 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $csvSrc813  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php');
+        $atSrc813   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AdminTranslator.php');
+        $tplSrc813  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/customer_history.tpl');
+        if ($mainSrc813 === '' || $csvSrc813 === '' || $atSrc813 === '' || $tplSrc813 === ''
+            || strpos($mainSrc813, "AdminTranslator::t('watchdoglog.body')") === false
+            || strpos($mainSrc813, "AdminTranslator::t('watchdoglog.subject')") === false
+            || strpos($mainSrc813, "AdminTranslator::t('msg.watchdog_log_no_recipient')") === false
+            || strpos($mainSrc813, "' &mdash; Export" . "é le '") !== false
+            || strpos($csvSrc813, "'history.csv_col_time'") === false
+            || strpos($csvSrc813, "'history.status_opened'") === false
+            || strpos($atSrc813, "isset(\$params['s'])") === false
+            || strpos($tplSrc813, "history.no_customer_found' s=") === false
+        ) {
+            $offenders[] = "Historique client / journal Watchdog : le CSV de l'historique (en-têtes et statuts), le message « aucun client », l'objet/le corps/le titre de l'export PDF du journal Watchdog ne passent plus par AdminTranslator, ou le paramètre s= du plugin {neria_admin} a disparu — régression du correctif bloc 7 (19/09/2026) : texte français dans un BO traduit";
+        }
+
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
         // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
         // avant l'envoi, suivre les déclinaisons et purger les entrées
