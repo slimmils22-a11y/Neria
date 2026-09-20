@@ -78,20 +78,25 @@ function run_test(): array
 
         // Vérifie que le filtre ne masque pas non plus un VRAI bounce de la
         // boutique courante (2 bounces / 25 envois = 8% >= seuil warning 2%).
-        $db->execute(
-            "INSERT INTO {$prefix}neria_bounces
-                (email, id_shop, type, bounce_count, last_bounce_at, status, date_add)
-             VALUES ('regtest774-real1@example.com', {$realShop}, 'hard', 1, NOW(), 'active', NOW())"
+        // Bloc 7 (19/09/2026) : nombre de vrais bounces CALCULÉ d'après les envois réels déjà présents
+        // sur 24 h (le dénominateur du contrôle). Deux bounces fixes atteignaient le seuil d'alerte (2 %)
+        // seulement quand la base de test contenait < 75 envois récents — le test échouait ensuite,
+        // une fois la base plus remplie par d'autres tests, sans aucun défaut dans le code.
+        $sentNow = (int) $db->getValue(
+            "SELECT COUNT(*) FROM {$prefix}neria_stat WHERE id_shop = {$realShop} AND event_type = 'sent' AND date_add > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
         );
-        $db->execute(
-            "INSERT INTO {$prefix}neria_bounces
-                (email, id_shop, type, bounce_count, last_bounce_at, status, date_add)
-             VALUES ('regtest774-real2@example.com', {$realShop}, 'hard', 1, NOW(), 'active', NOW())"
-        );
+        $needed = max(2, (int) ceil($sentNow * 0.03));
+        for ($i = 0; $i < $needed; $i++) {
+            $db->execute(
+                "INSERT INTO {$prefix}neria_bounces
+                    (email, id_shop, type, bounce_count, last_bounce_at, status, date_add)
+                 VALUES ('regtest774-real{$i}@example.com', {$realShop}, 'hard', 1, NOW(), 'active', NOW())"
+            );
+        }
         $resultAfterReal = $method->invoke($hc);
         neria_assert(
             $resultAfterReal['status'] !== 'ok',
-            "checkBounceRate() reste 'ok' après 2 vrais bounces (8%) sur la boutique courante — le filtre id_shop masquerait à tort les bounces RÉELS de cette boutique, pas seulement ceux des autres"
+            "checkBounceRate() reste 'ok' après {$needed} vrais bounces (≥ 3 % de {$sentNow} envois) sur la boutique courante — le filtre id_shop masquerait à tort les bounces RÉELS de cette boutique, pas seulement ceux des autres"
         );
 
         return [

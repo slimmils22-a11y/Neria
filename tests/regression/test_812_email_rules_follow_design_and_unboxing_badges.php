@@ -71,9 +71,16 @@ function run_test(): array
     neria_assert(strpos($none, 'border-top: 1px solid #f0e7db') === false, "réglage « aucun » : un filet de 1px subsiste");
     neria_assert(strpos($line, 'border-top: 1px solid #f0e7db') !== false, "réglage « trait » : les filets de la signature et du pied de page ne valent pas 1px");
     neria_assert(strpos($line, 'border-top: 0 solid #f0e7db') === false, "réglage « trait » : un filet est resté à 0 (cache du design entre deux rendus ?)");
-    // La bordure basse de la signature (couleur d'accent) doublait le filet du pied de page.
-    preg_match('/\.neria-signature\s*\{(.*?)\}/s', $line, $sig);
-    neria_assert(isset($sig[1]) && strpos($sig[1], 'border-bottom') === false, "la signature a encore une bordure basse (double filet avec le pied de page)");
+    // Le pied de page n'a plus de bordure haute propre : le séparateur du Design (<hr class="neria-rule">, en retrait)
+    // le précède déjà — les deux ensemble faisaient un double filet à ~20 px d'écart (constaté sur Gmail).
+    preg_match('/\.neria-footer\s*\{((?:[^{}]|\{\$[^}]*\})*)\}/', $line, $foot);
+    neria_assert(isset($foot[1]) && strpos($foot[1], 'border-top') === false, "le pied de page a encore une bordure haute (double filet avec le séparateur du Design)");
+    neria_assert(strpos($line, '<hr class="neria-rule"') !== false, "le séparateur du Design (hr.neria-rule) est absent du rendu");
+    // Le trait d'accent sous le logo (en-tête) est aussi un filet : il suit le réglage, et reste présent en « trait ».
+    preg_match('/\.neria-header\s*\{(?:[^{}])*\}/', $line, $hLine);
+    preg_match('/\.neria-header\s*\{(?:[^{}])*\}/', $none, $hNone);
+    neria_assert(isset($hLine[0]) && strpos($hLine[0], 'border-bottom: 1px solid') !== false, "réglage « trait » : le trait d'accent sous le logo (en-tête) a disparu : " . ($hLine[0] ?? 'bloc introuvable'));
+    neria_assert(isset($hNone[0]) && strpos($hNone[0], 'border-bottom: 0 solid') !== false && strpos($hNone[0], 'border-bottom: 1px') === false, "réglage « aucun » : le trait sous le logo subsiste : " . ($hNone[0] ?? 'bloc introuvable'));
 
     return ['pass' => true, 'message' => "pastilles numérotées à la place de ①②③, filets de signature/pied de page pilotés par le réglage Design (aucun = aucun filet), double filet supprimé — bloc 7 (19/09/2026)"];
 }
