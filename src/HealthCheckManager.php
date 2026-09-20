@@ -5051,7 +5051,8 @@ class HealthCheckManager
             // Round 188 : fenêtre élargie 9000→9600 — le correctif
             // preg_replace_callback() (bug $ + chiffre traité comme
             // rétro-référence) a allongé cette méthode de part et d'autre.
-            $bchBody149 = $posBch149 !== false ? substr($erSrc149, $posBch149, 9600) : '';
+            // Bloc 7 : 9600→10400 — neria_rule_width ajouté à l'injection du design (méthode allongée).
+            $bchBody149 = $posBch149 !== false ? substr($erSrc149, $posBch149, 10400) : '';
             if ($posBch149 === false
                 || strpos($bchBody149, '$safeExtraReplacements = $extraReplacements;') === false
                 || strpos($bchBody149, '!in_array($nameKey, self::HTML_SAFE_RAW_KEYS, true)') === false
@@ -6654,6 +6655,24 @@ class HealthCheckManager
             || strpos($toolsSrc811, 'default-currency' . '-ok') === false
         ) {
             $offenders[] = "Diagnostic bloc 7 (contrôles prospectifs) : l'ignorance des commentaires (displayPrice/devise par défaut), l'exclusion de `id_customer` dans le contrôle client-par-email, le marqueur de repli de devise, la détection des clés UNIQUE déjà remplacées ou la lecture des assigns REQUEST_URI échappés a disparu — régression du correctif bloc 7 (19/09/2026) : fausses alertes permanentes chez les marchands";
+        }
+
+        // Bloc 7 (19/09/2026) : (1) numéros ①②③ du mail unboxing_guide (glyphes Unicode au rendu
+        // variable) remplacés par des pastilles CSS ; (2) filets de la signature et du pied de page
+        // pilotés par le réglage « Séparateur » de l'onglet Design, sans bordure basse redondante.
+        $layout812 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
+        $unbox812  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/unboxing_guide.html');
+        $rend812   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $cfg812    = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($layout812 === '' || $unbox812 === '' || $rend812 === '' || $cfg812 === ''
+            || substr_count($layout812, 'border-top: {$neria_rule_width} solid #f0e7db;') !== 2
+            || preg_match('/\.neria-signature\s*\{[^}]*border-bottom/', $layout812) === 1
+            || substr_count($rend812, 'ConfigManager::getSeparatorLineWidth(') !== 3
+            || strpos($cfg812, 'public static function getSeparatorLineWidth(string $style): string') === false
+            || substr_count($unbox812, 'border-radius:50%') !== 3
+            || preg_match('/[①②③]/u', $unbox812) === 1
+        ) {
+            $offenders[] = "E-mails bloc 7 : les filets de la signature/du pied de page ne suivent plus le réglage Design « Séparateur » (neria_rule_width injecté aux 3 endroits de EmailRenderer, layout.html), la signature a retrouvé une bordure basse (double filet), ou unboxing_guide a retrouvé les glyphes ①②③ au lieu des pastilles CSS — régression du correctif bloc 7 (19/09/2026)";
         }
 
         // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
