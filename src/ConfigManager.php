@@ -1187,7 +1187,7 @@ class ConfigManager
     /** Liste exhaustive des pays du monde (ISO 3166-1 alpha-2 → nom FR) */
     public static function getAllCountries(): array
     {
-        return [
+        $countries = [
             'AF'=>'Afghanistan','ZA'=>'Afrique du Sud','AL'=>'Albanie','DZ'=>'Algérie',
             'DE'=>'Allemagne','AD'=>'Andorre','AO'=>'Angola','AG'=>'Antigua-et-Barbuda',
             'SA'=>'Arabie saoudite','AR'=>'Argentine','AM'=>'Arménie','AU'=>'Australie',
@@ -1241,6 +1241,29 @@ class ConfigManager
             'YE'=>'Yémen','ZM'=>'Zambie','ZW'=>'Zimbabwe',
             'DO'=>'Rép. dominicaine','SV'=>'Salvador','US'=>'États-Unis',
         ];
+
+        // Bloc 7 (19/09/2026) : noms de pays dans la langue du BO Neria (auparavant liste figée en
+        // français : « Afrique du Sud, Allemagne… » dans un BO anglais). On superpose les noms
+        // localisés de PrestaShop quand la langue correspondante est installée ; le nom français
+        // ci-dessus reste le repli pour tout code ISO absent de PrestaShop.
+        if (class_exists('AdminTranslator') && class_exists('Language') && class_exists('Country')) {
+            try {
+                $idLang = (int) \Language::getIdByIso((string) \AdminTranslator::currentLang());
+                if ($idLang > 0 && \AdminTranslator::currentLang() !== 'fr') {
+                    foreach (\Country::getCountries($idLang, false, false, false) as $row) {
+                        $iso = strtoupper((string) ($row['iso_code'] ?? ''));
+                        if ($iso !== '' && isset($countries[$iso]) && !empty($row['name'])) {
+                            $countries[$iso] = (string) $row['name'];
+                        }
+                    }
+                    asort($countries, SORT_STRING | SORT_FLAG_CASE);
+                }
+            } catch (\Throwable $e) {
+                // Repli : liste française d'origine.
+            }
+        }
+
+        return $countries;
     }
 
     public function isCooldownEnabled(): bool
