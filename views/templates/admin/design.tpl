@@ -64,7 +64,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='design.colors_title'}</h2>
             <button type="button" class="neria-section-reset"
-                    data-reset="color_background:#f4f1eb,color_container:#ffffff,color_accent:#b38b59,color_text:#2c2c2c">
+                    data-reset="color_background:#f4f1eb,color_container:#ffffff,color_accent:#b38b59,color_text:#2c2c2c,color_link_same:1">
               ↺ {neria_admin key='design.reset_defaults_btn'}
             </button>
           </div>
@@ -111,6 +111,26 @@
                        value="{$design.color_accent|default:'#b38b59'|escape:'html'}"
                        data-sync="color_accent">
               </div>
+            </div>
+
+            <div class="neria-form-group">
+              <label class="neria-label" for="color_link">
+                {neria_admin key='design.color_link'}
+                <span class="neria-hint">{neria_admin key='design.color_link_hint'}</span>
+              </label>
+              <div class="neria-color-input-wrap">
+                <input type="color" id="color_link" name="color_link"
+                       class="neria-color-picker" data-sync="color_link"
+                       value="{if $design.color_link}{$design.color_link|escape:'html'}{else}{$design.color_accent|default:'#b38b59'|escape:'html'}{/if}"
+                       {if !$design.color_link}disabled{/if}>
+                <input type="text" class="neria-input neria-input--hex"
+                       value="{if $design.color_link}{$design.color_link|escape:'html'}{else}{$design.color_accent|default:'#b38b59'|escape:'html'}{/if}"
+                       data-sync="color_link" {if !$design.color_link}disabled{/if}>
+              </div>
+              <label class="neria-checkbox-inline" for="color_link_same">
+                <input type="checkbox" id="color_link_same" name="color_link_same" value="1"{if !$design.color_link} checked{/if}>
+                {neria_admin key='design.color_link_same'}
+              </label>
             </div>
 
             <div class="neria-form-group">

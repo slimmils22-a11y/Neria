@@ -19,6 +19,7 @@
     // ── Initialisation ────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
         initColorPickers();
+        initLinkColorToggle();
         initRangeSync();
         initPreviewFrame();
         initTranslationsLoader();
@@ -182,6 +183,36 @@
                 }
             });
         });
+    }
+
+    // ── Couleur des liens : « identique à l'accent » (case cochée) désactive le sélecteur ──
+    function setLinkColorSame(same) {
+        var box = document.getElementById('color_link_same');
+        var picker = document.getElementById('color_link');
+        if (!box || !picker) return;
+        box.checked = !!same;
+        document.querySelectorAll('[data-sync="color_link"]').forEach(function (el) { el.disabled = !!same; });
+        if (same) {
+            var accent = document.getElementById('color_accent');
+            if (accent) {
+                document.querySelectorAll('[data-sync="color_link"]').forEach(function (el) { el.value = accent.value; });
+            }
+        }
+    }
+
+    function initLinkColorToggle() {
+        var box = document.getElementById('color_link_same');
+        if (!box) return;
+        box.addEventListener('change', function () {
+            setLinkColorSame(box.checked);
+            schedulePreviewUpdate();
+        });
+        var accent = document.getElementById('color_accent');
+        if (accent) {
+            accent.addEventListener('input', function () {
+                if (box.checked) setLinkColorSame(true);
+            });
+        }
     }
 
     // ── Synchronisation color picker ↔ champ texte hex ───────────
@@ -348,6 +379,15 @@
                 );
             }
         });
+
+        // Couleur des liens : « identique à l'accent » (case cochée) ou valeur choisie
+        var linkSame = document.getElementById('color_link_same');
+        var linkPick = document.getElementById('color_link');
+        if (linkSame && linkSame.checked) {
+            parts.push('preview_color_link_same=1');
+        } else if (linkPick) {
+            parts.push('preview_color_link=' + encodeURIComponent(linkPick.value));
+        }
 
         return parts.join('&');
     }
@@ -625,6 +665,13 @@
         Object.keys(defaults).forEach(function (field) {
             var val = String(defaults[field]);
 
+            // Case à cocher (« liens identiques à l'accent »)
+            if (field === 'color_link_same') {
+                setLinkColorSame(val === '1');
+                schedulePreviewUpdate();
+                return;
+            }
+
             // Couleur
             var picker = document.querySelector(
                 'input[name="' + field + '"][type="color"]'
@@ -711,6 +758,9 @@
                         values[pair.slice(0, colon).trim()] = pair.slice(colon + 1).trim();
                     }
                 });
+                if (!('color_link_same' in values)) {
+                    values.color_link_same = '1'; // un style rapide redéfinit l'accent : les liens le suivent
+                }
                 applySectionDefaults(values);
 
                 cards.forEach(function (c) { c.classList.remove('neria-preset-card--active'); });

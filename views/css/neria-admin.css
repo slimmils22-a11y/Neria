@@ -581,3 +581,4 @@
 .neria-chart-type-nav { display:flex; align-items:center; gap:6px; background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:6px; padding:3px 6px; }
 .neria-chart-arrow { background:transparent; border:none; cursor:pointer; color:var(--neria-accent); font-size:11px; padding:3px 6px; border-radius:4px; line-height:1; transition:background .15s; }
 .neria-chart-arrow:hover { background:#fff; }
+.neria-checkbox-inline { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:13px; cursor:pointer; }

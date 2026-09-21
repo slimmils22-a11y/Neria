@@ -3557,6 +3557,8 @@ class Neria extends Module
                 'color_header_bg'   => (string) Tools::getValue('color_header_bg', ''),
                 'color_footer_bg'   => (string) Tools::getValue('color_footer_bg', ''),
                 'color_footer_text' => (string) Tools::getValue('color_footer_text', ''),
+                'color_link'        => (string) Tools::getValue('color_link', ''),
+                'color_link_same'   => (int) Tools::getValue('color_link_same', 0),
                 'dark_mode'         => (int) Tools::getValue('dark_mode', 0),
                 'container_width'   => (int) Tools::getValue('container_width', 0),
                 'logo_width'        => (int) Tools::getValue('logo_width', 0),
@@ -7950,6 +7952,15 @@ class Neria extends Module
             // l'iframe d'aperçu pouvait casser son rendu CSS.
             if ($value !== '' && preg_match('/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value)) {
                 $override[$field] = $value;
+            }
+        }
+        // Couleur des liens : « identique à l'accent » (vide) doit pouvoir écraser une valeur enregistrée
+        if ((string) Tools::getValue('preview_color_link_same', '') === '1') {
+            $override['color_link'] = '';
+        } else {
+            $previewLink = (string) Tools::getValue('preview_color_link', '');
+            if ($previewLink !== '' && preg_match('/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $previewLink)) {
+                $override['color_link'] = $previewLink;
             }
         }
         $fontHeading = (string) Tools::getValue('preview_font_heading', '');

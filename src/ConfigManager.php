@@ -62,6 +62,8 @@ class ConfigManager
     const KEY_COLOR_HEADER_BG   = 'NERIA_COLOR_HEADER_BG';
     const KEY_COLOR_FOOTER_BG   = 'NERIA_COLOR_FOOTER_BG';
     const KEY_COLOR_FOOTER_TEXT = 'NERIA_COLOR_FOOTER_TEXT';
+    // Couleur des liens des e-mails. Vide (défaut) = identique à la couleur d'accent : l'apparence de ceux qui ne touchent pas à ce réglage ne change pas.
+    const KEY_COLOR_LINK        = 'NERIA_COLOR_LINK';
     const KEY_SECTION_PADDING   = 'NERIA_SECTION_PADDING';
     const KEY_BLOCK_SPACING     = 'NERIA_BLOCK_SPACING';
     const KEY_SEPARATOR_STYLE   = 'NERIA_SEPARATOR_STYLE';
@@ -152,6 +154,7 @@ class ConfigManager
         self::KEY_COLOR_HEADER_BG     => '#ffffff',
         self::KEY_COLOR_FOOTER_BG     => '#ffffff',
         self::KEY_COLOR_FOOTER_TEXT   => '#6b6459',
+        self::KEY_COLOR_LINK          => '',
         self::KEY_SECTION_PADDING     => 40,
         self::KEY_BLOCK_SPACING       => 48,
         self::KEY_SEPARATOR_STYLE     => 'line',
@@ -542,6 +545,7 @@ class ConfigManager
             'color_header_bg'   => $this->get(self::KEY_COLOR_HEADER_BG),
             'color_footer_bg'   => $this->get(self::KEY_COLOR_FOOTER_BG),
             'color_footer_text' => $this->get(self::KEY_COLOR_FOOTER_TEXT),
+            'color_link'        => (string) $this->get(self::KEY_COLOR_LINK),
             'section_padding'   => (int) $this->get(self::KEY_SECTION_PADDING),
             'block_spacing'     => (int) $this->get(self::KEY_BLOCK_SPACING),
             'separator_style'   => $this->get(self::KEY_SEPARATOR_STYLE),
@@ -1437,6 +1441,13 @@ class ConfigManager
             }
         }
 
+        // Couleur des liens : « identique à l'accent » (case cochée, ou valeur invalide) = vide
+        if (isset($data['color_link']) || isset($data['color_link_same'])) {
+            $linkColor = !empty($data['color_link_same']) ? '' : $this->sanitizeColor((string) ($data['color_link'] ?? ''));
+            $ok = $this->set(self::KEY_COLOR_LINK, $linkColor ?: '');
+            $success = $success && $ok;
+        }
+
         // Mode sombre — booléen
         if (isset($data['dark_mode'])) {
             $ok = $this->set(
@@ -1913,6 +1924,7 @@ class ConfigManager
             self::KEY_COLOR_HEADER_BG,
             self::KEY_COLOR_FOOTER_BG,
             self::KEY_COLOR_FOOTER_TEXT,
+            self::KEY_COLOR_LINK,
             self::KEY_DARK_MODE,
             self::KEY_CONTAINER_WIDTH,
             self::KEY_LOGO_WIDTH,

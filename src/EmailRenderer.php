@@ -157,6 +157,22 @@ class EmailRenderer
         return $this->watchdog;
     }
 
+    /**
+     * Couleur des liens d'un e-mail : réglage « Couleur des liens » (onglet Design) ou, s'il est vide, la couleur d'accent
+     * (apparence d'origine). Ajustée pour rester lisible (WCAG AA 4,5:1) sur le fond de la zone : 'container' (corps du
+     * message) ou 'footer' (pied de page, dont le fond est réglable séparément).
+     */
+    private function linkTextColor(array $design, string $zone): string
+    {
+        $link = trim((string) ($design['color_link'] ?? ''));
+        if ($link === '') {
+            $link = (string) ($design['color_accent'] ?? '#b38b59');
+        }
+        $bg = $zone === 'footer' ? ($design['color_footer_bg'] ?? '#ffffff') : ($design['color_container'] ?? '#ffffff');
+
+        return ConfigManager::getAccessibleTextColor($link, (string) $bg);
+    }
+
     private function fonts(): FontManager
     {
         if ($this->fonts === null) {
@@ -2385,6 +2401,8 @@ class EmailRenderer
             'neria_color_container'  => $design['color_container'],
             'neria_color_accent'     => $design['color_accent'],
             'neria_color_accent_text' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_container'] ?? '#ffffff')),
+            'neria_color_link'       => $this->linkTextColor($design, 'container'),
+            'neria_color_link_footer' => $this->linkTextColor($design, 'footer'),
             'neria_color_accent_footer_text' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_footer_bg'] ?? '#ffffff')),
             'neria_color_text'       => $design['color_text'],
             'neria_dark_mode'        => $design['dark_mode'] ? 'true' : 'false',
@@ -2657,6 +2675,8 @@ class EmailRenderer
             '{$neria_color_accent}'     => $design['color_accent'],
             '{$neria_color_accent_text}' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_container'] ?? '#ffffff')),
             '{$neria_color_accent_footer_text}' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_footer_bg'] ?? '#ffffff')),
+            '{$neria_color_link}'        => $this->linkTextColor($design, 'container'),
+            '{$neria_color_link_footer}' => $this->linkTextColor($design, 'footer'),
             '{$neria_color_background}' => $design['color_background'],
             '{$neria_color_container}'  => $design['color_container'],
             '{$neria_color_text}'       => $design['color_text'],
@@ -3173,6 +3193,8 @@ class EmailRenderer
             '{$neria_color_accent}'     => $design['color_accent'],
             '{$neria_color_accent_text}' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_container'] ?? '#ffffff')),
             '{$neria_color_accent_footer_text}' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_footer_bg'] ?? '#ffffff')),
+            '{$neria_color_link}'        => $this->linkTextColor($design, 'container'),
+            '{$neria_color_link_footer}' => $this->linkTextColor($design, 'footer'),
             '{$neria_color_background}' => $design['color_background'],
             '{$neria_color_container}'  => $design['color_container'],
             '{$neria_color_text}'       => $design['color_text'],
