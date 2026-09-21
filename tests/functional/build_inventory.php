@@ -64,8 +64,34 @@ foreach (glob($root . '/views/js/*.js') ?: [] as $jf) {
 
 // ── 2. Actions du back-office (neria_action) ──────────────────────────────────────────────────
 $actions = [];
+// Trois syntaxes de test d'action : `Tools::getValue('neria_action') === 'x'`, `$var === 'x'` avec $var = Tools::getValue('neria_action')
+// ($tradAction, $earlyAction, $mpEarlyAction…) et les listes `in_array(<action>, ['a', 'b'], true)` (constat P8a : les deux
+// dernières manquaient, l'inventaire omettait des actions réellement gérées).
+$hits = [];
 preg_match_all("/getValue\('neria_action'\)\s*===\s*'([a-z_0-9]+)'/", $main, $mm, PREG_OFFSET_CAPTURE);
-foreach ($mm[1] as [$name, $off]) {
+foreach ($mm[1] as $h) {
+    $hits[] = $h;
+}
+$vm = [[], []];
+if (preg_match_all('/\$([A-Za-z]+)\s*=\s*(?:\(string\)\s*)?Tools::getValue\(\'neria_action\'/', $main, $vm)) {
+    foreach (array_unique($vm[1]) as $var) {
+        if (preg_match_all('/\$' . preg_quote($var, '/') . '\s*===\s*\'([a-z_0-9]+)\'/', $main, $m2, PREG_OFFSET_CAPTURE)) {
+            foreach ($m2[1] as $h) {
+                $hits[] = $h;
+            }
+        }
+    }
+}
+if (preg_match_all('/in_array\(\s*(?:Tools::getValue\(\'neria_action\'\)|\$(?:' . implode('|', array_unique(array_merge($vm[1], ['action']))) . '))\s*,\s*\[([^\]]*)\]/', $main, $m3, PREG_OFFSET_CAPTURE)) {
+    foreach ($m3[1] as [$list, $listOff]) {
+        if (preg_match_all("/'([a-z_0-9]+)'/", $list, $m4, PREG_OFFSET_CAPTURE)) {
+            foreach ($m4[1] as [$nm, $o2]) {
+                $hits[] = [$nm, $listOff + $o2];
+            }
+        }
+    }
+}
+foreach ($hits as [$name, $off]) {
     $line = $lineOf($main, $off);
     $lineStart = strrpos(substr($main, 0, $off), "\n");
     $prefix = ltrim(substr($main, $lineStart === false ? 0 : $lineStart + 1, $off - ($lineStart === false ? 0 : $lineStart + 1)));
@@ -92,7 +118,8 @@ foreach ($actions as $name => &$a) {
     foreach ($uiSources as $tn => $txt) {
         // nom de l'action entouré de quotes / précédé de = / suivi de & ou d'un espace : toutes syntaxes
         // (formulaire, fetch JS, lien, data-attribut) — gabarits ET views/js/*.js
-        if (preg_match('/[\'"=]' . preg_quote($name, '/') . '[\'"&\s]/', $txt)) {
+        // `}` avant / `{` après : nom d'action posé dans un {if}…{else}…{/if} (ex. ignore_bounce / reactivate_bounce)
+        if (preg_match('/[\'"=}]' . preg_quote($name, '/') . '[\'"&\s{]/', $txt)) {
             $a['ui'][] = $tn;
         }
     }

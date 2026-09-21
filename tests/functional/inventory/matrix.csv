@@ -1,25 +1,25 @@
 ﻿id;categorie;element;a_verifier;source;phase;statut;preuve;notes
-TAB-001;"Onglet BO";configure;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-002;"Onglet BO";automations;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-003;"Onglet BO";design;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-004;"Onglet BO";typography;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-005;"Onglet BO";translations;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-006;"Onglet BO";social;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-007;"Onglet BO";stats;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-008;"Onglet BO";abtest;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-009;"Onglet BO";send;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-010;"Onglet BO";multipreview;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-011;"Onglet BO";customer_history;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-012;"Onglet BO";calendar;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-013;"Onglet BO";webhooks;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-014;"Onglet BO";segments;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-015;"Onglet BO";seasonal;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-016;"Onglet BO";bounces;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-017;"Onglet BO";gdpr;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-018;"Onglet BO";academy;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-019;"Onglet BO";certificates;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-020;"Onglet BO";control_center;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
-TAB-021;"Onglet BO";help;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;⬜;;
+TAB-001;"Onglet BO";configure;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-002;"Onglet BO";automations;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-003;"Onglet BO";design;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-004;"Onglet BO";typography;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-005;"Onglet BO";translations;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-006;"Onglet BO";social;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-007;"Onglet BO";stats;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-008;"Onglet BO";abtest;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-009;"Onglet BO";send;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-010;"Onglet BO";multipreview;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-011;"Onglet BO";customer_history;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-012;"Onglet BO";calendar;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-013;"Onglet BO";webhooks;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-014;"Onglet BO";segments;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-015;"Onglet BO";seasonal;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-016;"Onglet BO";bounces;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-017;"Onglet BO";gdpr;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-018;"Onglet BO";academy;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-019;"Onglet BO";certificates;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-020;"Onglet BO";control_center;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
+TAB-021;"Onglet BO";help;"ouverture + affichage sans erreur + traductions (fr,en,ar,ja + échantillon)";navigation.tpl;P8;✅;"P8a bo_walk_tabs.php : rendu réel getContent() dans les 19 langues, 0 erreur (results/P8a_tabs.md) ; test_825";"P8a 21/09 : rendu OK 19 langues"
 SEC-001;"Sous-section BO";configure#neria-cfg-dashboard;"ouverture, chaque champ, enregistrement, persistance";navigation.tpl;P8;⬜;;
 SEC-002;"Sous-section BO";configure#neria-cfg-autolang;"ouverture, chaque champ, enregistrement, persistance";navigation.tpl;P8;⬜;;
 SEC-003;"Sous-section BO";configure#neria-cfg-time-greetings;"ouverture, chaque champ, enregistrement, persistance";navigation.tpl;P8;⬜;;
@@ -827,3 +827,31 @@ DB-035;"Table SQL";neria_cron_health;"création à l'installation, migration, pu
 DB-036;"Table SQL";neria_voice_profile;"création à l'installation, migration, purge RGPD, désinstallation";sql/install.sql;P13;⬜;;
 DB-037;"Table SQL";neria_birthday_voucher;"création à l'installation, migration, purge RGPD, désinstallation";sql/install.sql;P13;⬜;;
 DB-038;"Table SQL";neria_milestone_voucher;"création à l'installation, migration, purge RGPD, désinstallation";sql/install.sql;P13;⬜;;
+BO-140;"Action BO";delete_bounce;"GET/POST, bannière oui ; UI : bounces.tpl ; managers : BounceManager";neria.php:6543;P8;⬜;;
+BO-141;"Action BO";ignore_bounce;"GET/POST, bannière oui ; UI : bounces.tpl ; managers : BounceManager";neria.php:6543;P8;⬜;;
+BO-142;"Action BO";reactivate_bounce;"GET/POST, bannière oui ; UI : bounces.tpl ; managers : BounceManager";neria.php:6543;P8;⬜;;
+BO-143;"Action BO";auto_translate_template;"POST, réponse AJAX/fichier ; UI : translations.tpl ; managers : ConfigManager,TranslationHistoryManager,WatchdogManager";neria.php:2611;P8;⬜;;
+BO-144;"Action BO";auto_translate_variant_b;"POST, réponse AJAX/fichier ; UI : translations.tpl ; managers : ConfigManager,WatchdogManager";neria.php:2797;P8;⬜;;
+BO-145;"Action BO";check_voice_profile;"GET/POST, bannière NON ; UI : translations.tpl ; managers : VoiceProfileManager";neria.php:4797;P8;⬜;;
+BO-146;"Action BO";delete_history;"POST, bannière oui ; UI : translations.tpl ; managers : TranslationHistoryManager,WatchdogManager,VoiceProfileManager";neria.php:5221;P8;⬜;;
+BO-147;"Action BO";export_translations_csv;"GET/POST, réponse AJAX/fichier ; UI : translations.tpl ; managers : ";neria.php:4534;P8;⬜;;
+BO-148;"Action BO";export_variant_b_csv;"GET/POST, réponse AJAX/fichier ; UI : translations.tpl ; managers : ";neria.php:4626;P8;⬜;;
+BO-149;"Action BO";import_translations_csv;"POST, bannière oui ; UI : translations.tpl ; managers : WatchdogManager";neria.php:4579;P8;⬜;;
+BO-150;"Action BO";import_variant_b_csv;"POST, bannière oui ; UI : translations.tpl ; managers : ";neria.php:4654;P8;⬜;;
+BO-151;"Action BO";load_translations;"POST, bannière oui ; UI : neria-admin.js ; managers : TranslationHistoryManager,WatchdogManager,VoiceProfileManager";neria.php:4825;P8;⬜;;
+BO-152;"Action BO";multipreview_poll_eoa;"GET/POST, réponse AJAX/fichier ; UI : AUCUN gabarit (action orpheline ?) ; managers : MultiClientPreviewManager";neria.php:5461;P8;⬜;;
+BO-153;"Action BO";multipreview_poll_litmus;"GET/POST, réponse AJAX/fichier ; UI : AUCUN gabarit (action orpheline ?) ; managers : MultiClientPreviewManager";neria.php:5461;P8;⬜;;
+BO-154;"Action BO";multipreview_submit_eoa;"GET/POST, réponse AJAX/fichier ; UI : AUCUN gabarit (action orpheline ?) ; managers : MultiClientPreviewManager";neria.php:5460;P8;⬜;;
+BO-155;"Action BO";multipreview_submit_litmus;"GET/POST, réponse AJAX/fichier ; UI : AUCUN gabarit (action orpheline ?) ; managers : MultiClientPreviewManager";neria.php:5460;P8;⬜;;
+BO-156;"Action BO";reload_all_translations;"POST, bannière oui ; UI : help.tpl+translations.tpl ; managers : ";neria.php:4429;P8;⬜;;
+BO-157;"Action BO";reset_all_translations;"POST, bannière oui ; UI : translations.tpl ; managers : WatchdogManager";neria.php:4725;P8;⬜;;
+BO-158;"Action BO";reset_template;"POST, bannière oui ; UI : neria-admin.js ; managers : TranslationHistoryManager,WatchdogManager,VoiceProfileManager";neria.php:4924;P8;⬜;;
+BO-159;"Action BO";reset_template_all_langs;"POST, bannière oui ; UI : translations.tpl ; managers : WatchdogManager";neria.php:4686;P8;⬜;;
+BO-160;"Action BO";reset_variant_b;"POST, bannière oui ; UI : translations.tpl ; managers : TranslationHistoryManager,WatchdogManager,VoiceProfileManager";neria.php:5004;P8;⬜;;
+BO-161;"Action BO";restore_translation;"POST, bannière oui ; UI : translations.tpl ; managers : TranslationHistoryManager,WatchdogManager,VoiceProfileManager";neria.php:5151;P8;⬜;;
+BO-162;"Action BO";restore_variant_b;"POST, bannière oui ; UI : translations.tpl ; managers : TranslationHistoryManager,WatchdogManager,VoiceProfileManager";neria.php:5096;P8;⬜;;
+BO-163;"Action BO";save_deepl_key;"POST, bannière oui ; UI : translations.tpl ; managers : ConfigManager,WatchdogManager";neria.php:4811;P8;⬜;;
+BO-164;"Action BO";save_translations;"POST, bannière oui ; UI : translations.tpl ; managers : TranslationHistoryManager,WatchdogManager,VoiceProfileManager";neria.php:4833;P8;⬜;;
+BO-165;"Action BO";save_variant_b;"POST, bannière oui ; UI : translations.tpl ; managers : TranslationHistoryManager,ABTestManager,WatchdogManager,VoiceProfileManager";neria.php:5055;P8;⬜;;
+BO-166;"Action BO";save_voice_profile;"POST, bannière oui ; UI : translations.tpl ; managers : VoiceProfileManager,WatchdogManager";neria.php:4770;P8;⬜;;
+BO-167;"Action BO";search_translations;"GET/POST, réponse AJAX/fichier ; UI : translations.tpl ; managers : ";neria.php:2579;P8;⬜;;

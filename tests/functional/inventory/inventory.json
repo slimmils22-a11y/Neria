@@ -1,8 +1,8 @@
 {
-    "generated": "2026-09-20 10:37:56",
+    "generated": "2026-09-21 13:33:47",
     "module_version": "1.0.48",
     "counts": {
-        "bo_actions": 139,
+        "bo_actions": 167,
         "buttons": 235,
         "admin_templates": 25,
         "tabs": 21,
@@ -16,14 +16,14 @@
         "watchdog_checks": 127,
         "control_center": 43,
         "sql_tables": 38,
-        "config_keys": 219,
+        "config_keys": 220,
         "languages": 19
     },
     "bo_actions": [
         {
             "name": "activate_license",
             "lines": [
-                4417
+                4482
             ],
             "post_only": true,
             "ajax": false,
@@ -38,7 +38,7 @@
         {
             "name": "add_blacklist",
             "lines": [
-                3092
+                3155
             ],
             "post_only": true,
             "ajax": false,
@@ -53,7 +53,7 @@
         {
             "name": "add_calendar_event",
             "lines": [
-                3728
+                3793
             ],
             "post_only": true,
             "ajax": false,
@@ -66,7 +66,7 @@
         {
             "name": "add_manual_bounce",
             "lines": [
-                6457
+                6527
             ],
             "post_only": true,
             "ajax": false,
@@ -81,7 +81,7 @@
         {
             "name": "apply_abtest_winner",
             "lines": [
-                4331
+                4396
             ],
             "post_only": true,
             "ajax": false,
@@ -98,7 +98,7 @@
         {
             "name": "auto_force_run",
             "lines": [
-                6271
+                6341
             ],
             "post_only": true,
             "ajax": false,
@@ -113,7 +113,7 @@
         {
             "name": "auto_toggle",
             "lines": [
-                6240
+                6310
             ],
             "post_only": true,
             "ajax": false,
@@ -124,9 +124,42 @@
             ]
         },
         {
+            "name": "auto_translate_template",
+            "lines": [
+                2611
+            ],
+            "post_only": true,
+            "ajax": true,
+            "banner": false,
+            "managers": [
+                "ConfigManager",
+                "TranslationHistoryManager",
+                "WatchdogManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
+            "name": "auto_translate_variant_b",
+            "lines": [
+                2797
+            ],
+            "post_only": true,
+            "ajax": true,
+            "banner": false,
+            "managers": [
+                "ConfigManager",
+                "WatchdogManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "bounce_cross_shop_toggle",
             "lines": [
-                6201
+                6271
             ],
             "post_only": true,
             "ajax": false,
@@ -141,7 +174,7 @@
         {
             "name": "cert_delete",
             "lines": [
-                6569
+                6639
             ],
             "post_only": true,
             "ajax": false,
@@ -156,7 +189,7 @@
         {
             "name": "cert_download",
             "lines": [
-                6552
+                6622
             ],
             "post_only": false,
             "ajax": true,
@@ -172,7 +205,7 @@
         {
             "name": "cert_issue",
             "lines": [
-                6527
+                6597
             ],
             "post_only": true,
             "ajax": false,
@@ -187,7 +220,7 @@
         {
             "name": "cert_save_config",
             "lines": [
-                6505
+                6575
             ],
             "post_only": true,
             "ajax": false,
@@ -200,7 +233,7 @@
         {
             "name": "check_anniversary_guard",
             "lines": [
-                4134
+                4199
             ],
             "post_only": false,
             "ajax": true,
@@ -215,7 +248,7 @@
         {
             "name": "check_cooldown_guest_notice",
             "lines": [
-                4119
+                4184
             ],
             "post_only": false,
             "ajax": true,
@@ -230,7 +263,7 @@
         {
             "name": "check_preferences_guard",
             "lines": [
-                4101
+                4166
             ],
             "post_only": false,
             "ajax": true,
@@ -245,7 +278,7 @@
         {
             "name": "check_send_duplicate",
             "lines": [
-                4046
+                4111
             ],
             "post_only": false,
             "ajax": true,
@@ -258,9 +291,24 @@
             ]
         },
         {
+            "name": "check_voice_profile",
+            "lines": [
+                4797
+            ],
+            "post_only": false,
+            "ajax": false,
+            "banner": false,
+            "managers": [
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "checkout_abandonment_toggle",
             "lines": [
-                5632
+                5702
             ],
             "post_only": true,
             "ajax": false,
@@ -273,7 +321,7 @@
         {
             "name": "clear_logs",
             "lines": [
-                3009
+                3072
             ],
             "post_only": true,
             "ajax": false,
@@ -288,7 +336,7 @@
         {
             "name": "collection_add",
             "lines": [
-                5975
+                6045
             ],
             "post_only": true,
             "ajax": false,
@@ -303,7 +351,7 @@
         {
             "name": "collection_completion_toggle",
             "lines": [
-                5659
+                5729
             ],
             "post_only": true,
             "ajax": false,
@@ -316,7 +364,7 @@
         {
             "name": "collection_delete",
             "lines": [
-                6023
+                6093
             ],
             "post_only": true,
             "ajax": false,
@@ -331,7 +379,7 @@
         {
             "name": "collection_toggle",
             "lines": [
-                5997
+                6067
             ],
             "post_only": true,
             "ajax": false,
@@ -346,7 +394,7 @@
         {
             "name": "connect_postmaster",
             "lines": [
-                3188
+                3251
             ],
             "post_only": false,
             "ajax": false,
@@ -361,7 +409,7 @@
         {
             "name": "connect_searchconsole",
             "lines": [
-                3341
+                3404
             ],
             "post_only": false,
             "ajax": false,
@@ -376,7 +424,7 @@
         {
             "name": "create_abtest",
             "lines": [
-                4263
+                4328
             ],
             "post_only": true,
             "ajax": false,
@@ -392,7 +440,7 @@
         {
             "name": "cron_toggle",
             "lines": [
-                2953
+                3016
             ],
             "post_only": true,
             "ajax": false,
@@ -405,7 +453,7 @@
         {
             "name": "customer_autocomplete",
             "lines": [
-                4030
+                4095
             ],
             "post_only": false,
             "ajax": true,
@@ -420,7 +468,7 @@
         {
             "name": "deactivate_abtest",
             "lines": [
-                4317
+                4382
             ],
             "post_only": true,
             "ajax": false,
@@ -434,9 +482,24 @@
             ]
         },
         {
+            "name": "delete_bounce",
+            "lines": [
+                6543
+            ],
+            "post_only": false,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "BounceManager"
+            ],
+            "ui": [
+                "bounces.tpl"
+            ]
+        },
+        {
             "name": "delete_calendar_event",
             "lines": [
-                3833
+                3898
             ],
             "post_only": true,
             "ajax": false,
@@ -447,9 +510,27 @@
             ]
         },
         {
+            "name": "delete_history",
+            "lines": [
+                5221,
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "delete_seasonal_campaign",
             "lines": [
-                6379
+                6449
             ],
             "post_only": true,
             "ajax": false,
@@ -464,7 +545,7 @@
         {
             "name": "deliverability_score",
             "lines": [
-                4209
+                4274
             ],
             "post_only": false,
             "ajax": false,
@@ -479,7 +560,7 @@
         {
             "name": "disconnect_postmaster",
             "lines": [
-                3196
+                3259
             ],
             "post_only": true,
             "ajax": false,
@@ -494,7 +575,7 @@
         {
             "name": "disconnect_searchconsole",
             "lines": [
-                3351
+                3414
             ],
             "post_only": true,
             "ajax": false,
@@ -509,7 +590,7 @@
         {
             "name": "dismiss_design_wizard",
             "lines": [
-                2474
+                2537
             ],
             "post_only": true,
             "ajax": true,
@@ -522,9 +603,35 @@
             ]
         },
         {
+            "name": "export_translations_csv",
+            "lines": [
+                4534
+            ],
+            "post_only": false,
+            "ajax": true,
+            "banner": false,
+            "managers": [],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
+            "name": "export_variant_b_csv",
+            "lines": [
+                4626
+            ],
+            "post_only": false,
+            "ajax": true,
+            "banner": false,
+            "managers": [],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "gdpr_encrypt_all",
             "lines": [
-                6114
+                6184
             ],
             "post_only": true,
             "ajax": false,
@@ -540,7 +647,7 @@
         {
             "name": "gdpr_pdf",
             "lines": [
-                6585
+                6655
             ],
             "post_only": false,
             "ajax": true,
@@ -555,7 +662,7 @@
         {
             "name": "gdpr_purge",
             "lines": [
-                5594
+                5664
             ],
             "post_only": false,
             "ajax": false,
@@ -571,7 +678,7 @@
         {
             "name": "generate_signature",
             "lines": [
-                3581
+                3646
             ],
             "post_only": true,
             "ajax": false,
@@ -586,7 +693,7 @@
         {
             "name": "ghost_cart_toggle",
             "lines": [
-                5652
+                5722
             ],
             "post_only": true,
             "ajax": false,
@@ -599,7 +706,7 @@
         {
             "name": "health_pixel_test",
             "lines": [
-                2899
+                2962
             ],
             "post_only": false,
             "ajax": false,
@@ -612,9 +719,53 @@
             ]
         },
         {
+            "name": "ignore_bounce",
+            "lines": [
+                6551,
+                6543
+            ],
+            "post_only": false,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "BounceManager"
+            ],
+            "ui": [
+                "bounces.tpl"
+            ]
+        },
+        {
+            "name": "import_translations_csv",
+            "lines": [
+                4579
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "WatchdogManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
+            "name": "import_variant_b_csv",
+            "lines": [
+                4654
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "lifespan_add",
             "lines": [
-                5707
+                5777
             ],
             "post_only": true,
             "ajax": false,
@@ -627,7 +778,7 @@
         {
             "name": "lifespan_delete",
             "lines": [
-                5738
+                5808
             ],
             "post_only": true,
             "ajax": false,
@@ -640,7 +791,7 @@
         {
             "name": "lifespan_toggle",
             "lines": [
-                5694
+                5764
             ],
             "post_only": true,
             "ajax": false,
@@ -651,9 +802,26 @@
             ]
         },
         {
+            "name": "load_translations",
+            "lines": [
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "neria-admin.js"
+            ]
+        },
+        {
             "name": "look_completion_toggle",
             "lines": [
-                5666
+                5736
             ],
             "post_only": true,
             "ajax": false,
@@ -666,7 +834,7 @@
         {
             "name": "look_rule_add",
             "lines": [
-                5911
+                5981
             ],
             "post_only": true,
             "ajax": false,
@@ -681,7 +849,7 @@
         {
             "name": "look_rule_delete",
             "lines": [
-                5961
+                6031
             ],
             "post_only": true,
             "ajax": false,
@@ -696,7 +864,7 @@
         {
             "name": "look_rule_toggle",
             "lines": [
-                5932
+                6002
             ],
             "post_only": true,
             "ajax": false,
@@ -711,7 +879,7 @@
         {
             "name": "loyalty_cross_shop_toggle",
             "lines": [
-                6159
+                6229
             ],
             "post_only": true,
             "ajax": false,
@@ -726,7 +894,7 @@
         {
             "name": "loyalty_toggle",
             "lines": [
-                6152
+                6222
             ],
             "post_only": true,
             "ajax": false,
@@ -739,7 +907,7 @@
         {
             "name": "menu_visibility_bulk",
             "lines": [
-                6226
+                6296
             ],
             "post_only": true,
             "ajax": false,
@@ -754,7 +922,7 @@
         {
             "name": "menu_visibility_toggle",
             "lines": [
-                6211
+                6281
             ],
             "post_only": true,
             "ajax": false,
@@ -767,9 +935,35 @@
             ]
         },
         {
+            "name": "multipreview_poll_eoa",
+            "lines": [
+                5461
+            ],
+            "post_only": false,
+            "ajax": true,
+            "banner": false,
+            "managers": [
+                "MultiClientPreviewManager"
+            ],
+            "ui": []
+        },
+        {
+            "name": "multipreview_poll_litmus",
+            "lines": [
+                5461
+            ],
+            "post_only": false,
+            "ajax": true,
+            "banner": false,
+            "managers": [
+                "MultiClientPreviewManager"
+            ],
+            "ui": []
+        },
+        {
             "name": "multipreview_render",
             "lines": [
-                5310
+                5378
             ],
             "post_only": true,
             "ajax": false,
@@ -782,9 +976,35 @@
             ]
         },
         {
+            "name": "multipreview_submit_eoa",
+            "lines": [
+                5460
+            ],
+            "post_only": false,
+            "ajax": true,
+            "banner": false,
+            "managers": [
+                "MultiClientPreviewManager"
+            ],
+            "ui": []
+        },
+        {
+            "name": "multipreview_submit_litmus",
+            "lines": [
+                5460
+            ],
+            "post_only": false,
+            "ajax": true,
+            "banner": false,
+            "managers": [
+                "MultiClientPreviewManager"
+            ],
+            "ui": []
+        },
+        {
             "name": "preview",
             "lines": [
-                2452
+                2515
             ],
             "post_only": false,
             "ajax": false,
@@ -800,7 +1020,7 @@
         {
             "name": "preview_manual",
             "lines": [
-                4063
+                4128
             ],
             "post_only": false,
             "ajax": true,
@@ -815,7 +1035,7 @@
         {
             "name": "preview_signature",
             "lines": [
-                2483
+                2546
             ],
             "post_only": false,
             "ajax": true,
@@ -828,7 +1048,7 @@
         {
             "name": "process_queue_now",
             "lines": [
-                4084
+                4149
             ],
             "post_only": true,
             "ajax": true,
@@ -843,7 +1063,7 @@
         {
             "name": "process_webhook_queue_now",
             "lines": [
-                5502
+                5572
             ],
             "post_only": true,
             "ajax": false,
@@ -858,7 +1078,7 @@
         {
             "name": "product_search",
             "lines": [
-                6102
+                6172
             ],
             "post_only": false,
             "ajax": true,
@@ -871,7 +1091,7 @@
         {
             "name": "propensity_toggle",
             "lines": [
-                5687
+                5757
             ],
             "post_only": true,
             "ajax": false,
@@ -884,7 +1104,7 @@
         {
             "name": "purchase_window_toggle",
             "lines": [
-                5700
+                5770
             ],
             "post_only": true,
             "ajax": false,
@@ -897,7 +1117,7 @@
         {
             "name": "quote_add",
             "lines": [
-                5759
+                5829
             ],
             "post_only": true,
             "ajax": false,
@@ -910,7 +1130,7 @@
         {
             "name": "quote_delete",
             "lines": [
-                5890
+                5960
             ],
             "post_only": true,
             "ajax": false,
@@ -923,7 +1143,7 @@
         {
             "name": "quote_mark_lost",
             "lines": [
-                5870
+                5940
             ],
             "post_only": true,
             "ajax": false,
@@ -936,7 +1156,7 @@
         {
             "name": "quote_mark_won",
             "lines": [
-                5847
+                5917
             ],
             "post_only": true,
             "ajax": false,
@@ -949,7 +1169,7 @@
         {
             "name": "quote_reminder_toggle",
             "lines": [
-                5673
+                5743
             ],
             "post_only": true,
             "ajax": false,
@@ -960,9 +1180,25 @@
             ]
         },
         {
+            "name": "reactivate_bounce",
+            "lines": [
+                6554,
+                6543
+            ],
+            "post_only": false,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "BounceManager"
+            ],
+            "ui": [
+                "bounces.tpl"
+            ]
+        },
+        {
             "name": "recompute_churn",
             "lines": [
-                5522
+                5592
             ],
             "post_only": true,
             "ajax": false,
@@ -978,7 +1214,7 @@
         {
             "name": "recompute_segments",
             "lines": [
-                5540
+                5610
             ],
             "post_only": true,
             "ajax": false,
@@ -994,7 +1230,7 @@
         {
             "name": "reconciliation_toggle",
             "lines": [
-                5680
+                5750
             ],
             "post_only": true,
             "ajax": false,
@@ -1007,7 +1243,7 @@
         {
             "name": "refresh_domain_reputation",
             "lines": [
-                4181
+                4246
             ],
             "post_only": true,
             "ajax": false,
@@ -1023,7 +1259,7 @@
         {
             "name": "refresh_pagespeed",
             "lines": [
-                3305
+                3368
             ],
             "post_only": true,
             "ajax": false,
@@ -1038,7 +1274,7 @@
         {
             "name": "refresh_postmaster",
             "lines": [
-                3202
+                3265
             ],
             "post_only": true,
             "ajax": false,
@@ -1054,7 +1290,7 @@
         {
             "name": "refresh_searchconsole",
             "lines": [
-                3357
+                3420
             ],
             "post_only": true,
             "ajax": false,
@@ -1069,7 +1305,7 @@
         {
             "name": "refresh_seo_api",
             "lines": [
-                3435
+                3498
             ],
             "post_only": true,
             "ajax": false,
@@ -1084,7 +1320,7 @@
         {
             "name": "regenerate_cron_token",
             "lines": [
-                2948
+                3011
             ],
             "post_only": true,
             "ajax": false,
@@ -1097,7 +1333,7 @@
         {
             "name": "regenerate_emergency_token",
             "lines": [
-                2943
+                3006
             ],
             "post_only": true,
             "ajax": false,
@@ -1110,7 +1346,7 @@
         {
             "name": "relationship_anniversary_toggle",
             "lines": [
-                5625
+                5695
             ],
             "post_only": true,
             "ajax": false,
@@ -1121,9 +1357,23 @@
             ]
         },
         {
+            "name": "reload_all_translations",
+            "lines": [
+                4429
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [],
+            "ui": [
+                "help.tpl",
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "remove_blacklist",
             "lines": [
-                3126
+                3189
             ],
             "post_only": true,
             "ajax": false,
@@ -1138,7 +1388,7 @@
         {
             "name": "repair_bounces_check",
             "lines": [
-                4402
+                4467
             ],
             "post_only": true,
             "ajax": false,
@@ -1153,7 +1403,7 @@
         {
             "name": "repair_module_version",
             "lines": [
-                4381
+                4446
             ],
             "post_only": true,
             "ajax": false,
@@ -1166,7 +1416,7 @@
         {
             "name": "reset_all_data",
             "lines": [
-                4436
+                4501
             ],
             "post_only": true,
             "ajax": false,
@@ -1179,9 +1429,24 @@
             ]
         },
         {
+            "name": "reset_all_translations",
+            "lines": [
+                4725
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "WatchdogManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "reset_blacklist",
             "lines": [
-                3135
+                3198
             ],
             "post_only": true,
             "ajax": false,
@@ -1196,7 +1461,7 @@
         {
             "name": "reset_design",
             "lines": [
-                3529
+                3594
             ],
             "post_only": true,
             "ajax": false,
@@ -1209,9 +1474,42 @@
             ]
         },
         {
+            "name": "reset_template",
+            "lines": [
+                4924,
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "neria-admin.js"
+            ]
+        },
+        {
+            "name": "reset_template_all_langs",
+            "lines": [
+                4686
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "WatchdogManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "reset_time_greetings_all",
             "lines": [
-                3969
+                4034
             ],
             "post_only": true,
             "ajax": false,
@@ -1226,7 +1524,7 @@
         {
             "name": "reset_time_greetings_lang",
             "lines": [
-                3974
+                4039
             ],
             "post_only": true,
             "ajax": false,
@@ -1239,9 +1537,63 @@
             ]
         },
         {
+            "name": "reset_variant_b",
+            "lines": [
+                5004,
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
+            "name": "restore_translation",
+            "lines": [
+                5151,
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
+            "name": "restore_variant_b",
+            "lines": [
+                5096,
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "retry_webhook",
             "lines": [
-                5512
+                5582
             ],
             "post_only": true,
             "ajax": false,
@@ -1256,7 +1608,7 @@
         {
             "name": "run_bounce_check",
             "lines": [
-                6451
+                6521
             ],
             "post_only": true,
             "ajax": false,
@@ -1271,7 +1623,7 @@
         {
             "name": "run_code_diagnostic",
             "lines": [
-                2969
+                3032
             ],
             "post_only": false,
             "ajax": false,
@@ -1286,7 +1638,7 @@
         {
             "name": "run_full_diagnostic",
             "lines": [
-                2960
+                3023
             ],
             "post_only": false,
             "ajax": false,
@@ -1301,7 +1653,7 @@
         {
             "name": "save_alert_config",
             "lines": [
-                2905
+                2968
             ],
             "post_only": true,
             "ajax": false,
@@ -1314,7 +1666,7 @@
         {
             "name": "save_archive_config",
             "lines": [
-                2921
+                2984
             ],
             "post_only": true,
             "ajax": false,
@@ -1329,7 +1681,7 @@
         {
             "name": "save_birthday_voucher",
             "lines": [
-                3904
+                3969
             ],
             "post_only": true,
             "ajax": false,
@@ -1344,7 +1696,7 @@
         {
             "name": "save_bounce_config",
             "lines": [
-                6403
+                6473
             ],
             "post_only": true,
             "ajax": false,
@@ -1357,7 +1709,7 @@
         {
             "name": "save_calendar_event",
             "lines": [
-                3784
+                3849
             ],
             "post_only": true,
             "ajax": false,
@@ -1370,7 +1722,7 @@
         {
             "name": "save_carbon",
             "lines": [
-                3454
+                3517
             ],
             "post_only": true,
             "ajax": false,
@@ -1385,7 +1737,7 @@
         {
             "name": "save_cooldown",
             "lines": [
-                3150
+                3213
             ],
             "post_only": true,
             "ajax": false,
@@ -1398,7 +1750,7 @@
         {
             "name": "save_custom_vars",
             "lines": [
-                3562
+                3627
             ],
             "post_only": true,
             "ajax": false,
@@ -1411,9 +1763,25 @@
             ]
         },
         {
+            "name": "save_deepl_key",
+            "lines": [
+                4811
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "ConfigManager",
+                "WatchdogManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "save_design",
             "lines": [
-                3486
+                3549
             ],
             "post_only": true,
             "ajax": false,
@@ -1428,7 +1796,7 @@
         {
             "name": "save_firstname_fallbacks",
             "lines": [
-                4016
+                4081
             ],
             "post_only": true,
             "ajax": false,
@@ -1443,7 +1811,7 @@
         {
             "name": "save_log_internal",
             "lines": [
-                3045
+                3108
             ],
             "post_only": true,
             "ajax": false,
@@ -1456,7 +1824,7 @@
         {
             "name": "save_loyalty_tiers",
             "lines": [
-                6295
+                6365
             ],
             "post_only": true,
             "ajax": false,
@@ -1472,7 +1840,7 @@
         {
             "name": "save_milestone_voucher",
             "lines": [
-                3923
+                3988
             ],
             "post_only": true,
             "ajax": false,
@@ -1487,7 +1855,7 @@
         {
             "name": "save_multipreview_keys",
             "lines": [
-                5432
+                5502
             ],
             "post_only": true,
             "ajax": false,
@@ -1500,7 +1868,7 @@
         {
             "name": "save_pagespeed_key",
             "lines": [
-                3250
+                3313
             ],
             "post_only": true,
             "ajax": false,
@@ -1515,7 +1883,7 @@
         {
             "name": "save_postmaster_config",
             "lines": [
-                3167
+                3230
             ],
             "post_only": true,
             "ajax": false,
@@ -1530,7 +1898,7 @@
         {
             "name": "save_report_config",
             "lines": [
-                3063
+                3126
             ],
             "post_only": true,
             "ajax": false,
@@ -1543,7 +1911,7 @@
         {
             "name": "save_searchconsole_config",
             "lines": [
-                3324
+                3387
             ],
             "post_only": true,
             "ajax": false,
@@ -1558,7 +1926,7 @@
         {
             "name": "save_seasonal_campaign",
             "lines": [
-                6330
+                6400
             ],
             "post_only": true,
             "ajax": false,
@@ -1573,7 +1941,7 @@
         {
             "name": "save_senders",
             "lines": [
-                3851
+                3916
             ],
             "post_only": true,
             "ajax": false,
@@ -1586,7 +1954,7 @@
         {
             "name": "save_seo_config",
             "lines": [
-                3377
+                3440
             ],
             "post_only": true,
             "ajax": false,
@@ -1601,7 +1969,7 @@
         {
             "name": "save_smtp_quota",
             "lines": [
-                3160
+                3223
             ],
             "post_only": true,
             "ajax": false,
@@ -1614,7 +1982,7 @@
         {
             "name": "save_social",
             "lines": [
-                3469
+                3532
             ],
             "post_only": true,
             "ajax": false,
@@ -1629,7 +1997,7 @@
         {
             "name": "save_target_countries",
             "lines": [
-                3941
+                4006
             ],
             "post_only": true,
             "ajax": false,
@@ -1645,7 +2013,7 @@
         {
             "name": "save_time_greetings",
             "lines": [
-                3953
+                4018
             ],
             "post_only": true,
             "ajax": false,
@@ -1658,9 +2026,27 @@
             ]
         },
         {
+            "name": "save_translations",
+            "lines": [
+                4833,
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "save_typography",
             "lines": [
-                3535
+                3600
             ],
             "post_only": true,
             "ajax": false,
@@ -1673,9 +2059,44 @@
             ]
         },
         {
+            "name": "save_variant_b",
+            "lines": [
+                5055,
+                4825
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "TranslationHistoryManager",
+                "ABTestManager",
+                "WatchdogManager",
+                "VoiceProfileManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
+            "name": "save_voice_profile",
+            "lines": [
+                4770
+            ],
+            "post_only": true,
+            "ajax": false,
+            "banner": true,
+            "managers": [
+                "VoiceProfileManager",
+                "WatchdogManager"
+            ],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "save_voucher_validity",
             "lines": [
-                3883
+                3948
             ],
             "post_only": true,
             "ajax": false,
@@ -1688,7 +2109,7 @@
         {
             "name": "save_webhooks",
             "lines": [
-                5451
+                5521
             ],
             "post_only": true,
             "ajax": false,
@@ -1701,7 +2122,7 @@
         {
             "name": "search_customers",
             "lines": [
-                2894
+                2957
             ],
             "post_only": false,
             "ajax": false,
@@ -1710,9 +2131,22 @@
             "ui": []
         },
         {
+            "name": "search_translations",
+            "lines": [
+                2579
+            ],
+            "post_only": false,
+            "ajax": true,
+            "banner": false,
+            "managers": [],
+            "ui": [
+                "translations.tpl"
+            ]
+        },
+        {
             "name": "send_log_email",
             "lines": [
-                2989
+                3052
             ],
             "post_only": true,
             "ajax": false,
@@ -1725,7 +2159,7 @@
         {
             "name": "send_manual",
             "lines": [
-                4148
+                4213
             ],
             "post_only": true,
             "ajax": false,
@@ -1740,7 +2174,7 @@
         {
             "name": "send_report_now",
             "lines": [
-                3070
+                3133
             ],
             "post_only": true,
             "ajax": false,
@@ -1755,7 +2189,7 @@
         {
             "name": "send_segment_campaign",
             "lines": [
-                5558
+                5628
             ],
             "post_only": true,
             "ajax": false,
@@ -1770,7 +2204,7 @@
         {
             "name": "send_test",
             "lines": [
-                2889
+                2952
             ],
             "post_only": true,
             "ajax": false,
@@ -1783,7 +2217,7 @@
         {
             "name": "test_imap_connection",
             "lines": [
-                6429
+                6499
             ],
             "post_only": true,
             "ajax": true,
@@ -1798,7 +2232,7 @@
         {
             "name": "test_webhook",
             "lines": [
-                5485
+                5555
             ],
             "post_only": true,
             "ajax": false,
@@ -1813,7 +2247,7 @@
         {
             "name": "toggle_autolang",
             "lines": [
-                3025
+                3088
             ],
             "post_only": true,
             "ajax": false,
@@ -1826,7 +2260,7 @@
         {
             "name": "toggle_calendar_event",
             "lines": [
-                3814
+                3879
             ],
             "post_only": true,
             "ajax": false,
@@ -1839,7 +2273,7 @@
         {
             "name": "toggle_cooldown",
             "lines": [
-                3141
+                3204
             ],
             "post_only": true,
             "ajax": false,
@@ -1854,7 +2288,7 @@
         {
             "name": "toggle_firstname_fallback",
             "lines": [
-                4008
+                4073
             ],
             "post_only": true,
             "ajax": false,
@@ -1869,7 +2303,7 @@
         {
             "name": "toggle_gdpr_auto_purge",
             "lines": [
-                3016
+                3079
             ],
             "post_only": true,
             "ajax": false,
@@ -1882,7 +2316,7 @@
         {
             "name": "toggle_multi_sender",
             "lines": [
-                3992
+                4057
             ],
             "post_only": true,
             "ajax": false,
@@ -1897,7 +2331,7 @@
         {
             "name": "toggle_report",
             "lines": [
-                3054
+                3117
             ],
             "post_only": true,
             "ajax": false,
@@ -1910,7 +2344,7 @@
         {
             "name": "toggle_seasonal_campaign",
             "lines": [
-                6391
+                6461
             ],
             "post_only": true,
             "ajax": false,
@@ -1925,7 +2359,7 @@
         {
             "name": "toggle_signature",
             "lines": [
-                4000
+                4065
             ],
             "post_only": true,
             "ajax": false,
@@ -1940,7 +2374,7 @@
         {
             "name": "toggle_time_greeting",
             "lines": [
-                3984
+                4049
             ],
             "post_only": true,
             "ajax": false,
@@ -1955,7 +2389,7 @@
         {
             "name": "upsell_preview",
             "lines": [
-                6044
+                6114
             ],
             "post_only": false,
             "ajax": true,
@@ -1971,7 +2405,7 @@
         {
             "name": "upsell_toggle",
             "lines": [
-                6037
+                6107
             ],
             "post_only": true,
             "ajax": false,
@@ -1984,7 +2418,7 @@
         {
             "name": "waitlist_reservation_save",
             "lines": [
-                5645
+                5715
             ],
             "post_only": true,
             "ajax": false,
@@ -1997,7 +2431,7 @@
         {
             "name": "waitlist_toggle",
             "lines": [
-                5639
+                5709
             ],
             "post_only": true,
             "ajax": false,
@@ -2010,7 +2444,7 @@
         {
             "name": "watchdog_refresh",
             "lines": [
-                2457
+                2520
             ],
             "post_only": false,
             "ajax": true,
@@ -2787,7 +3221,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 137,
+            "line": 157,
             "label": "design.reset_defaults_btn",
             "attrs": {
                 "type": "button",
@@ -2798,7 +3232,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 206,
+            "line": 226,
             "label": "help.cron_toggle_on",
             "attrs": {
                 "id": "dark_mode_toggle_btn",
@@ -2810,7 +3244,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 257,
+            "line": 277,
             "label": "design.reset_defaults_btn",
             "attrs": {
                 "type": "button",
@@ -2821,7 +3255,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 282,
+            "line": 302,
             "label": "design.reset_defaults_btn",
             "attrs": {
                 "type": "button",
@@ -2832,7 +3266,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 320,
+            "line": 340,
             "label": "design.reset_defaults_btn",
             "attrs": {
                 "type": "button",
@@ -2843,7 +3277,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 366,
+            "line": 386,
             "label": "design.reset_defaults_btn",
             "attrs": {
                 "type": "button",
@@ -2854,7 +3288,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 443,
+            "line": 463,
             "label": "design.reset_confirm",
             "attrs": {
                 "id": "neria-design-reset",
@@ -2865,7 +3299,7 @@
         },
         {
             "tpl": "design.tpl",
-            "line": 448,
+            "line": 468,
             "label": "design.save",
             "attrs": {
                 "type": "submit"
@@ -6617,82 +7051,82 @@
         {
             "hook": "actionEmailSendBefore",
             "handler": "hookActionEmailSendBefore",
-            "line": 393
+            "line": 456
         },
         {
             "hook": "actionMailAlterMessageBeforeSend",
             "handler": "hookActionMailAlterMessageBeforeSend",
-            "line": 623
+            "line": 686
         },
         {
             "hook": "displayBackOfficeHeader",
             "handler": "hookDisplayBackOfficeHeader",
-            "line": 1349
+            "line": 1412
         },
         {
             "hook": "displayHeader",
             "handler": "hookDisplayHeader",
-            "line": 1956
+            "line": 2019
         },
         {
             "hook": "displayAdminCustomersView",
             "handler": "hookDisplayAdminCustomersView",
-            "line": 744
+            "line": 807
         },
         {
             "hook": "displayAdminCustomers",
             "handler": "hookDisplayAdminCustomers",
-            "line": 749
+            "line": 812
         },
         {
             "hook": "actionObjectOrderAddAfter",
             "handler": "hookActionObjectOrderAddAfter",
-            "line": 761
+            "line": 824
         },
         {
             "hook": "actionOrderStatusPostUpdate",
             "handler": "hookActionOrderStatusPostUpdate",
-            "line": 834
+            "line": 897
         },
         {
             "hook": "actionOrderSlipAdd",
             "handler": "hookActionOrderSlipAdd",
-            "line": 959
+            "line": 1022
         },
         {
             "hook": "actionObjectOrderReturnAddAfter",
             "handler": "hookActionObjectOrderReturnAddAfter",
-            "line": 978
+            "line": 1041
         },
         {
             "hook": "actionObjectOrderDeleteAfter",
             "handler": "hookActionObjectOrderDeleteAfter",
-            "line": 1006
+            "line": 1069
         },
         {
             "hook": "displayAdminOrderMainBottom",
             "handler": "hookDisplayAdminOrderMainBottom",
-            "line": 1031
+            "line": 1094
         },
         {
             "hook": "displayProductAdditionalInfo",
             "handler": "hookDisplayProductAdditionalInfo",
-            "line": 1713
+            "line": 1776
         },
         {
             "hook": "actionUpdateQuantity",
             "handler": "hookActionUpdateQuantity",
-            "line": 1787
+            "line": 1850
         },
         {
             "hook": "actionDeleteGDPRCustomer",
             "handler": "hookActionDeleteGDPRCustomer",
-            "line": 1867
+            "line": 1930
         },
         {
             "hook": "actionExportGDPRData",
             "handler": "hookActionExportGDPRData",
-            "line": 1882
+            "line": 1945
         }
     ],
     "front_controllers": [
@@ -7799,6 +8233,7 @@
         "NERIA_COLOR_FOOTER_BG",
         "NERIA_COLOR_FOOTER_TEXT",
         "NERIA_COLOR_HEADER_BG",
+        "NERIA_COLOR_LINK",
         "NERIA_COLOR_TEXT",
         "NERIA_CONSECUTIVE_FAILURES",
         "NERIA_CONTAINER_WIDTH",
@@ -7972,7 +8407,7 @@
     ],
     "translations": {
         "admin_translations.json": {
-            "keys": 3377,
+            "keys": 3380,
             "missing_by_lang": []
         },
         "template_labels_i18n.json": {
@@ -8061,7 +8496,7 @@
             ]
         },
         "ConfigManager": {
-            "public_methods": 68,
+            "public_methods": 69,
             "unreferenced_by_tests": [
                 "getHeadingFontFamily",
                 "getHeadingFontLink",
@@ -8124,10 +8559,7 @@
         },
         "DomainReputationManager": {
             "public_methods": 6,
-            "unreferenced_by_tests": [
-                "computeGrade",
-                "gradeColor"
-            ]
+            "unreferenced_by_tests": []
         },
         "EmailRenderer": {
             "public_methods": 6,
@@ -8158,7 +8590,7 @@
             "unreferenced_by_tests": []
         },
         "HealthCheckManager": {
-            "public_methods": 102,
+            "public_methods": 104,
             "unreferenced_by_tests": [
                 "recordDisplayHeaderRun",
                 "runFullDiagnostic",

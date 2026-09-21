@@ -1,0 +1,802 @@
+{
+    "generated": "2026-09-21T13:51:33+02:00",
+    "tabs": [
+        "configure",
+        "automations",
+        "design",
+        "typography",
+        "translations",
+        "social",
+        "stats",
+        "abtest",
+        "send",
+        "multipreview",
+        "customer_history",
+        "calendar",
+        "webhooks",
+        "segments",
+        "seasonal",
+        "bounces",
+        "gdpr",
+        "academy",
+        "certificates",
+        "control_center",
+        "help"
+    ],
+    "langs": [
+        "fr",
+        "en",
+        "ar"
+    ],
+    "summary": {
+        "configure": {
+            "fr": {
+                "bytes": 250744,
+                "forms": 30,
+                "buttons": 39
+            },
+            "en": {
+                "bytes": 248666,
+                "forms": 30,
+                "buttons": 39
+            },
+            "ar": {
+                "bytes": 259995,
+                "forms": 30,
+                "buttons": 39
+            }
+        },
+        "automations": {
+            "fr": {
+                "bytes": 66384,
+                "forms": 19,
+                "buttons": 24
+            },
+            "en": {
+                "bytes": 65884,
+                "forms": 19,
+                "buttons": 24
+            },
+            "ar": {
+                "bytes": 67711,
+                "forms": 19,
+                "buttons": 24
+            }
+        },
+        "design": {
+            "fr": {
+                "bytes": 76763,
+                "forms": 1,
+                "buttons": 22
+            },
+            "en": {
+                "bytes": 75827,
+                "forms": 1,
+                "buttons": 22
+            },
+            "ar": {
+                "bytes": 79083,
+                "forms": 1,
+                "buttons": 22
+            }
+        },
+        "typography": {
+            "fr": {
+                "bytes": 71079,
+                "forms": 1,
+                "buttons": 9
+            },
+            "en": {
+                "bytes": 70338,
+                "forms": 1,
+                "buttons": 9
+            },
+            "ar": {
+                "bytes": 73037,
+                "forms": 1,
+                "buttons": 9
+            }
+        },
+        "translations": {
+            "fr": {
+                "bytes": 72380,
+                "forms": 3,
+                "buttons": 14
+            },
+            "en": {
+                "bytes": 71091,
+                "forms": 3,
+                "buttons": 14
+            },
+            "ar": {
+                "bytes": 75491,
+                "forms": 3,
+                "buttons": 14
+            }
+        },
+        "social": {
+            "fr": {
+                "bytes": 40175,
+                "forms": 1,
+                "buttons": 6
+            },
+            "en": {
+                "bytes": 39915,
+                "forms": 1,
+                "buttons": 6
+            },
+            "ar": {
+                "bytes": 40941,
+                "forms": 1,
+                "buttons": 6
+            }
+        },
+        "stats": {
+            "fr": {
+                "bytes": 273759,
+                "forms": 33,
+                "buttons": 53
+            },
+            "en": {
+                "bytes": 270171,
+                "forms": 33,
+                "buttons": 53
+            },
+            "ar": {
+                "bytes": 286107,
+                "forms": 33,
+                "buttons": 53
+            }
+        },
+        "abtest": {
+            "fr": {
+                "bytes": 95856,
+                "forms": 28,
+                "buttons": 33
+            },
+            "en": {
+                "bytes": 95498,
+                "forms": 28,
+                "buttons": 33
+            },
+            "ar": {
+                "bytes": 99800,
+                "forms": 28,
+                "buttons": 33
+            }
+        },
+        "send": {
+            "fr": {
+                "bytes": 91790,
+                "forms": 1,
+                "buttons": 10
+            },
+            "en": {
+                "bytes": 90987,
+                "forms": 1,
+                "buttons": 10
+            },
+            "ar": {
+                "bytes": 94293,
+                "forms": 1,
+                "buttons": 10
+            }
+        },
+        "multipreview": {
+            "fr": {
+                "bytes": 64249,
+                "forms": 2,
+                "buttons": 9
+            },
+            "en": {
+                "bytes": 63563,
+                "forms": 2,
+                "buttons": 9
+            },
+            "ar": {
+                "bytes": 65837,
+                "forms": 2,
+                "buttons": 9
+            }
+        },
+        "customer_history": {
+            "fr": {
+                "bytes": 34687,
+                "forms": 1,
+                "buttons": 6
+            },
+            "en": {
+                "bytes": 34475,
+                "forms": 1,
+                "buttons": 6
+            },
+            "ar": {
+                "bytes": 35385,
+                "forms": 1,
+                "buttons": 6
+            }
+        },
+        "calendar": {
+            "fr": {
+                "bytes": 101549,
+                "forms": 14,
+                "buttons": 45
+            },
+            "en": {
+                "bytes": 100815,
+                "forms": 14,
+                "buttons": 45
+            },
+            "ar": {
+                "bytes": 105111,
+                "forms": 14,
+                "buttons": 45
+            }
+        },
+        "webhooks": {
+            "fr": {
+                "bytes": 41179,
+                "forms": 1,
+                "buttons": 7
+            },
+            "en": {
+                "bytes": 40782,
+                "forms": 1,
+                "buttons": 7
+            },
+            "ar": {
+                "bytes": 42188,
+                "forms": 1,
+                "buttons": 7
+            }
+        },
+        "segments": {
+            "fr": {
+                "bytes": 66942,
+                "forms": 3,
+                "buttons": 8
+            },
+            "en": {
+                "bytes": 66392,
+                "forms": 3,
+                "buttons": 8
+            },
+            "ar": {
+                "bytes": 70429,
+                "forms": 3,
+                "buttons": 8
+            }
+        },
+        "seasonal": {
+            "fr": {
+                "bytes": 58939,
+                "forms": 1,
+                "buttons": 8
+            },
+            "en": {
+                "bytes": 58440,
+                "forms": 1,
+                "buttons": 8
+            },
+            "ar": {
+                "bytes": 60881,
+                "forms": 1,
+                "buttons": 8
+            }
+        },
+        "bounces": {
+            "fr": {
+                "bytes": 58051,
+                "forms": 7,
+                "buttons": 16
+            },
+            "en": {
+                "bytes": 57257,
+                "forms": 7,
+                "buttons": 16
+            },
+            "ar": {
+                "bytes": 60506,
+                "forms": 7,
+                "buttons": 16
+            }
+        },
+        "gdpr": {
+            "fr": {
+                "bytes": 60887,
+                "forms": 1,
+                "buttons": 7
+            },
+            "en": {
+                "bytes": 60350,
+                "forms": 1,
+                "buttons": 7
+            },
+            "ar": {
+                "bytes": 64834,
+                "forms": 1,
+                "buttons": 7
+            }
+        },
+        "academy": {
+            "fr": {
+                "bytes": 98645,
+                "forms": 0,
+                "buttons": 5
+            },
+            "en": {
+                "bytes": 95337,
+                "forms": 0,
+                "buttons": 5
+            },
+            "ar": {
+                "bytes": 106732,
+                "forms": 0,
+                "buttons": 5
+            }
+        },
+        "certificates": {
+            "fr": {
+                "bytes": 53616,
+                "forms": 11,
+                "buttons": 16
+            },
+            "en": {
+                "bytes": 53139,
+                "forms": 11,
+                "buttons": 16
+            },
+            "ar": {
+                "bytes": 54839,
+                "forms": 11,
+                "buttons": 16
+            }
+        },
+        "control_center": {
+            "fr": {
+                "bytes": 82239,
+                "forms": 45,
+                "buttons": 50
+            },
+            "en": {
+                "bytes": 81687,
+                "forms": 45,
+                "buttons": 50
+            },
+            "ar": {
+                "bytes": 83762,
+                "forms": 45,
+                "buttons": 50
+            }
+        },
+        "help": {
+            "fr": {
+                "bytes": 218295,
+                "forms": 11,
+                "buttons": 24
+            },
+            "en": {
+                "bytes": 214675,
+                "forms": 11,
+                "buttons": 24
+            },
+            "ar": {
+                "bytes": 227613,
+                "forms": 11,
+                "buttons": 24
+            }
+        }
+    },
+    "issues": [
+        {
+            "tab": "configure",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "configure",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "include_once(C:\\laragon\\www\\shop/themes/classic/lang/fr.php): Failed to open stream: No such file or directory (Tools.php:599) ← neria : UpsellManager.php:1021",
+            "langs": [
+                "fr"
+            ]
+        },
+        {
+            "tab": "configure",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "include_once(): Failed opening 'C:\\laragon\\www\\shop/themes/classic/lang/fr.php' for inclusion (include_path='C:\\laragon\\www\\shop\\vendor/pear/pear_exception;C:\\laragon\\www\\shop\\vendor/pear/console_getopt;C:\\laragon\\www\\shop\\vendor/pear/pear-core-minimal/src;C:\\laragon\\www\\shop\\vendor/pear/archive_tar;.;C:/laragon/etc/php/pear') (Tools.php:599) ← neria : UpsellManager.php:1021",
+            "langs": [
+                "fr"
+            ]
+        },
+        {
+            "tab": "configure",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Function strftime() is deprecated (modifier.date_format.php:82) ← neria : neria.php:8247",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "automations",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "design",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "typography",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "translations",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "social",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "stats",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "stats",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Function strftime() is deprecated (modifier.date_format.php:82) ← neria : neria.php:8247",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "abtest",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "abtest",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Function strftime() is deprecated (modifier.date_format.php:82) ← neria : neria.php:8247",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "send",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "send",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Function strftime() is deprecated (modifier.date_format.php:82) ← neria : neria.php:8247",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "multipreview",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "customer_history",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "calendar",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "webhooks",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "segments",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "seasonal",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "bounces",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "bounces",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Function strftime() is deprecated (modifier.date_format.php:82) ← neria : neria.php:8247",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "gdpr",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "academy",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "certificates",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "certificates",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Function strftime() is deprecated (modifier.date_format.php:82) ← neria : neria.php:8247",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "control_center",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "help",
+            "lang": "fr",
+            "code": "R100",
+            "level": "I",
+            "msg": "Not specifying the optional ShopConstraint parameter is deprecated since version 1.7.8.0 (Configuration.php:425) ← neria : UpsellManager.php:1009",
+            "langs": [
+                "fr",
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "help",
+            "lang": "en",
+            "code": "R112",
+            "level": "W",
+            "msg": "français résiduel en 'en' — jours : 715 total, 32 ces 7 derniers jours",
+            "langs": [
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "help",
+            "lang": "en",
+            "code": "R112",
+            "level": "W",
+            "msg": "français résiduel en 'en' — accents : URL track présente dans order_conf compilé",
+            "langs": [
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "help",
+            "lang": "en",
+            "code": "R112",
+            "level": "W",
+            "msg": "français résiduel en 'en' — Aucune : Aucune surcharge de thème détectée",
+            "langs": [
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "help",
+            "lang": "en",
+            "code": "R112",
+            "level": "W",
+            "msg": "français résiduel en 'en' — Aucune : Aucune surcharge de classe PHP détectée",
+            "langs": [
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "help",
+            "lang": "en",
+            "code": "R112",
+            "level": "W",
+            "msg": "français résiduel en 'en' — accents : Vérification de compilation Smarty active — les modification",
+            "langs": [
+                "en",
+                "ar"
+            ]
+        },
+        {
+            "tab": "help",
+            "lang": "en",
+            "code": "R112",
+            "level": "W",
+            "msg": "français résiduel en 'en' — Aucun : Aucun script d'upgrade n'appelle une méthode non publique de",
+            "langs": [
+                "en",
+                "ar"
+            ]
+        }
+    ]
+}
