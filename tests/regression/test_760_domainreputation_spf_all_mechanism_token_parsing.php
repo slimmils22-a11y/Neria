@@ -47,7 +47,7 @@ function run_test(): array
         "checkSpf() ne parse plus le mécanisme 'all' via une regex de jeton isolé — régression du bug corrigé le 14/09/2026 (round 358) : '-all' dans un autre terme (ex. 'relay-all.example.net') redeviendrait un faux positif 'reject'"
     );
     neria_assert(
-        strpos($src, "'+', '' => 'permissive'") !== false,
+        strpos($src, "'+' => 'permissive', '' => 'permissive'") !== false,
         "checkSpf() ne distingue plus '+all'/'all' sans qualifier comme 'permissive' — régression du bug corrigé le 14/09/2026 (round 358)"
     );
     neria_assert(
@@ -59,12 +59,7 @@ function run_test(): array
     // que le code source) sur les 4 cas de reproduction concrets.
     $extractPolicy = function (string $txt): string {
         if (preg_match('/(?:^|\s)([+\-~?]?)all(?:\s|$)/i', $txt, $mAll)) {
-            return match ($mAll[1]) {
-                '-'     => 'reject',
-                '~'     => 'softfail',
-                '+', '' => 'permissive',
-                default => 'neutral',
-            };
+            return ['-' => 'reject', '~' => 'softfail', '+' => 'permissive', '' => 'permissive'][$mAll[1]] ?? 'neutral';
         }
         return 'neutral';
     };
