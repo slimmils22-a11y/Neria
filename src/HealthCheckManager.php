@@ -126,6 +126,20 @@ class HealthCheckManager
         return $found;
     }
 
+    /**
+     * P8c : vrai si un gabarit admin contient un lien target="_blank" sans rel (noopener) — tabnabbing.
+     */
+    private function tplHasBlankTargetWithoutRel(string $dir): bool
+    {
+        foreach (glob($dir . '*.tpl') ?: [] as $f) {
+            if (preg_match('/target="_blank"(?![^>]*\brel=)/', $this->readModuleSrc($f)) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function readModuleSrc(string $file): string
     {
         if (!array_key_exists($file, $this->srcCache)) {
@@ -6766,6 +6780,17 @@ class HealthCheckManager
             || strpos($selfP8b, '$rawNeutrali' . 'sed !== null') === false
         ) {
             $offenders[] = "Back-office P8b : la sauvegarde d'une campagne saisonnière n'exige plus un nom et un modèle d'e-mail valides côté serveur, ou le contrôle des liens front-office ne protège plus token_get_all() d'un résultat null de preg_replace_callback — régression des correctifs P8b (21/09/2026)";
+        }
+
+        // P8c (21/09/2026) : retirer une règle de la liste noire se faisait d'un seul clic, sans confirmation, et deux liens
+        // target="_blank" du Centre d'aide n'avaient pas rel="noopener".
+        $confP8c = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/configure.tpl');
+        $helpP8c = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/help.tpl');
+        if ($confP8c === '' || $helpP8c === ''
+            || strpos($confP8c, "data-confirm=" . '"{neria_admin key=' . "'configure.blacklist_remove" . "_confirm'") === false
+            || $this->tplHasBlankTargetWithoutRel(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/')
+        ) {
+            $offenders[] = "Back-office P8c : le bouton de retrait d'une règle de la liste noire n'a plus de confirmation, ou un lien target=_blank du Centre d'aide n'a plus rel=noopener — régression du correctif P8c (21/09/2026)";
         }
 
         // Constat F-004 (suite) : sous PHP < 7.4 le module refuse l'installation avec un message clair (19 langues).
