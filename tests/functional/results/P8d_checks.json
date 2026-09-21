@@ -1,0 +1,1022 @@
+{
+    "generated": "2026-09-21T19:41:07+02:00",
+    "langs": [
+        "fr",
+        "en"
+    ],
+    "rows": [
+        {
+            "key": "sent_reconciliation",
+            "method": "checkSentReconciliation",
+            "status": "ok",
+            "ms": 36,
+            "detail": "931 total, 231 ces 7 derniers jours",
+            "langs": 2
+        },
+        {
+            "key": "pixel_in_html",
+            "method": "checkPixelInHtml",
+            "status": "ok",
+            "ms": 33,
+            "detail": "URL track présente dans order_conf compilé",
+            "langs": 2
+        },
+        {
+            "key": "theme_override",
+            "method": "checkThemeOverride",
+            "status": "ok",
+            "ms": 32,
+            "detail": "Aucune surcharge de thème détectée",
+            "langs": 2
+        },
+        {
+            "key": "class_override",
+            "method": "checkClassOverride",
+            "status": "ok",
+            "ms": 30,
+            "detail": "Aucune surcharge de classe PHP détectée",
+            "langs": 2
+        },
+        {
+            "key": "smarty_compile_check",
+            "method": "checkSmartyCompileCheck",
+            "status": "ok",
+            "ms": 31,
+            "detail": "Vérification de compilation Smarty active — les modifications de templates sont bien prises en compte.",
+            "langs": 2
+        },
+        {
+            "key": "upgrade_script_safety",
+            "method": "checkUpgradeScriptSafety",
+            "status": "ok",
+            "ms": 49,
+            "detail": "Aucun script d'upgrade n'appelle une méthode non publique de Neria.",
+            "langs": 2
+        },
+        {
+            "key": "config_defaults_seeded",
+            "method": "checkConfigDefaultsSeeded",
+            "status": "warning",
+            "ms": 37,
+            "detail": "Réglage(s) manquant(s) en base sur cette installation : NERIA_BIRTHDAY_ENABLED, NERIA_FIRST_ANNIVERSARY_ENABLED, NERIA_WIN_BACK_ENABLED, NER",
+            "langs": 2
+        },
+        {
+            "key": "upgrade_version_file",
+            "method": "checkUpgradeScriptExistsForVersion",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Un script d'upgrade correspond bien à la version actuelle du module.",
+            "langs": 2
+        },
+        {
+            "key": "security_pattern_scan",
+            "method": "checkSecurityPatternScan",
+            "status": "ok",
+            "ms": 234,
+            "detail": "Aucune vérification SSL désactivée ni fonction dangereuse détectée dans le code du module.",
+            "langs": 2
+        },
+        {
+            "key": "destructive_actions_post",
+            "method": "checkDestructiveActionsRequirePost",
+            "status": "ok",
+            "ms": 45,
+            "detail": "Toutes les actions d'écriture du back-office exigent une requête POST.",
+            "langs": 2
+        },
+        {
+            "key": "hardcoded_date_format",
+            "method": "checkHardcodedDateFormat",
+            "status": "ok",
+            "ms": 162,
+            "detail": "Aucune date codée en dur détectée dans les emails — toutes passent par le formatage localisé.",
+            "langs": 2
+        },
+        {
+            "key": "rtl_hardcoded_align",
+            "method": "checkRtlHardcodedAlignment",
+            "status": "ok",
+            "ms": 51,
+            "detail": "Aucun text-align/float codé en dur détecté dans les templates email.",
+            "langs": 2
+        },
+        {
+            "key": "display_price_missing_lang",
+            "method": "checkDisplayPriceMissingLang",
+            "status": "ok",
+            "ms": 175,
+            "detail": "Tous les appels à NeriaTools::displayPrice() précisent la langue du destinataire.",
+            "langs": 2
+        },
+        {
+            "key": "hardcoded_decimal_format",
+            "method": "checkHardcodedDecimalFormat",
+            "status": "ok",
+            "ms": 190,
+            "detail": "Aucun formatage décimal codé en dur détecté (virgule française fixe) : tous les montants passent par un helper localisé.",
+            "langs": 2
+        },
+        {
+            "key": "chained_str_replace",
+            "method": "checkChainedStrReplace",
+            "status": "ok",
+            "ms": 163,
+            "detail": "Aucune substitution de variables par str_replace(array_keys(...)) détectée : toutes utilisent strtr() (pas de risque de re-substitution en c",
+            "langs": 2
+        },
+        {
+            "key": "customer_email_shop_scope",
+            "method": "checkCustomerEmailLookupMissingShop",
+            "status": "ok",
+            "ms": 143,
+            "detail": "Aucune résolution de client par email sans filtre id_shop détectée : les recherches par email sur la table customer sont toutes scopées par ",
+            "langs": 2
+        },
+        {
+            "key": "default_currency_usage",
+            "method": "checkDefaultCurrencyUsage",
+            "status": "ok",
+            "ms": 40,
+            "detail": "Aucune occurrence de Currency::getDefaultCurrency() détectée dans src/.",
+            "langs": 2
+        },
+        {
+            "key": "upgrade_unique_key_shop_scope",
+            "method": "checkUpgradeUniqueKeyShopScope",
+            "status": "ok",
+            "ms": 50,
+            "detail": "Toutes les clés UNIQUE des scripts d'upgrade incluent id_shop.",
+            "langs": 2
+        },
+        {
+            "key": "tpl_request_uri_escape",
+            "method": "checkTplRequestUriEscape",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Toutes les utilisations de $smarty.server.REQUEST_URI dans les templates sont échappées.",
+            "langs": 2
+        },
+        {
+            "key": "cron_strict_date_equality",
+            "method": "checkCronStrictDateEquality",
+            "status": "ok",
+            "ms": 160,
+            "detail": "Aucune requête cron ne compare une date de déclenchement par égalité stricte.",
+            "langs": 2
+        },
+        {
+            "key": "cron_loop_try_catch",
+            "method": "checkCronLoopMissingTryCatch",
+            "status": "ok",
+            "ms": 114,
+            "detail": "Toutes les boucles cron envoyant des emails comportementaux contiennent une protection try/catch.",
+            "langs": 2
+        },
+        {
+            "key": "tpl_js_escape_missing",
+            "method": "checkTplJsEscapeMissing",
+            "status": "ok",
+            "ms": 35,
+            "detail": "Aucune interpolation JS non échappée détectée dans les .tpl du BO.",
+            "langs": 2
+        },
+        {
+            "key": "imap_timeout_missing",
+            "method": "checkImapTimeoutMissing",
+            "status": "ok",
+            "ms": 159,
+            "detail": "Tous les appels imap_open() sont protégés par un timeout.",
+            "langs": 2
+        },
+        {
+            "key": "oauth_refresh_error_surfaced",
+            "method": "checkOAuthRefreshErrorSurfaced",
+            "status": "ok",
+            "ms": 161,
+            "detail": "Toutes les méthodes refreshAccessToken() remontent leurs échecs au canal d'erreur standard.",
+            "langs": 2
+        },
+        {
+            "key": "known_regressions_guard",
+            "method": "checkKnownRegressionsGuard",
+            "status": "ok",
+            "ms": 380,
+            "detail": "Aucune des 242 régressions connues n'a réapparu dans le code.",
+            "langs": 2
+        },
+        {
+            "key": "queue_status_enum_migrated",
+            "method": "checkQueueStatusEnumMigrated",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Le schéma des colonnes `status` des files d'envoi (email/webhook) inclut bien la valeur 'sending'.",
+            "langs": 2
+        },
+        {
+            "key": "known_regressions_guard_freshness",
+            "method": "checkKnownRegressionsGuardFreshness",
+            "status": "ok",
+            "ms": 31,
+            "detail": "Scan approfondi anti-régression exécuté récemment (dernière fois : 2026-09-21 18:56:49).",
+            "langs": 2
+        },
+        {
+            "key": "control_center_defaults_consistency",
+            "method": "checkControlCenterDefaultsConsistency",
+            "status": "ok",
+            "ms": 238,
+            "detail": "Le registre du centre de contrôle est cohérent : chaque interrupteur a un statut par défaut fiable.",
+            "langs": 2
+        },
+        {
+            "key": "sql_pattern_risks",
+            "method": "checkSqlPatternRisks",
+            "status": "ok",
+            "ms": 204,
+            "detail": "Aucun piège SQL/PHP générique connu détecté dans le code (LIMIT en double via getRow(), appel non protégé à Product::getPriceStatic()).",
+            "langs": 2
+        },
+        {
+            "key": "unescaped_like_metachars",
+            "method": "checkUnescapedLikeMetachars",
+            "status": "ok",
+            "ms": 42,
+            "detail": "Aucune requête LIKE avec métacaractères % ou _ non échappés détectée (risque de sur-correspondance, ex. purge RGPD touchant un tiers).",
+            "langs": 2
+        },
+        {
+            "key": "template_cat_mapping_complete",
+            "method": "checkTemplateCategoryMappingComplete",
+            "status": "ok",
+            "ms": 49,
+            "detail": "Tous les templates réellement envoyés sont présents dans PreferencesManager::TEMPLATE_CAT et StatsManager::$CHART_CATEGORIES.",
+            "langs": 2
+        },
+        {
+            "key": "php_mysql_clock_mismatch",
+            "method": "checkPhpMysqlClockMismatch",
+            "status": "ok",
+            "ms": 49,
+            "detail": "Aucune colonne date_add/created_at écrite via l'horloge PHP détectée sans NOW() à proximité (risque de décalage d'horloge PHP/MySQL).",
+            "langs": 2
+        },
+        {
+            "key": "i18n_pattern_risks",
+            "method": "checkI18nPatternRisks",
+            "status": "ok",
+            "ms": 671,
+            "detail": "Aucun piège i18n/Smarty générique connu détecté (modificateur après paramètre nommé, clé de langue orpheline).",
+            "langs": 2
+        },
+        {
+            "key": "hardcoded_french_text",
+            "method": "checkHardcodedFrenchText",
+            "status": "ok",
+            "ms": 69,
+            "detail": "Aucun texte français codé en dur détecté hors du système de traduction dans src/*.php.",
+            "langs": 2
+        },
+        {
+            "key": "idlang_missing",
+            "method": "checkMissingIdLangInLinks",
+            "status": "warning",
+            "ms": 289,
+            "detail": "Appel(s) getPageLink()/getModuleLink() sans idLang explicite (risque de lien dans la mauvaise langue) : neria.php (2).",
+            "langs": 2
+        },
+        {
+            "key": "version_files_sync",
+            "method": "checkModuleVersionFilesSync",
+            "status": "ok",
+            "ms": 42,
+            "detail": "Version synchronisée entre neria.php et config.xml (1.0.48).",
+            "langs": 2
+        },
+        {
+            "key": "translation_dict_coverage",
+            "method": "checkTranslationDictionaryCoverage",
+            "status": "ok",
+            "ms": 105,
+            "detail": "Les 19 langues sont couvertes dans les 4 dictionnaires de traduction (contenu, BO, labels, académie).",
+            "langs": 2
+        },
+        {
+            "key": "clickable_tracking_links",
+            "method": "checkClickableTrackingLinks",
+            "status": "ok",
+            "ms": 45,
+            "detail": "Les liens de suivi (history_info/guest_tracking_info/tracking_info) sont bien cliquables partout.",
+            "langs": 2
+        },
+        {
+            "key": "dev_tool_residue",
+            "method": "checkDevToolResidue",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Aucune trace d'outil de développement (Mailpit...) dans les templates/JS livrés.",
+            "langs": 2
+        },
+        {
+            "key": "fragile_neriaconfig_usage",
+            "method": "checkFragileNeriaConfigUsage",
+            "status": "ok",
+            "ms": 36,
+            "detail": "Aucun usage fragile de neriaConfig.adminUrl/moduleName détecté dans les templates BO.",
+            "langs": 2
+        },
+        {
+            "key": "bare_template_var_keys",
+            "method": "checkBareTemplateVarKeys",
+            "status": "ok",
+            "ms": 258,
+            "detail": "Aucune clé brute (sans accolades) suspecte dans templateVars — pas de risque de corruption via le DecoratorPlugin.",
+            "langs": 2
+        },
+        {
+            "key": "txt_placeholder_coverage",
+            "method": "checkTxtPlaceholderCoverage",
+            "status": "ok",
+            "ms": 108,
+            "detail": "Toutes les variables des templates texte (.txt) sont couvertes par le code.",
+            "langs": 2
+        },
+        {
+            "key": "orphaned_voucher_reservations",
+            "method": "checkOrphanedVoucherReservations",
+            "status": "ok",
+            "ms": 43,
+            "detail": "Aucune réservation de bon de réduction orpheline.",
+            "langs": 2
+        },
+        {
+            "key": "orphaned_waitlist_claims",
+            "method": "checkOrphanedWaitlistClaims",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Aucune réclamation de notification liste d'attente orpheline.",
+            "langs": 2
+        },
+        {
+            "key": "encoded_residual_links",
+            "method": "checkEncodedResidualLinks",
+            "status": "ok",
+            "ms": 1035,
+            "detail": "Aucun résidu de variable encodé détecté dans les liens des templates.",
+            "langs": 2
+        },
+        {
+            "key": "txt_raw_html_leak",
+            "method": "checkTxtRawHtmlLeak",
+            "status": "ok",
+            "ms": 977,
+            "detail": "Aucune balise HTML brute détectée dans les versions texte des templates.",
+            "langs": 2
+        },
+        {
+            "key": "crypto_key_health",
+            "method": "checkCryptoKeyHealth",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Clé de chiffrement présente et fonctionnelle (test aller-retour réussi).",
+            "langs": 2
+        },
+        {
+            "key": "html_txt_pairs",
+            "method": "checkHtmlTxtPairs",
+            "status": "ok",
+            "ms": 42,
+            "detail": "Les 117 templates ont bien leurs deux fichiers (.html et .txt).",
+            "langs": 2
+        },
+        {
+            "key": "template_files",
+            "method": "checkTemplateFiles",
+            "status": "ok",
+            "ms": 41,
+            "detail": "117 templates présents sur disque (HTML + TXT).",
+            "langs": 2
+        },
+        {
+            "key": "trad_keys",
+            "method": "checkTradKeys",
+            "status": "ok",
+            "ms": 79,
+            "detail": "699 clés de traduction présentes et complètes.",
+            "langs": 2
+        },
+        {
+            "key": "open_rate_7d",
+            "method": "checkOpenRate7d",
+            "status": "error",
+            "ms": 40,
+            "detail": "Taux d'ouverture 7j : 0% (0/231). → Que faire : Vérifiez le score de réputation dans l'onglet Statistiques, testez le pixel de tracking (ong",
+            "langs": 2
+        },
+        {
+            "key": "bounce_rate",
+            "method": "checkBounceRate",
+            "status": "ok",
+            "ms": 35,
+            "detail": "Taux de bounce : 0% sur 24h (0 / 94 envois). Excellent.",
+            "langs": 2
+        },
+        {
+            "key": "consecutive_failures",
+            "method": "checkConsecutiveFailures",
+            "status": "ok",
+            "ms": 32,
+            "detail": "Aucun échec consécutif de rendu détecté.",
+            "langs": 2
+        },
+        {
+            "key": "hooks_registered",
+            "method": "checkHooksRegistered",
+            "status": "ok",
+            "ms": 40,
+            "detail": "16 hooks correctement enregistrés.",
+            "langs": 2
+        },
+        {
+            "key": "cron_triggered",
+            "method": "checkCronTriggered",
+            "status": "ok",
+            "ms": 36,
+            "detail": "Dernier déclenchement : 19/09 10:45",
+            "langs": 2
+        },
+        {
+            "key": "crons_health",
+            "method": "checkCronsHealth",
+            "status": "warning",
+            "ms": 37,
+            "detail": "Ces tâches automatiques sont en retard : Cron comportemental (dernière exéc. il y a 57h); Cron calendaire (dernière exéc. il y a 57h); Queue",
+            "langs": 2
+        },
+        {
+            "key": "queue_blocked",
+            "method": "checkQueueBlocked",
+            "status": "ok",
+            "ms": 43,
+            "detail": "File d'envoi fluide — 0 email(s) en attente programmé(s).",
+            "langs": 2
+        },
+        {
+            "key": "ajax_endpoints",
+            "method": "checkAjax",
+            "status": "ok",
+            "ms": 37,
+            "detail": "Aucune erreur AJAX dans les dernières 24h — endpoints back-office opérationnels.",
+            "langs": 2
+        },
+        {
+            "key": "bounces_unprocessed",
+            "method": "checkBouncesUnprocessed",
+            "status": "ok",
+            "ms": 40,
+            "detail": "Bounces traités correctement — 1 adresse(s) en base.",
+            "langs": 2
+        },
+        {
+            "key": "config_keys",
+            "method": "checkConfigKeys",
+            "status": "ok",
+            "ms": 34,
+            "detail": "12 clés vérifiées",
+            "langs": 2
+        },
+        {
+            "key": "version_sync",
+            "method": "checkVersionSync",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Version synchronisée : 1.0.48.",
+            "langs": 2
+        },
+        {
+            "key": "upgrade_integrity",
+            "method": "checkUpgradeIntegrity",
+            "status": "error",
+            "ms": 67,
+            "detail": "3 upgrade(s) potentiellement incomplet(s) : 1.0.30, 1.0.31, 1.0.32. → Que faire : vérifiez les logs d'installation, ou contactez le support ",
+            "langs": 2
+        },
+        {
+            "key": "hmac_security",
+            "method": "checkHmacSecurity",
+            "status": "ok",
+            "ms": 37,
+            "detail": "_COOKIE_KEY_ présente et robuste (64 chars) — HMAC désabonnement sécurisé.",
+            "langs": 2
+        },
+        {
+            "key": "smtp_config",
+            "method": "checkSmtpConfig",
+            "status": "ok",
+            "ms": 35,
+            "detail": "SMTP configuré : 127.0.0.1 (utilisateur : localhost).",
+            "langs": 2
+        },
+        {
+            "key": "list_unsubscribe",
+            "method": "checkListUnsubscribeApi",
+            "status": "ok",
+            "ms": 37,
+            "detail": "API Swift_Message compatible",
+            "langs": 2
+        },
+        {
+            "key": "translation_gaps",
+            "method": "checkTranslationGaps",
+            "status": "ok",
+            "ms": 95,
+            "detail": "3383 clés × 19 langues — complet",
+            "langs": 2
+        },
+        {
+            "key": "assets",
+            "method": "checkAssets",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Logo et signature vérifiés",
+            "langs": 2
+        },
+        {
+            "key": "managers_available",
+            "method": "checkManagersAvailable",
+            "status": "ok",
+            "ms": 61,
+            "detail": "Tous les managers PHP sont disponibles (14/14).",
+            "langs": 2
+        },
+        {
+            "key": "critical_methods",
+            "method": "checkCriticalMethods",
+            "status": "ok",
+            "ms": 35,
+            "detail": "19 méthodes critiques vérifiées par réflexion — API interne intacte.",
+            "langs": 2
+        },
+        {
+            "key": "webhook_failures",
+            "method": "checkWebhookFailures",
+            "status": "ok",
+            "ms": 39,
+            "detail": "Webhooks opérationnels — 1 en attente.",
+            "langs": 2
+        },
+        {
+            "key": "abtest_stuck",
+            "method": "checkAbtestStuck",
+            "status": "ok",
+            "ms": 39,
+            "detail": "Aucun A/B test bloqué.",
+            "langs": 2
+        },
+        {
+            "key": "crypto_key",
+            "method": "checkCryptoKey",
+            "status": "ok",
+            "ms": 36,
+            "detail": "Clé de chiffrement AES-256-GCM présente et fonctionnelle.",
+            "langs": 2
+        },
+        {
+            "key": "secrets_encrypted",
+            "method": "checkSecretsEncrypted",
+            "status": "ok",
+            "ms": 36,
+            "detail": "Tous les secrets sensibles sont chiffrés.",
+            "langs": 2
+        },
+        {
+            "key": "send_volume_spike",
+            "method": "checkSendVolumeSpike",
+            "status": "warning",
+            "ms": 39,
+            "detail": "Volume d'envoi élevé : 79 emails aujourd'hui vs moyenne 7j de 20 (×3.9). → Que faire : Vérifiez qu'une campagne manuelle ou saisonnière n'a ",
+            "langs": 2
+        },
+        {
+            "key": "domain_rep_score",
+            "method": "checkDomainRepScore",
+            "status": "warning",
+            "ms": 35,
+            "detail": "Réputation domaine dégradée : score 42/100 (grade B). → Que faire : Vérifiez votre configuration SPF/DKIM/DMARC dans l'onglet Statistiques →",
+            "langs": 2
+        },
+        {
+            "key": "ptr_record",
+            "method": "checkPtrRecord",
+            "status": "warning",
+            "ms": 35,
+            "detail": "PTR / rDNS absent pour l'IP ?. Certains serveurs (Orange, SFR, serveurs corporate) rejettent les emails sans reverse DNS. → Que faire : Cont",
+            "langs": 2
+        },
+        {
+            "key": "db_tables",
+            "method": "checkDbTables",
+            "status": "ok",
+            "ms": 37,
+            "detail": "38 tables présentes en base.",
+            "langs": 2
+        },
+        {
+            "key": "unsubscribe_url",
+            "method": "checkUnsubscribeUrl",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Lien de désabonnement accessible (HTTP 200).",
+            "langs": 2
+        },
+        {
+            "key": "waitlist_backlog",
+            "method": "checkWaitlistBacklog",
+            "status": "ok",
+            "ms": 41,
+            "detail": "Waitlist à jour — 0 client(s) en attente de restockage.",
+            "langs": 2
+        },
+        {
+            "key": "smtp_quota",
+            "method": "checkSmtpQuota",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Aucun quota SMTP journalier configuré.",
+            "langs": 2
+        },
+        {
+            "key": "postmaster_rep",
+            "method": "checkPostmasterReputation",
+            "status": "skipped",
+            "note": "API Google Postmaster"
+        },
+        {
+            "key": "click_rate_7d",
+            "method": "checkClickRate7d",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Aucune ouverture enregistrée ces 7 derniers jours — taux de clic non applicable.",
+            "langs": 2
+        },
+        {
+            "key": "unsubscribe_spike",
+            "method": "checkUnsubscribeSpike",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Taux de désabonnement 7j : 0% (0 / 231 envois). Dans les normes.",
+            "langs": 2
+        },
+        {
+            "key": "fallback_template",
+            "method": "checkFallbackTemplate",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Template de secours neria_fallback présent avec traduction FR.",
+            "langs": 2
+        },
+        {
+            "key": "front_controllers",
+            "method": "checkFrontControllers",
+            "status": "ok",
+            "ms": 35,
+            "detail": "8 contrôleurs frontaux présents (tracking, désabonnement, liste d'attente, cron externe, OAuth, bounces, préférences).",
+            "langs": 2
+        },
+        {
+            "key": "queue_overflow",
+            "method": "checkQueueOverflow",
+            "status": "ok",
+            "ms": 36,
+            "detail": "0 email(s) en attente dans la file. Charge normale.",
+            "langs": 2
+        },
+        {
+            "key": "behavioral_dedup",
+            "method": "checkBehavioralDedupSize",
+            "status": "ok",
+            "ms": 35,
+            "detail": "Table de déduplication comportementale : 61 lignes. Taille saine.",
+            "langs": 2
+        },
+        {
+            "key": "multi_sender_json",
+            "method": "checkMultiSenderJson",
+            "status": "ok",
+            "ms": 36,
+            "detail": "Multi-expéditeur non configuré (fonctionnement mono-expéditeur).",
+            "langs": 2
+        },
+        {
+            "key": "monthly_report_cfg",
+            "method": "checkMonthlyReportConfig",
+            "status": "ok",
+            "ms": 33,
+            "detail": "Rapport mensuel actif — destinataire : admin@test.com.",
+            "langs": 2
+        },
+        {
+            "key": "deepl_key_valid",
+            "method": "checkDeeplKeyValid",
+            "status": "skipped",
+            "note": "API DeepL"
+        },
+        {
+            "key": "php_memory_limit",
+            "method": "checkPhpMemoryLimit",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Mémoire PHP : 1024 MB. Suffisante pour toutes les opérations Neria.",
+            "langs": 2
+        },
+        {
+            "key": "loyalty_integrity",
+            "method": "checkLoyaltyIntegrity",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Programme de fidélité : intégrité des données vérifiée.",
+            "langs": 2
+        },
+        {
+            "key": "segment_freshness",
+            "method": "checkSegmentFreshness",
+            "status": "ok",
+            "ms": 35,
+            "detail": "Segments recalculés il y a 0.7h. À jour.",
+            "langs": 2
+        },
+        {
+            "key": "clv_freshness",
+            "method": "checkClvFreshness",
+            "status": "ok",
+            "ms": 37,
+            "detail": "CLV dynamique actif — scores sources (33 clients) calculés il y a 0.6h.",
+            "langs": 2
+        },
+        {
+            "key": "quote_reminders",
+            "method": "checkQuoteRemindersStuck",
+            "status": "ok",
+            "ms": 37,
+            "detail": "Relances devis : aucun devis actif bloqué sans relance.",
+            "langs": 2
+        },
+        {
+            "key": "campaign_empty_seg",
+            "method": "checkCampaignEmptySegment",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Aucune campagne active avec ciblage de segment.",
+            "langs": 2
+        },
+        {
+            "key": "alert_email_invalid",
+            "method": "checkAlertEmailInvalid",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Adresse email d'alerte Watchdog valide.",
+            "langs": 2
+        },
+        {
+            "key": "attribution_coverage",
+            "method": "checkAttributionCoverage",
+            "status": "ok",
+            "ms": 43,
+            "detail": "Attribution active. Trop peu de commandes récentes pour mesurer la couverture.",
+            "langs": 2
+        },
+        {
+            "key": "history_table_size",
+            "method": "checkTranslationHistorySize",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Historique des traductions : 0 entrées. Taille normale.",
+            "langs": 2
+        },
+        {
+            "key": "abtest_trad_gaps",
+            "method": "checkAbtestTranslationGaps",
+            "status": "ok",
+            "ms": 36,
+            "detail": "Aucun test A/B actif.",
+            "langs": 2
+        },
+        {
+            "key": "engagement_trend",
+            "method": "checkEngagementTrend",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Historique insuffisant pour détecter une tendance (besoin de ≥ 50 envois sur les deux périodes).",
+            "langs": 2
+        },
+        {
+            "key": "oauth_freshness",
+            "method": "checkOAuthFreshness",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Connexions OAuth (Search Console / Postmaster) à jour ou non configurées.",
+            "langs": 2
+        },
+        {
+            "key": "visibility_freshness",
+            "method": "checkVisibilityIntegrationsFreshness",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Intégrations de visibilité web (PageSpeed / API SEO) à jour ou non configurées.",
+            "langs": 2
+        },
+        {
+            "key": "active_cron",
+            "method": "checkActiveCron",
+            "status": "warning",
+            "ms": 35,
+            "detail": "Aucun cron serveur externe détecté — Neria repose uniquement sur le trafic visiteurs (hookDisplayHeader) pour ses tâches de fond, ce qui peu",
+            "langs": 2
+        },
+        {
+            "key": "template_staleness",
+            "method": "checkTemplateStaleness",
+            "status": "warning",
+            "ms": 40,
+            "detail": "9 template(s) envoyaient régulièrement des emails jusqu'ici mais n'en ont envoyé aucun sur les 30 derniers jours : order_conf, loyalty_recap",
+            "langs": 2
+        },
+        {
+            "key": "blacklist_stale_files",
+            "method": "checkBlacklistStaleFiles",
+            "status": "warning",
+            "ms": 40,
+            "detail": "18 fichier email compilé résiduel pour des templates désactivés : care_certificate (fr), care_certificate (en), care_certificate (de), care_",
+            "langs": 2
+        },
+        {
+            "key": "residual_vars_recent",
+            "method": "checkRecentResidualVarsWarnings",
+            "status": "warning",
+            "ms": 34,
+            "detail": "48 email(s) envoyé(s) ces 7 derniers jours avaient une variable de contenu manquante (nettoyée automatiquement, mais à corriger à la source)",
+            "langs": 2
+        },
+        {
+            "key": "sig_social_recent",
+            "method": "checkSignatureSocialRenderedRecently",
+            "status": "ok",
+            "ms": 279,
+            "detail": "120 email(s) récent(s) vérifié(s) : signature/réseaux sociaux correctement présents.",
+            "langs": 2
+        },
+        {
+            "key": "action_banner_coverage",
+            "method": "checkActionBannerCoverage",
+            "status": "ok",
+            "ms": 49,
+            "detail": "140 actions du BO analysées, toutes affichent bien une bannière de confirmation.",
+            "langs": 2
+        },
+        {
+            "key": "orphan_placeholders",
+            "method": "checkOrphanPlaceholders",
+            "status": "ok",
+            "ms": 108,
+            "detail": "136 variables de template vérifiées, toutes référencées dans le code du module.",
+            "langs": 2
+        },
+        {
+            "key": "render_canary_recent",
+            "method": "checkRenderCanaryRecent",
+            "status": "ok",
+            "ms": 35,
+            "detail": "Aucun problème détecté lors du dernier canari de rendu (tous les templates compilent proprement).",
+            "langs": 2
+        },
+        {
+            "key": "milestone_order_health",
+            "method": "checkMilestoneOrderHealth",
+            "status": "ok",
+            "ms": 39,
+            "detail": "Palier de fidélisation (milestone_order) : ordinaux localisés complets, aucune erreur récente.",
+            "langs": 2
+        },
+        {
+            "key": "custom_vars_completeness",
+            "method": "checkCustomVarsCompleteness",
+            "status": "ok",
+            "ms": 132,
+            "detail": "Aucune variable personnalisée requise par les templates actuels.",
+            "langs": 2
+        },
+        {
+            "key": "churn_propensity_freshness",
+            "method": "checkChurnPropensityFreshness",
+            "status": "ok",
+            "ms": 46,
+            "detail": "Scores de désabonnement et de propension d'achat à jour.",
+            "langs": 2
+        },
+        {
+            "key": "collection_look_products",
+            "method": "checkCollectionLookRulesProductValidity",
+            "status": "ok",
+            "ms": 39,
+            "detail": "Toutes les règles Collection/Complétez votre look actives référencent des produits valides.",
+            "langs": 2
+        },
+        {
+            "key": "queue_failed_rate",
+            "method": "checkQueueFailedRate",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Taux d'échec normal de la file d'attente comportementale : 0% sur 1 envoi(s) (30 jours).",
+            "langs": 2
+        },
+        {
+            "key": "json_config_integrity",
+            "method": "checkJsonConfigIntegrity",
+            "status": "ok",
+            "ms": 35,
+            "detail": "Configurations JSON (paliers fidélité, expéditeurs) valides.",
+            "langs": 2
+        },
+        {
+            "key": "crypto_unavailable_plain",
+            "method": "checkCryptoUnavailableWithPlainData",
+            "status": "ok",
+            "ms": 34,
+            "detail": "Chiffrement disponible, ou aucune donnée en clair à protéger.",
+            "langs": 2
+        },
+        {
+            "key": "abtest_variant_pair",
+            "method": "checkAbtestVariantPairIntegrity",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Tous les tests A/B actifs ont leurs 2 variantes.",
+            "langs": 2
+        },
+        {
+            "key": "milestone_voucher_cartrule",
+            "method": "checkMilestoneVoucherCartRuleValidity",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Tous les bons de palier récents référencent un CartRule valide.",
+            "langs": 2
+        },
+        {
+            "key": "css_inliner_failures",
+            "method": "checkCssInlinerSilentFailures",
+            "status": "ok",
+            "ms": 35,
+            "detail": "Aucun échec d'insertion CSS détecté depuis le dernier contrôle.",
+            "langs": 2
+        },
+        {
+            "key": "stored_secrets_decryptable",
+            "method": "checkStoredSecretsDecryptable",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Tous les secrets chiffrés stockés restent déchiffrables avec la clé actuelle.",
+            "langs": 2
+        },
+        {
+            "key": "stats_snapshot_decryptable",
+            "method": "checkStatsSnapshotDecryptable",
+            "status": "ok",
+            "ms": 38,
+            "detail": "Les snapshots chiffrés récents (neria_stat.rendered_vars) sont correctement déchiffrables.",
+            "langs": 2
+        },
+        {
+            "key": "calendar_json_integrity",
+            "method": "checkCalendarJsonIntegrity",
+            "status": "ok",
+            "ms": 44,
+            "detail": "Calendrier des occasions (calendar.json) valide.",
+            "langs": 2
+        },
+        {
+            "key": "first_install_checklist",
+            "method": "checkFirstInstallChecklist",
+            "status": "ok",
+            "ms": 32,
+            "detail": "Fenêtre de première installation dépassée (30 jours) — ce rappel ne s'affiche plus.",
+            "langs": 2
+        },
+        {
+            "key": "all_email_crons_disabled",
+            "method": "checkAllEmailCronsDisabled",
+            "status": "ok",
+            "ms": 34,
+            "detail": "10/18 crons email actifs.",
+            "langs": 2
+        },
+        {
+            "key": "behavioral_silence",
+            "method": "checkBehavioralSilence",
+            "status": "warning",
+            "ms": 35,
+            "detail": "Aucun email comportemental envoyé depuis 7 jours alors que 33 clients sont actifs et que des crons sont activés. Vérifiez les conditions d'é",
+            "langs": 2
+        }
+    ],
+    "issues": []
+}

@@ -1,0 +1,393 @@
+{
+    "generated": "2026-09-21T19:41:30+02:00",
+    "rows": [
+        {
+            "key": "abtest",
+            "scope": "tab",
+            "target": "abtest",
+            "enabled_key": "NERIA_ABTEST_ENABLED",
+            "active": false,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "bounces",
+            "scope": "tab",
+            "target": "bounces",
+            "enabled_key": "NERIA_BOUNCE_ENABLED",
+            "active": false,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "certificates",
+            "scope": "tab",
+            "target": "certificates",
+            "enabled_key": "NERIA_CERT_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "checkout_abandonment",
+            "scope": "stats_section",
+            "target": "stats#neria-checkout-abandonment-section",
+            "enabled_key": "NERIA_CHECKOUT_ABANDONMENT_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "relationship_anniversary",
+            "scope": "stats_section",
+            "target": "stats#neria-relationship-anniversary-section",
+            "enabled_key": "NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "upsell",
+            "scope": "stats_section",
+            "target": "stats#neria-upsell-section",
+            "enabled_key": "NERIA_UPSELL_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "propensity",
+            "scope": "stats_section",
+            "target": "stats#neria-propensity-section",
+            "enabled_key": "NERIA_PROPENSITY_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "purchase_window",
+            "scope": "stats_section",
+            "target": "stats#neria-purchase-window-section",
+            "enabled_key": "NERIA_PURCHASE_WINDOW_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "lifespan",
+            "scope": "stats_section",
+            "target": "stats#neria-lifespan-section",
+            "enabled_key": "NERIA_LIFESPAN_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "reconciliation",
+            "scope": "stats_section",
+            "target": "stats#neria-reconciliation-section",
+            "enabled_key": "NERIA_REFUND_RECONCILIATION_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "quote",
+            "scope": "stats_section",
+            "target": "stats#neria-quote-section",
+            "enabled_key": "NERIA_QUOTE_REMINDERS_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "collection",
+            "scope": "stats_section",
+            "target": "stats#neria-collection-section",
+            "enabled_key": "NERIA_COLLECTION_COMPLETION_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "look",
+            "scope": "stats_section",
+            "target": "stats#neria-look-section",
+            "enabled_key": "NERIA_LOOK_COMPLETION_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "waitlist",
+            "scope": "stats_section",
+            "target": "stats#neria-waitlist-section",
+            "enabled_key": "NERIA_WAITLIST_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "ghost_cart",
+            "scope": "stats_section",
+            "target": "stats#neria-ghost-cart-section",
+            "enabled_key": "NERIA_GHOST_CART_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "monthly_comparison",
+            "scope": "stats_section",
+            "target": "stats#neria-monthly-comparison",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "health_kpi",
+            "scope": "stats_section",
+            "target": "stats#neria-health-kpi-banner",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "revenue_attribution",
+            "scope": "stats_section",
+            "target": "stats#neria-revenue-attribution",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "engagement",
+            "scope": "stats_section",
+            "target": "stats#neria-engagement-chart-section",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "heatmap",
+            "scope": "stats_section",
+            "target": "stats#neria-heatmap-section",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "domain_rep",
+            "scope": "stats_section",
+            "target": "stats#neria-domain-rep",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "pagespeed",
+            "scope": "stats_section",
+            "target": "stats#neria-visibility-section",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "search_console",
+            "scope": "stats_section",
+            "target": "stats#neria-search-console-section",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "seo_api",
+            "scope": "stats_section",
+            "target": "stats#neria-seo-api-section",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "postmaster",
+            "scope": "stats_section",
+            "target": "stats#neria-postmaster-tools",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "snds",
+            "scope": "stats_section",
+            "target": "stats#neria-snds-section",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "score_panel",
+            "scope": "stats_section",
+            "target": "stats#neria-score-panel",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "golden_hour",
+            "scope": "stats_section",
+            "target": "stats#neria-golden-hour-section",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "auto_lang",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-autolang",
+            "enabled_key": "NERIA_AUTO_LANG",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "time_greeting",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-time-greetings",
+            "enabled_key": "NERIA_TIME_GREETING_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "firstname_fallback",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-firstname-fallbacks",
+            "enabled_key": "NERIA_FIRSTNAME_FALLBACK_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "vouchers",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-vouchers",
+            "enabled_key": "NERIA_MILESTONE_VOUCHER_ENABLED",
+            "active": false,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "cooldown",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-cooldown",
+            "enabled_key": "NERIA_COOLDOWN_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "silent_witness",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-archive",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "carbon",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-carbon",
+            "enabled_key": "NERIA_CARBON_ENABLED",
+            "active": false,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "multi_sender",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-senders",
+            "enabled_key": "NERIA_MULTI_SENDER_ENABLED",
+            "active": false,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "blacklist",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-blacklist",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "monthly_report",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-report",
+            "enabled_key": "NERIA_REPORT_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "upcoming_events",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-upcoming",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "custom_vars",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-customvars",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "signature",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-signature",
+            "enabled_key": "NERIA_SIGNATURE_ENABLED",
+            "active": true,
+            "visible": true,
+            "write_path": "oui"
+        },
+        {
+            "key": "preferences",
+            "scope": "configure_section",
+            "target": "configure#neria-cfg-preferences",
+            "enabled_key": null,
+            "active": true,
+            "visible": true,
+            "write_path": "sans objet"
+        },
+        {
+            "key": "loyalty",
+            "scope": "configure_section",
+            "target": "configure#neria-loyalty-section",
+            "enabled_key": "NERIA_LOYALTY_ENABLED",
+            "active": false,
+            "visible": true,
+            "write_path": "oui"
+        }
+    ],
+    "issues": []
+}

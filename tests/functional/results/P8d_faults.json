@@ -1,0 +1,145 @@
+{
+    "generated": "2026-09-21T19:41:29+02:00",
+    "rows": [
+        {
+            "key": "json_config_integrity",
+            "label": "NERIA_LOYALTY_TIERS = JSON invalide",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Configuration(s) JSON corrompue(s), retombée silencieuse sur les valeurs par défaut : NERIA_LOYALTY_TIERS → Qu",
+            "changed": true
+        },
+        {
+            "key": "multi_sender_json",
+            "label": "NERIA_SENDERS_JSON = JSON invalide",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Configuration multi-expéditeur corrompue réinitialisée automatiquement — tous les emails repartent avec l'expé",
+            "changed": true
+        },
+        {
+            "key": "all_email_crons_disabled",
+            "label": "tous les crons d'e-mail désactivés",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Tous les crons email sont désactivés — aucun email comportemental ne sera envoyé. Réactivez au moins un cron d",
+            "changed": true
+        },
+        {
+            "key": "crypto_key_health",
+            "label": "clé de chiffrement absente",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Clé de chiffrement absente (NERIA_ENCRYPTION_KEY) — toutes les données chiffrées en base sont illisibles. → Qu",
+            "changed": true
+        },
+        {
+            "key": "webhook_failures",
+            "label": "webhook en échec récent",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 webhook(s) en échec remis en file et retraité(s) automatiquement, plutôt que de rester en échec permanent.",
+            "changed": true
+        },
+        {
+            "key": "bounces_unprocessed",
+            "label": "rebond actif récent sans cron de traitement",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 bounce(s) reçu(s) dans les 48h mais cron IMAP jamais exécuté. → Que faire : Vérifiez la configuration IMAP d",
+            "changed": true
+        },
+        {
+            "key": "queue_overflow",
+            "label": "plus de 1000 e-mails en attente",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1100 emails en attente dans la file (seuil d'attention : 1 000). → Que faire : Surveillez l'évolution ; si la ",
+            "changed": true
+        },
+        {
+            "key": "queue_blocked",
+            "label": "e-mail en attente depuis plus de 2 h",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "File d'envoi bloquée débloquée automatiquement — 1 email(s) traité(s) immédiatement plutôt que d'attendre le p",
+            "changed": true
+        },
+        {
+            "key": "abtest_stuck",
+            "label": "test A/B actif depuis plus de 30 jours",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 A/B test(s) actif(s) depuis plus de 30 jours sans gagnant déclaré. → Que faire : Consultez l'onglet Statisti",
+            "changed": true
+        },
+        {
+            "key": "consecutive_failures",
+            "label": "3 échecs consécutifs",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "3 échecs de rendu consécutifs détectés. → Que faire : Consultez le journal Watchdog pour identifier le templat",
+            "changed": true
+        },
+        {
+            "key": "monthly_report_cfg",
+            "label": "rapport mensuel activé sans destinataire ni e-mail boutique",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Le rapport mensuel est activé mais aucun email destinataire n'est configuré. → Que faire : Renseignez l'adress",
+            "changed": true
+        },
+        {
+            "key": "smtp_quota",
+            "label": "quota SMTP journalier atteint",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Quota SMTP journalier dépassé : 81/1 emails envoyés aujourd'hui (8100%). → Que faire : Les emails suivants ris",
+            "changed": true
+        },
+        {
+            "key": "cron_triggered",
+            "label": "aucun passage du déclencheur visiteurs",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Dernier déclenchement il y a 30 jour(s) — trafic front très faible",
+            "changed": true
+        },
+        {
+            "key": "alert_email_invalid",
+            "label": "adresse d'alerte invalide et e-mail boutique invalide",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Aucune adresse email d'alerte Watchdog valide (NERIA_ALERT_EMAIL et l'email boutique sont tous deux invalides ",
+            "changed": true
+        }
+    ]
+}
