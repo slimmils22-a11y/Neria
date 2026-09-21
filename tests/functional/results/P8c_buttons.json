@@ -1,0 +1,2892 @@
+{
+    "generated": "2026-09-21T18:15:40+02:00",
+    "lang": "fr",
+    "items": [
+        {
+            "tab": "configure",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "toggle_autolang",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "toggle_time_greeting",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Tout activer",
+            "action": "save_target_countries",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Tout désactiver",
+            "action": "save_target_countries",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer les pays",
+            "action": "save_target_countries",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_time_greetings",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Toutes les langues",
+            "action": "reset_time_greetings_all",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Réinitialiser",
+            "action": "reset_time_greetings_lang",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "toggle_firstname_fallback",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer les fallbacks",
+            "action": "save_firstname_fallbacks",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_voucher_validity",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_birthday_voucher",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "○ Inactif — Activer",
+            "action": "save_milestone_voucher",
+            "id": "neria-milestone-voucher-toggle-btn"
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_milestone_voucher",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "toggle_cooldown",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_cooldown",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_smtp_quota",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_archive_config",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_carbon",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "○ Inactif — Activer",
+            "action": "toggle_multi_sender",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_senders",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "+ Ajouter la règle",
+            "action": "add_blacklist",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Tout réinitialiser",
+            "action": "add_blacklist",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "✕",
+            "action": "remove_blacklist",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "toggle_report",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_report_config",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Envoyer le rapport maintenant (mois précédent)",
+            "action": "send_report_now",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Sauvegarder",
+            "action": "save_custom_vars",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "toggle_signature",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "js",
+            "label": "Aperçu",
+            "action": "generate_signature",
+            "id": "neria-sig-preview-btn"
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Générer et sauvegarder",
+            "action": "generate_signature",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "○ Inactif — Activer",
+            "action": "loyalty_toggle",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "● Cumulé sur toutes les boutiques",
+            "action": "loyalty_cross_shop_toggle",
+            "id": ""
+        },
+        {
+            "tab": "configure",
+            "kind": "envoi",
+            "label": "Enregistrer les paliers",
+            "action": "save_loyalty_tiers",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "automations",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "automations",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "automations",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "automations",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "▶ Forcer l'exécution maintenant",
+            "action": "auto_force_run",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "○ Inactif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "automations",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "auto_toggle",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Compris, merci",
+            "action": "save_design",
+            "id": "neria-wizard-dismiss"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Haute Joaillerie Élégance extrême, doré discret, e",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Minimal Luxe Sobriété chic, beaucoup d'air, typogr",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Artisanal Authentique Chaleureux, matières naturel",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Parisien Chic Élégance française classique, sophis",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Vintage Heritage Charme intemporel, touches rétro ",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Modern Opulence Luxe audacieux, contrastes forts, ",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "✎ Je personnalise moi-même Aucun style ne vous cor",
+            "action": "save_design",
+            "id": "neria-preset-custom"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "○ Inactif — Activer",
+            "action": "save_design",
+            "id": "dark_mode_toggle_btn"
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "design",
+            "kind": "js",
+            "label": "Réinitialiser",
+            "action": "save_design",
+            "id": "neria-design-reset"
+        },
+        {
+            "tab": "design",
+            "kind": "envoi",
+            "label": "Sauvegarder le design",
+            "action": "save_design",
+            "id": ""
+        },
+        {
+            "tab": "typography",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "typography",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "typography",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "typography",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "typography",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "typography",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_typography",
+            "id": ""
+        },
+        {
+            "tab": "typography",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_typography",
+            "id": ""
+        },
+        {
+            "tab": "typography",
+            "kind": "js",
+            "label": "↺ Défauts",
+            "action": "save_typography",
+            "id": ""
+        },
+        {
+            "tab": "typography",
+            "kind": "envoi",
+            "label": "Sauvegarder les polices",
+            "action": "save_typography",
+            "id": ""
+        },
+        {
+            "tab": "translations",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "💡 Neria est déjà traduit en 19 langues — à quoi se",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "✕",
+            "action": "",
+            "id": "neria-search-clear"
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "Charger",
+            "action": "",
+            "id": "neria-trad-load"
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "⊞ Aperçu",
+            "action": "",
+            "id": "neria-toggle-preview"
+        },
+        {
+            "tab": "translations",
+            "kind": "envoi",
+            "label": "↺ Réparer les traductions",
+            "action": "reload_all_translations",
+            "id": ""
+        },
+        {
+            "tab": "translations",
+            "kind": "js",
+            "label": "👁",
+            "action": "save_deepl_key",
+            "id": "neria-deepl-toggle-vis"
+        },
+        {
+            "tab": "translations",
+            "kind": "envoi",
+            "label": "Sauvegarder",
+            "action": "save_deepl_key",
+            "id": ""
+        },
+        {
+            "tab": "translations",
+            "kind": "envoi",
+            "label": "Enregistrer",
+            "action": "save_voice_profile",
+            "id": ""
+        },
+        {
+            "tab": "translations",
+            "kind": "envoi",
+            "label": "🔍 Vérifier la cohérence",
+            "action": "check_voice_profile",
+            "id": ""
+        },
+        {
+            "tab": "social",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "social",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "social",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "social",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "social",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "social",
+            "kind": "envoi",
+            "label": "Sauvegarder les réseaux sociaux",
+            "action": "save_social",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "◀",
+            "action": "",
+            "id": "neria-chart-prev"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "▶",
+            "action": "",
+            "id": "neria-chart-next"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "Total ◉",
+            "action": "",
+            "id": "neria-total-toggle"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "7j",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "30j",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "90j",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "12 mois",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "30j",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "90j",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "↻ Actualiser",
+            "action": "refresh_domain_reputation",
+            "id": "neria-domain-rep-btn"
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Sauvegarder",
+            "action": "save_pagespeed_key",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "📋 Copier",
+            "action": "",
+            "id": "neria-sc-copy-btn"
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Enregistrer les identifiants",
+            "action": "save_searchconsole_config",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Sauvegarder",
+            "action": "save_seo_config",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "📋 Copier",
+            "action": "",
+            "id": "neria-pm-copy-btn"
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Enregistrer les identifiants",
+            "action": "save_postmaster_config",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Analyser la délivrabilité",
+            "action": "deliverability_score",
+            "id": "neria-score-btn"
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "Top ouverture",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "Top clic",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "Top CA",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "checkout_abandonment_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "relationship_anniversary_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "○ Inactif — Activer",
+            "action": "upsell_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "Prévisualiser",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "propensity_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "purchase_window_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "lifespan_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Ajouter",
+            "action": "lifespan_add",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "reconciliation_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "quote_reminder_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Ajouter",
+            "action": "quote_add",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "collection_completion_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Ajouter",
+            "action": "collection_add",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "collection_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "✕",
+            "action": "collection_delete",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "collection_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "✕",
+            "action": "collection_delete",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "collection_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "✕",
+            "action": "collection_delete",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "collection_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "✕",
+            "action": "collection_delete",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif",
+            "action": "collection_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "js",
+            "label": "✕",
+            "action": "collection_delete",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "look_completion_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Ajouter",
+            "action": "look_rule_add",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "waitlist_toggle",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "Sauvegarder",
+            "action": "waitlist_reservation_save",
+            "id": ""
+        },
+        {
+            "tab": "stats",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "ghost_cart_toggle",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "abtest",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "abtest",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "abtest",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "abtest",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "abtest",
+            "kind": "envoi",
+            "label": "Créer et activer",
+            "action": "create_abtest",
+            "id": ""
+        },
+        {
+            "tab": "send",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "Confirmer la planification",
+            "action": "send_manual",
+            "id": "neria-schedule-confirm"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "✕ Annuler la planification",
+            "action": "send_manual",
+            "id": "neria-schedule-cancel"
+        },
+        {
+            "tab": "send",
+            "kind": "envoi",
+            "label": "✉ Envoyer l'email",
+            "action": "send_manual",
+            "id": "neria-send-btn"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "👁 Prévisualiser",
+            "action": "send_manual",
+            "id": "neria-preview-btn"
+        },
+        {
+            "tab": "send",
+            "kind": "js",
+            "label": "✕",
+            "action": "",
+            "id": "neria-preview-close"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "js",
+            "label": "🌙 Mode sombre",
+            "action": "",
+            "id": "neria-mp-zoom-dark-btn"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "js",
+            "label": "✕",
+            "action": "",
+            "id": "neria-mp-zoom-close"
+        },
+        {
+            "tab": "multipreview",
+            "kind": "envoi",
+            "label": "Prévisualiser",
+            "action": "multipreview_render",
+            "id": ""
+        },
+        {
+            "tab": "multipreview",
+            "kind": "envoi",
+            "label": "Sauvegarder les traductions",
+            "action": "save_multipreview_keys",
+            "id": ""
+        },
+        {
+            "tab": "customer_history",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "customer_history",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "customer_history",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "customer_history",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "customer_history",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "customer_history",
+            "kind": "envoi",
+            "label": "Rechercher",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "✓",
+            "action": "save_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "js",
+            "label": "⎘",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "lien",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "calendar",
+            "kind": "envoi",
+            "label": "Ajouter",
+            "action": "add_calendar_event",
+            "id": ""
+        },
+        {
+            "tab": "webhooks",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "webhooks",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "webhooks",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "webhooks",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "webhooks",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "webhooks",
+            "kind": "js",
+            "label": "⟳ Générer",
+            "action": "save_webhooks",
+            "id": ""
+        },
+        {
+            "tab": "webhooks",
+            "kind": "envoi",
+            "label": "✓ Sauvegarder",
+            "action": "save_webhooks",
+            "id": ""
+        },
+        {
+            "tab": "segments",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "segments",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "segments",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "segments",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "segments",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "segments",
+            "kind": "envoi",
+            "label": "↻ Recalculer maintenant",
+            "action": "recompute_segments",
+            "id": ""
+        },
+        {
+            "tab": "segments",
+            "kind": "envoi",
+            "label": "↻ Recalculer les scores",
+            "action": "recompute_churn",
+            "id": ""
+        },
+        {
+            "tab": "segments",
+            "kind": "js",
+            "label": "✉ Envoyer",
+            "action": "send_segment_campaign",
+            "id": ""
+        },
+        {
+            "tab": "seasonal",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "seasonal",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "seasonal",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "seasonal",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "seasonal",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "seasonal",
+            "kind": "js",
+            "label": "● Actif — Désactiver",
+            "action": "",
+            "id": "ns-btn-active"
+        },
+        {
+            "tab": "seasonal",
+            "kind": "js",
+            "label": "○ Inactif — Activer",
+            "action": "",
+            "id": "ns-btn-gift"
+        },
+        {
+            "tab": "seasonal",
+            "kind": "envoi",
+            "label": "＋ Créer la campagne",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "bounces",
+            "kind": "envoi",
+            "label": "○ Scopé par boutique (recommandé)",
+            "action": "bounce_cross_shop_toggle",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "Copier",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "envoi",
+            "label": "💾 Enregistrer la configuration",
+            "action": "save_bounce_config",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "🔌 Tester la connexion IMAP",
+            "action": "save_bounce_config",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "Copier l'URL",
+            "action": "save_bounce_config",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "⟳ Générer",
+            "action": "save_bounce_config",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "envoi",
+            "label": "+ Ajouter manuellement",
+            "action": "add_manual_bounce",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "envoi",
+            "label": "Filtrer",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "envoi",
+            "label": "Ignorer",
+            "action": "ignore_bounce",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "js",
+            "label": "✕",
+            "action": "delete_bounce",
+            "id": ""
+        },
+        {
+            "tab": "bounces",
+            "kind": "envoi",
+            "label": "↩ Lancer la vérification IMAP maintenant",
+            "action": "run_bounce_check",
+            "id": ""
+        },
+        {
+            "tab": "gdpr",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "gdpr",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "gdpr",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "gdpr",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "gdpr",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "gdpr",
+            "kind": "lien",
+            "label": "Télécharger le rapport PDF",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "gdpr",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "toggle_gdpr_auto_purge",
+            "id": ""
+        },
+        {
+            "tab": "academy",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "academy",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "academy",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "academy",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "academy",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "certificates",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "certificates",
+            "kind": "envoi",
+            "label": "Enregistrer la configuration",
+            "action": "cert_save_config",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "envoi",
+            "label": "⬇",
+            "action": "cert_download",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "✕",
+            "action": "cert_delete",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "envoi",
+            "label": "⬇",
+            "action": "cert_download",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "✕",
+            "action": "cert_delete",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "envoi",
+            "label": "⬇",
+            "action": "cert_download",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "✕",
+            "action": "cert_delete",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "envoi",
+            "label": "⬇",
+            "action": "cert_download",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "✕",
+            "action": "cert_delete",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "envoi",
+            "label": "⬇",
+            "action": "cert_download",
+            "id": ""
+        },
+        {
+            "tab": "certificates",
+            "kind": "js",
+            "label": "✕",
+            "action": "cert_delete",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "control_center",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "control_center",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "control_center",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "control_center",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "Tout afficher",
+            "action": "menu_visibility_bulk",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "Tout masquer",
+            "action": "menu_visibility_bulk",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "control_center",
+            "kind": "envoi",
+            "label": "● Masquer",
+            "action": "menu_visibility_toggle",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "lien",
+            "label": "✉ Email test",
+            "action": "",
+            "id": "neria-test-send-btn"
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "▲",
+            "action": "",
+            "id": "neria-scroll-top"
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "▼",
+            "action": "",
+            "id": "neria-scroll-bot"
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "Annuler",
+            "action": "",
+            "id": "neria-delete-modal-cancel"
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "Confirmer",
+            "action": "",
+            "id": "neria-delete-modal-confirm"
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "🔄 Analyser maintenant",
+            "action": "",
+            "id": "neria-watchdog-analyze-btn"
+        },
+        {
+            "tab": "help",
+            "kind": "envoi",
+            "label": "⟳ Lancer le diagnostic complet",
+            "action": "run_full_diagnostic",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "envoi",
+            "label": "Tester maintenant",
+            "action": "health_pixel_test",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "envoi",
+            "label": "🔍 Scanner le code",
+            "action": "run_code_diagnostic",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "envoi",
+            "label": "Enregistrer les alertes",
+            "action": "save_alert_config",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "Copier",
+            "action": "",
+            "id": "neria-emergency-copy-btn"
+        },
+        {
+            "tab": "help",
+            "kind": "lien",
+            "label": "Ouvrir",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "↺ Révoquer et régénérer le token",
+            "action": "regenerate_emergency_token",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "envoi",
+            "label": "● Actif — Désactiver",
+            "action": "cron_toggle",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "Copier",
+            "action": "",
+            "id": "neria-cron-copy-btn"
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "↺ Régénérer le token cron",
+            "action": "regenerate_cron_token",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "🗑 Vider le journal",
+            "action": "clear_logs",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "⬇ Télécharger PDF",
+            "action": "",
+            "id": "neria-log-pdf-btn"
+        },
+        {
+            "tab": "help",
+            "kind": "envoi",
+            "label": "📧 Envoyer par email",
+            "action": "send_log_email",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "↗ Partager",
+            "action": "",
+            "id": "neria-log-share-btn"
+        },
+        {
+            "tab": "help",
+            "kind": "lien",
+            "label": "Documentation",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "envoi",
+            "label": "Réinitialiser toute la configuration",
+            "action": "reset_all_data",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "✕",
+            "action": "",
+            "id": ""
+        },
+        {
+            "tab": "help",
+            "kind": "js",
+            "label": "' + window.NERIA_HELP_L10N.addBtn + '",
+            "action": "",
+            "id": "neria-share-add-btn"
+        }
+    ],
+    "issues": [
+        {
+            "tab": "bounces",
+            "code": "B007",
+            "level": "W",
+            "label": "Ignorer",
+            "msg": "action destructrice sans confirmation détectée (ignore_bounce)"
+        }
+    ]
+}

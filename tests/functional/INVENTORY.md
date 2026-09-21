@@ -1,6 +1,6 @@
 # Inventaire P1 — campagne de tests fonctionnels
 
-Généré le 2026-09-21 13:33:47 — module v1.0.48 — **856 lignes** dans `inventory/matrix.csv`.
+Généré le 2026-09-21 18:26:47 — module v1.0.48 — **856 lignes** dans `inventory/matrix.csv`.
 
 | Catégorie | Éléments |
 |---|---|
@@ -31,9 +31,9 @@ Généré le 2026-09-21 13:33:47 — module v1.0.48 — **856 lignes** dans `inv
 - Templates sans version TXT (0) : 
 - Templates sans émetteur repéré dans le code (27) — natifs PrestaShop ou envoi manuel : backoffice_order, bankwire, cheque, contact_form, credit_slip, customer_qty, download_product, employee_password, forward_msg, import, in_transit, mothers_day, new_order, newsletter_verif, order_customer_comment, order_merchant_comment, order_return_state, outofstock, payment_error, preparation, productcoverage, productoutofstock, refund, reply_msg, return_slip, shipped, voucher_new
 - Hooks sans handler (0) : 
-- Dictionnaire admin : {"keys":3380,"missing_by_lang":[]}
+- Dictionnaire admin : {"keys":3383,"missing_by_lang":[]}
 - Dictionnaire noms de templates : {"keys":118,"missing_by_lang":[]}
 
 ## Couverture des méthodes publiques par les tests de régression existants
 
-167 méthodes publiques sur 609 ne sont citées dans aucun test (indicateur de lacunes, pas une preuve de bug). Détail par classe dans `inventory.json` › `method_coverage`.
+166 méthodes publiques sur 609 ne sont citées dans aucun test (indicateur de lacunes, pas une preuve de bug). Détail par classe dans `inventory.json` › `method_coverage`.
