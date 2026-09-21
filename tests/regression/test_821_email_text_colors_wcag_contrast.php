@@ -35,6 +35,13 @@ function run_test(): array
     neria_assert(ConfigManager::getAccessibleTextColor('pas une couleur') === 'pas une couleur', "une valeur invalide doit être renvoyée telle quelle");
     neria_assert(ratio_ok($ratio, ConfigManager::getAccessibleTextColor('#b38b59', '#f5efe6')), 'contraste insuffisant sur fond crème');
 
+    // Fond sombre (pied de page par défaut #2b2520) : on éclaircit, on n'assombrit pas.
+    foreach (['#b38b59', '#906f46', '#444444'] as $accent) {
+        $t = ConfigManager::getAccessibleTextColor($accent, '#2b2520');
+        neria_assert($ratio($t, '#2b2520') >= 4.5, "accent {$accent} sur fond sombre → {$t} : contraste " . round($ratio($t, '#2b2520'), 2) . ' < 4,5');
+    }
+    neria_assert(ConfigManager::getAccessibleTextColor('#b38b59', '#2b2520') === '#b38b59', "un accent déjà lisible sur fond sombre a été modifié");
+
     $renderer = new EmailRenderer(neria_test_module());
     $html = $renderer->renderWithVars('voucher', 'fr', ['firstname' => 'Test', 'voucher_code' => 'ABC123']);
     neria_assert(is_string($html) && $html !== '', 'rendu voucher vide');
@@ -44,6 +51,12 @@ function run_test(): array
     neria_assert(strpos(strtolower($html), 'color:' . $text) !== false || strpos(strtolower($html), 'color: ' . $text) !== false, "la couleur de texte accessible {$text} n'apparaît pas dans le rendu");
     neria_assert(!preg_match('/[^-\w]color:\s*' . preg_quote($accent, '/') . '/i', $html), "l'accent brut {$accent} est encore utilisé comme couleur de TEXTE dans le rendu");
     neria_assert(stripos($html, '#8c857e') === false, 'le gris #8c857e (3,64:1) est encore utilisé dans le rendu');
+    // Le pied de page a son propre fond (sombre par défaut, #2b2520) : son texte d'accent est calculé contre CE fond.
+    $layoutSrc = (string) file_get_contents(_PS_MODULE_DIR_ . 'neria/mails/themes/neria_global/layout.html');
+    neria_assert(preg_match('/\.neria-footer__brand\s*\{[^}]*color:\s*\{\$neria_color_accent_footer_text\}/', $layoutSrc) === 1, "le nom de boutique du pied de page n'utilise plus la couleur d'accent calculée contre le fond du pied de page");
+    $footer = strtolower((string) ($design['color_footer_bg'] ?? '#ffffff'));
+    preg_match('/\.neria-footer__brand\s*\{[^}]*?color:\s*(#[0-9a-f]{6})/i', $html, $fb);
+    neria_assert(!empty($fb[1]) && $ratio($fb[1], $footer) >= 4.5, 'nom de boutique du pied de page : contraste ' . (!empty($fb[1]) ? round($ratio($fb[1], $footer), 2) : 'couleur introuvable') . " sur {$footer}");
     return ['pass' => true, 'message' => "les couleurs de texte des e-mails atteignent WCAG AA 4,5:1 (accent assombri, gris #6b655e), filets et bordures gardent l'accent"];
 }
 
