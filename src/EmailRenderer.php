@@ -2384,6 +2384,7 @@ class EmailRenderer
             'neria_color_background' => $design['color_background'],
             'neria_color_container'  => $design['color_container'],
             'neria_color_accent'     => $design['color_accent'],
+            'neria_color_accent_text' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_container'] ?? '#ffffff')),
             'neria_color_text'       => $design['color_text'],
             'neria_dark_mode'        => $design['dark_mode'] ? 'true' : 'false',
             'neria_container_width'  => $design['container_width'],
@@ -2653,6 +2654,7 @@ class EmailRenderer
 
         $tplVars = [
             '{$neria_color_accent}'     => $design['color_accent'],
+            '{$neria_color_accent_text}' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_container'] ?? '#ffffff')),
             '{$neria_color_background}' => $design['color_background'],
             '{$neria_color_container}'  => $design['color_container'],
             '{$neria_color_text}'       => $design['color_text'],
@@ -3167,6 +3169,7 @@ class EmailRenderer
         $design = $this->config->getDesignConfig();
         $tplVars = [
             '{$neria_color_accent}'     => $design['color_accent'],
+            '{$neria_color_accent_text}' => ConfigManager::getAccessibleTextColor((string) $design['color_accent'], (string) ($design['color_container'] ?? '#ffffff')),
             '{$neria_color_background}' => $design['color_background'],
             '{$neria_color_container}'  => $design['color_container'],
             '{$neria_color_text}'       => $design['color_text'],

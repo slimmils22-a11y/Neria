@@ -576,6 +576,48 @@ class ConfigManager
     }
 
     /**
+     * Constat F-002 (21/09/2026) : la couleur d'accent (or #b38b59 par défaut, librement choisie par le marchand) sert
+     * de couleur de TEXTE (liens, pied de page, prix, codes promo) alors qu'elle n'atteint que 3,11:1 sur blanc, sous le
+     * seuil WCAG AA de 4,5:1. Renvoie l'accent assombri (même teinte, luminosité réduite par pas) jusqu'à atteindre
+     * $min:1 sur $background ; inchangé s'il suffit déjà. L'accent d'origine reste utilisé pour filets, pastilles et boutons.
+     */
+    public static function getAccessibleTextColor(string $hex, string $background = '#ffffff', float $min = 4.5): string
+    {
+        $parse = static function (string $c): ?array {
+            $c = ltrim(trim($c), '#');
+            if (strlen($c) === 3) {
+                $c = $c[0] . $c[0] . $c[1] . $c[1] . $c[2] . $c[2];
+            }
+            return preg_match('/^[0-9a-fA-F]{6}$/', $c) === 1 ? [hexdec(substr($c, 0, 2)), hexdec(substr($c, 2, 2)), hexdec(substr($c, 4, 2))] : null;
+        };
+        $lum = static function (array $rgb): float {
+            $l = [];
+            foreach ($rgb as $v) {
+                $v /= 255;
+                $l[] = $v <= 0.03928 ? $v / 12.92 : pow(($v + 0.055) / 1.055, 2.4);
+            }
+            return 0.2126 * $l[0] + 0.7152 * $l[1] + 0.0722 * $l[2];
+        };
+        $ratio = static function (array $a, array $b) use ($lum): float {
+            $x = $lum($a);
+            $y = $lum($b);
+            return (max($x, $y) + 0.05) / (min($x, $y) + 0.05);
+        };
+        $fg = $parse($hex);
+        $bg = $parse($background) ?? [255, 255, 255];
+        if ($fg === null) {
+            return $hex;
+        }
+        for ($i = 0; $i < 60 && $ratio($fg, $bg) < $min; $i++) {
+            foreach ($fg as $k => $v) {
+                $fg[$k] = (int) floor($v * 0.96);
+            }
+        }
+
+        return sprintf('#%02x%02x%02x', $fg[0], $fg[1], $fg[2]);
+    }
+
+    /**
      * Bloc 7 (19/09/2026) : épaisseur des filets STRUCTURELS de l'email (bordure haute de la
      * signature, bordure haute du pied de page). Ils étaient écrits en dur : le réglage
      * « Séparateur » de l'onglet Design (aucun / trait / pointillés / double) ne pilotait que

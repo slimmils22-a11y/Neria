@@ -200,9 +200,9 @@ class UpsellManager
         }
 
         $design  = $config->getDesignConfig();
-        $accent  = htmlspecialchars($design['color_accent']    ?? '#b38b59', ENT_QUOTES);
+        $accent  = htmlspecialchars(ConfigManager::getAccessibleTextColor((string) ($design['color_accent'] ?? '#b38b59'), (string) ($design['color_container'] ?? '#ffffff')), ENT_QUOTES);
         $text    = htmlspecialchars($design['color_text']      ?? '#2b2520', ENT_QUOTES);
-        $muted   = '#8c857e';
+        $muted   = '#6b655e';
         $border  = '#e8e0d8';
 
         $name     = htmlspecialchars($upsell['name']          ?? '', ENT_QUOTES);

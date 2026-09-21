@@ -15,7 +15,7 @@
   <p style="margin:0 0 16px 0; font-size:13px; color:#888; text-transform:uppercase; letter-spacing:.06em;">
     {neria_trad key='loyalty_recap_month_points'}
   </p>
-  <p style="margin:0 0 4px 0; font-size:40px; font-weight:700; color:{$neria_color_accent}; line-height:1;">
+  <p style="margin:0 0 4px 0; font-size:40px; font-weight:700; color:{$neria_color_accent_text}; line-height:1;">
     +{points_this_month}
   </p>
   <p style="margin:0; font-size:13px; color:#888;">
@@ -38,7 +38,7 @@
     {progress_pct}% — {neria_trad key='loyalty_recap_next_tier'} : <strong>{next_tier_name}</strong> ({points_remaining} {neria_trad key='loyalty_recap_points_left'})
   </p>
   {else}
-  <p class="neria-text" style="color:{$neria_color_accent}; font-weight:600;">
+  <p class="neria-text" style="color:{$neria_color_accent_text}; font-weight:600;">
     {neria_trad key='loyalty_recap_max_tier'}
   </p>
   {/if}
