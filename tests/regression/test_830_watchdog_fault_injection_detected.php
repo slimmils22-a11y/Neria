@@ -1,8 +1,8 @@
 <?php
 /**
- * P8d (21/09/2026) : pour 14 contrôles du Watchdog (JSON de réglage corrompu, crons désactivés, clé de chiffrement absente, webhook en
- * échec, rebond non traité, file saturée/bloquée, test A/B coincé, échecs consécutifs, rapport sans destinataire, quota SMTP, déclencheur
- * absent, adresse d'alerte invalide), la panne est PROVOQUÉE dans une transaction annulée et le contrôle doit passer de « ok » à l'état
+ * P8d (21/09/2026) : pour 49 contrôles du Watchdog (réglages corrompus, crons désactivés, clé de chiffrement absente, webhooks/rebonds/files en
+ * échec, seuils de statistiques et de volumes, tests A/B, bons orphelins, fidélité négative, ainsi que 10 contrôles STATIQUES éprouvés sur un
+ * faux module contenant un fichier fautif), la panne est PROVOQUÉE dans une transaction annulée et le contrôle doit passer de « ok » à l'état
  * attendu puis revenir à « ok » (tests/functional/wd_fault_injection.php). Prouve que ces contrôles détectent réellement ce qu'ils annoncent.
  */
 require_once __DIR__ . '/bootstrap.php';
@@ -16,7 +16,7 @@ function run_test(): array
     exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($script) . ' --quiet 2>&1', $out, $rc);
     neria_assert(is_file($json), "injection de pannes impossible : " . implode(' ', array_slice($out, -2)));
     $r = json_decode((string) file_get_contents($json), true);
-    neria_assert(is_array($r) && count($r['rows']) >= 14, 'moins de 14 pannes injectées');
+    neria_assert(is_array($r) && count($r["rows"]) >= 45, "moins de 45 pannes injectées");
     $missed = array_values(array_filter($r['rows'], static function ($x) {
         return $x['result'] !== 'DÉTECTÉ';
     }));

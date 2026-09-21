@@ -1,5 +1,5 @@
 {
-    "generated": "2026-09-21T19:41:29+02:00",
+    "generated": "2026-09-21T20:55:54+02:00",
     "rows": [
         {
             "key": "json_config_integrity",
@@ -118,7 +118,7 @@
             "after": "error",
             "restored": "ok",
             "result": "DÉTECTÉ",
-            "note": "Quota SMTP journalier dépassé : 81/1 emails envoyés aujourd'hui (8100%). → Que faire : Les emails suivants ris",
+            "note": "Quota SMTP journalier dépassé : 89/1 emails envoyés aujourd'hui (8900%). → Que faire : Les emails suivants ris",
             "changed": true
         },
         {
@@ -139,6 +139,366 @@
             "restored": "ok",
             "result": "DÉTECTÉ",
             "note": "Aucune adresse email d'alerte Watchdog valide (NERIA_ALERT_EMAIL et l'email boutique sont tous deux invalides ",
+            "changed": true
+        },
+        {
+            "key": "open_rate_7d",
+            "label": "60 envois en 7 jours, aucune ouverture",
+            "before": "error",
+            "after": "error",
+            "restored": "error",
+            "result": "DÉTECTÉ",
+            "note": "Taux d'ouverture 7j : 0% (0/60). → Que faire : Vérifiez le score de réputation dans l'onglet Statistiques, tes",
+            "changed": false
+        },
+        {
+            "key": "bounce_rate",
+            "label": "30 envois en 24 h et 10 rebonds actifs",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Taux de bounce : 33.3% sur 24h (10 bounces / 30 envois). → Que faire : Nettoyez votre liste d'abonnés, vérifie",
+            "changed": true
+        },
+        {
+            "key": "queue_failed_rate",
+            "label": "50 % d'échecs sur 30 jours",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Taux d'échec critique de la file d'attente comportementale : 50% (6/12 sur 30 jours) → Que faire : vérifiez la",
+            "changed": true
+        },
+        {
+            "key": "click_rate_7d",
+            "label": "ouvertures sans aucun clic",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "10 ouvertures enregistrées ces 7 derniers jours, mais aucun clic. → Que faire : Vérifiez que track.php est acc",
+            "changed": true
+        },
+        {
+            "key": "unsubscribe_spike",
+            "label": "110 envois et 10 désabonnements en 7 jours",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Pic de désabonnements : 9.09% sur 7j (10 / 110 envois). Seuil critique dépassé (> 0,5%). → Que faire : Examine",
+            "changed": true
+        },
+        {
+            "key": "send_volume_spike",
+            "label": "100 envois aujourd'hui contre quelques-uns les jours précédents",
+            "before": "warning",
+            "after": "error",
+            "restored": "warning",
+            "result": "DÉTECTÉ",
+            "note": "Pic d'envoi critique : 100 emails aujourd'hui vs moyenne 7j de 10 (×10.0). → Que faire : Vérifiez immédiatemen",
+            "changed": true
+        },
+        {
+            "key": "history_table_size",
+            "label": "plus de 50 000 lignes d'historique de traduction",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "L'historique des traductions contient 50100 entrées — taille importante. → Que faire : Nettoyez les entrées an",
+            "changed": true
+        },
+        {
+            "key": "behavioral_dedup",
+            "label": "plus de 50 000 réservations comportementales",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "La table neria_behavioral_sent contient 50161 lignes. Croissance normale mais surveillée (seuil : 50 000).",
+            "changed": true
+        },
+        {
+            "key": "smtp_config",
+            "label": "envoi par la fonction mail() de PHP",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Envoi via PHP mail() (méthode basique). → Que faire : Configurez un serveur SMTP dédié dans Paramètres → Email",
+            "changed": true
+        },
+        {
+            "key": "version_sync",
+            "label": "version installée plus ancienne que le code",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Version installée (1.0.1) < version module (1.0.48). Un upgrade script n'a peut-être pas tourné. → Que faire :",
+            "changed": true
+        },
+        {
+            "key": "stored_secrets_decryptable",
+            "label": "secret chiffré illisible (clé DeepL)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Secret(s) chiffré(s) illisible(s) avec la clé actuelle : NERIA_DEEPL_KEY → Que faire : la clé de chiffrement a",
+            "changed": true
+        },
+        {
+            "key": "crypto_key",
+            "label": "clé de chiffrement absente (contrôle de présence)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Clé de chiffrement absente (NERIA_ENCRYPTION_KEY) — toutes les données chiffrées en base sont illisibles. → Qu",
+            "changed": true
+        },
+        {
+            "key": "php_memory_limit",
+            "label": "memory_limit PHP à 60 Mo (lancement du processus)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Mémoire PHP insuffisante : 60 MB (minimum requis : 128 MB). → Que faire : Augmentez memory_limit dans php.ini ",
+            "changed": true
+        },
+        {
+            "key": "abtest_variant_pair",
+            "label": "test A/B actif avec une seule variante",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Test(s) A/B actif(s) sans paire complète de variantes : order_conf (1 variante(s)) → Que faire : vérifiez qu'A",
+            "changed": true
+        },
+        {
+            "key": "churn_propensity_freshness",
+            "label": "scores de désabonnement calculés il y a 5 jours",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Score de risque de désabonnement figé depuis 120h — le cron comportemental a peut-être échoué avant de le reca",
+            "changed": true
+        },
+        {
+            "key": "orphaned_voucher_reservations",
+            "label": "réservation de bon d'anniversaire sans bon créé depuis plus de 24 h",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 réservation(s) de bon de réduction bloquée(s) (échec de génération, plus de 24h) supprimée(s) automatiquemen",
+            "changed": true
+        },
+        {
+            "key": "sent_reconciliation",
+            "label": "installé depuis 10 jours, aucun envoi enregistré",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "0 envois enregistrés depuis 10 jour(s) — vérifier que des emails ont bien été envoyés",
+            "changed": true
+        },
+        {
+            "key": "template_staleness",
+            "label": "modèle envoyé régulièrement puis plus rien depuis 30 jours",
+            "before": "warning",
+            "after": "warning",
+            "restored": "warning",
+            "result": "DÉTECTÉ",
+            "note": "1 template(s) envoyaient régulièrement des emails jusqu'ici mais n'en ont envoyé aucun sur les 30 derniers jou",
+            "changed": false
+        },
+        {
+            "key": "engagement_trend",
+            "label": "taux d'ouverture divisé par plus de deux d'une période à l'autre",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Tendance d'engagement en baisse : 0% cette semaine vs 50% en moyenne sur les 30 jours précédents (-100% relati",
+            "changed": true
+        },
+        {
+            "key": "milestone_voucher_cartrule",
+            "label": "bon de palier dont la règle panier a disparu",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 bon(s) de palier référence(nt) un CartRule inexistant/inactif : 1379 (cart_rule#99999999) → Que faire : ces ",
+            "changed": true
+        },
+        {
+            "key": "collection_look_products",
+            "label": "collection dont les produits n'existent plus",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 règle(s) Collection/Complétez votre look active(s) référence(nt) des produits supprimés ou désactivés : P8D ",
+            "changed": true
+        },
+        {
+            "key": "orphaned_waitlist_claims",
+            "label": "réservation liste d'attente commencée il y a 3 h sans envoi",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 réclamation(s) de notification liste d'attente bloquée(s) (échec d'envoi, plus d'1h) libérée(s) automatiquem",
+            "changed": true
+        },
+        {
+            "key": "loyalty_integrity",
+            "label": "solde de points de fidélité négatif",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 client(s) avec un solde de points de fidélité négatif. → Que faire : Vérifiez la logique de déduction des po",
+            "changed": true
+        },
+        {
+            "key": "campaign_empty_seg",
+            "label": "campagne saisonnière ciblant un segment vide",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 campagne(s) active(s) ciblant un segment vide : \"P8D\" (segment : 0). → Que faire : Recalculez les segments o",
+            "changed": true
+        },
+        {
+            "key": "residual_vars_recent",
+            "label": "e-mails récents envoyés avec une variable de contenu manquante",
+            "before": "warning",
+            "after": "warning",
+            "restored": "warning",
+            "result": "DÉTECTÉ",
+            "note": "43 email(s) envoyé(s) ces 7 derniers jours avaient une variable de contenu manquante (nettoyée automatiquement",
+            "changed": false
+        },
+        {
+            "key": "hardcoded_date_format",
+            "label": "date('d/m/Y') codé en dur (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 date(s) codée(s) en dur (d/m/Y) détectée(s) hors NeriaTools::formatDate() : src/Bad.php:2 → Que faire : un c",
+            "changed": true
+        },
+        {
+            "key": "hardcoded_decimal_format",
+            "label": "number_format avec virgule décimale codée en dur (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 formatage(s) décimal(aux) codé(s) en dur détecté(s) : src/Bad.php:2 → Que faire : remplacez number_format($x",
+            "changed": true
+        },
+        {
+            "key": "rtl_hardcoded_align",
+            "label": "text-align:left codé en dur dans un e-mail (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 text-align/float codé(s) en dur détecté(s) dans les templates email : t/core/bad.html:1 → Que faire : casse ",
+            "changed": true
+        },
+        {
+            "key": "chained_str_replace",
+            "label": "str_replace(array_keys(...)) enchaîné (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 substitution(s) de variables par str_replace(array_keys(...)) détectée(s) : src/Bad.php:2 → Que faire : remp",
+            "changed": true
+        },
+        {
+            "key": "imap_timeout_missing",
+            "label": "imap_open() sans imap_timeout() (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 appel(s) imap_open() sans imap_timeout() détecté(s) : src/Bad.php:2 → Que faire : un serveur IMAP lent/injoi",
+            "changed": true
+        },
+        {
+            "key": "unescaped_like_metachars",
+            "label": "LIKE construit avec une variable non échappée (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Requête LIKE avec métacaractères % ou _ non échappés détectée : Bad.php : LIKE '%$term%' sans échappement des ",
+            "changed": true
+        },
+        {
+            "key": "fragile_neriaconfig_usage",
+            "label": "gabarit lisant neriaConfig.adminUrl (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Usage fragile de neriaConfig.adminUrl/moduleName détecté (bloqué par le CSP BO, bouton sans effet) : bad.tpl.",
+            "changed": true
+        },
+        {
+            "key": "dev_tool_residue",
+            "label": "référence à mailpit (outil de développement) laissée dans un gabarit (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Trace(s) d'outil de développement détectée(s) dans les fichiers livrés : bad.tpl (mailpit).",
+            "changed": true
+        },
+        {
+            "key": "cron_strict_date_equality",
+            "label": "DATE(colonne) = CURDATE() dans un cron (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 requête(s) cron comparent une date de déclenchement par égalité stricte (DATE(col) = ...) au lieu d'une plag",
+            "changed": true
+        },
+        {
+            "key": "tpl_js_escape_missing",
+            "label": "variable Smarty non échappée dans un getElementById (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 interpolation(s) JS non échappée(s) détectée(s) : bad.tpl:1 → Que faire : une valeur contenant une apostroph",
             "changed": true
         }
     ]
