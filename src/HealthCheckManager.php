@@ -6746,6 +6746,28 @@ class HealthCheckManager
             $offenders[] = "Installation F-004 : la vérification « PHP 7.4 minimum » de Neria::install() ou ses messages en 19 langues ont disparu — sous PHP 7.2/7.3 le module planterait avec une erreur fatale au lieu d'un message clair (correctif du 21/09/2026)";
         }
 
+        // Réglage « Couleur des liens » (21/09/2026) : vide = identique à l'accent (apparence inchangée) ; les liens du corps
+        // suivent neria_color_link, ceux du pied de page neria_color_link_footer (calculé contre le fond du pied de page).
+        $layoutLk = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
+        $rendLk   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $cfgLk    = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        $tplLk    = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/design.tpl');
+        $jsLk     = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/js/neria-admin.js');
+        if ($layoutLk === '' || $rendLk === '' || $cfgLk === '' || $tplLk === '' || $jsLk === ''
+            || preg_match('/(?:^|
+)[ ]+a[ ]\{\s*color: \{\$neria_color_link\};/', $layoutLk) !== 1
+            || substr_count($layoutLk, 'style="color:{$neria_color_link_footer};"') < 5
+            || substr_count($rendLk, 'linkTextColor($design,') < 6
+            || strpos($rendLk, 'private function linkTextColor(array $design, string $zone): string') === false
+            || strpos($cfgLk, "const KEY_COLOR_LINK        = 'NERIA_COLOR_LINK';") === false
+            || strpos($cfgLk, "self::KEY_COLOR_LINK          => '',") === false
+            || substr_count($cfgLk, 'self::KEY_COLOR_LINK') < 4
+            || strpos($tplLk, 'id="color_link_same"') === false
+            || strpos($jsLk, 'preview_color_link_same') === false
+        ) {
+            $offenders[] = "E-mails « Couleur des liens » : le réglage de l'onglet Design (vide = identique à l'accent, liens du corps et du pied de page, prévisualisation, remise à zéro) n'est plus câblé de bout en bout (layout.html, EmailRenderer::linkTextColor, ConfigManager, design.tpl, neria-admin.js) — régression du réglage ajouté le 21/09/2026";
+        }
+
         // Constat F-002 (21/09/2026) : l'accent (3,11:1 sur blanc) et le gris #8c857e (3,64:1) servaient de couleur de TEXTE
         // dans les e-mails, sous WCAG AA 4,5:1. Le texte utilise neria_color_accent_text (accent assombri), les filets gardent l'accent.
         $layoutF002 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
@@ -6759,7 +6781,7 @@ class HealthCheckManager
             || preg_match('/(?<![-\w])color:\s*\{\$neria_color_accent\}/', $layoutF002) === 1
             || preg_match('/(?<![-\w])color:\s*\{\$neria_color_accent\}/', $coreF002) === 1
             || strpos($layoutF002, '8c857' . 'e') !== false
-            || substr_count($layoutF002, 'color: {$neria_color_accent_text}') < 2
+            || substr_count($layoutF002, 'color: {$neria_color_accent_text}') < 1
             || strpos($layoutF002, 'color: {$neria_color_accent_footer_' . 'text}') === false
             || substr_count($rendF002, 'getAccessibleTextColor(') < 6
             || strpos($cfgF002, 'public static function getAccessibleTextColor(string $hex') === false
