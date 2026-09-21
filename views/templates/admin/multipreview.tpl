@@ -241,6 +241,11 @@ window.NERIA_MP_L10N = {
 };
 </script>
 {literal}<script>
+// P8c : le bouton du mode sombre n'existe qu'une fois les aperçus générés — ne lier que ce qui est présent (sinon erreur JS à l'ouverture de l'onglet)
+function neriaMpOn(id, ev, fn) {
+  var el = document.getElementById(id);
+  if (el) { el.addEventListener(ev, fn); }
+}
 document.addEventListener('click', function (e) {
   // Badge d'anomalies : bascule le détail sans ouvrir le zoom
   var badge = e.target.closest('.neria-mp-issue-toggle');
@@ -284,7 +289,7 @@ function neriaApplyDarkSim(doc, on) {
   }
 }
 
-document.getElementById('neria-mp-dark-toggle').addEventListener('click', function () {
+neriaMpOn('neria-mp-dark-toggle', 'click', function () {
   neriaMpDarkGlobal = !neriaMpDarkGlobal;
   this.classList.toggle('neria-mp-toolbar-btn--on', neriaMpDarkGlobal);
 
@@ -300,17 +305,18 @@ document.getElementById('neria-mp-dark-toggle').addEventListener('click', functi
   try { neriaApplyDarkSim(zoomFrame.contentDocument, neriaMpDarkGlobal); } catch (err) {}
 });
 
-document.getElementById('neria-mp-zoom-dark-btn').addEventListener('click', function () {
+neriaMpOn('neria-mp-zoom-dark-btn', 'click', function () {
   neriaMpDarkGlobal = !neriaMpDarkGlobal;
   this.classList.toggle('active', neriaMpDarkGlobal);
-  document.getElementById('neria-mp-dark-toggle').classList.toggle('neria-mp-toolbar-btn--on', neriaMpDarkGlobal);
+  var mpToggleBtn = document.getElementById('neria-mp-dark-toggle');
+  if (mpToggleBtn) { mpToggleBtn.classList.toggle('neria-mp-toolbar-btn--on', neriaMpDarkGlobal); }
 
   var zoomFrame = document.getElementById('neria-mp-zoom-frame');
   try { neriaApplyDarkSim(zoomFrame.contentDocument, neriaMpDarkGlobal); } catch (err) {}
 });
 
 // Bloque les liens à l'intérieur de l'aperçu agrandi sans empêcher le scroll
-document.getElementById('neria-mp-zoom-frame').addEventListener('load', function () {
+neriaMpOn('neria-mp-zoom-frame', 'load', function () {
   try {
     var doc = this.contentDocument;
     if (!doc) { return; }
@@ -327,8 +333,8 @@ function neriaCloseMpZoom() {
   document.getElementById('neria-mp-zoom-frame').src = 'about:blank';
 }
 
-document.getElementById('neria-mp-zoom-close').addEventListener('click', neriaCloseMpZoom);
-document.getElementById('neria-mp-zoom-overlay').addEventListener('click', function (e) {
+neriaMpOn('neria-mp-zoom-close', 'click', neriaCloseMpZoom);
+neriaMpOn('neria-mp-zoom-overlay', 'click', function (e) {
   if (e.target.id === 'neria-mp-zoom-overlay') { neriaCloseMpZoom(); }
 });
 document.addEventListener('keydown', function (e) {
