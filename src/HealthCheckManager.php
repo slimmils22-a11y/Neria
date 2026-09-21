@@ -113,6 +113,9 @@ class HealthCheckManager
                     $what = '?->';
                 } elseif ($tok[0] === T_STRING && strtolower($tok[1]) === 'array_is_list') {
                     $what = 'array_is_list()';
+                } elseif (defined('T_FN') && $tok[0] === constant('T_FN') && basename($file) === 'neria.php') {
+                    // neria.php doit rester analysable par PHP 7.2/7.3 (message d'installation « PHP 7.4 requis »).
+                    $what = 'fn (fonction fléchée, PHP 7.4)';
                 }
                 if ($what !== null) {
                     $found[] = basename(dirname($file)) . '/' . basename($file) . ':' . $tok[2] . ' (' . $what . ')';
@@ -6731,6 +6734,16 @@ class HealthCheckManager
         $php8Only = $this->findPhp8OnlySyntax(_PS_MODULE_DIR_ . $this->module->name);
         if ($php8Only) {
             $offenders[] = "Compatibilité PHP 7.4 (F-004) : syntaxe PHP 8+ réapparue (" . implode(', ', array_slice($php8Only, 0, 6)) . ") alors que config.xml annonce PrestaShop >= 8.0 — erreur fatale au chargement du module sous PHP 7.4 ; réécrire sans match/?->/array_is_list() (correctif F-004, 20/09/2026)";
+        }
+
+        // Constat F-004 (suite) : sous PHP < 7.4 le module refuse l'installation avec un message clair (19 langues).
+        $mainF004 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($mainF004 === ''
+            || strpos($mainF004, "version_compare(PHP_VERSION, '7.4.0', '<')") === false
+            || strpos($mainF004, 'public static function phpTooOldMessage(string $iso, string $phpVersion): string') === false
+            || substr_count($mainF004, "PHP 7.4") < 19
+        ) {
+            $offenders[] = "Installation F-004 : la vérification « PHP 7.4 minimum » de Neria::install() ou ses messages en 19 langues ont disparu — sous PHP 7.2/7.3 le module planterait avec une erreur fatale au lieu d'un message clair (correctif du 21/09/2026)";
         }
 
         // Constat F-002 (21/09/2026) : l'accent (3,11:1 sur blanc) et le gris #8c857e (3,64:1) servaient de couleur de TEXTE
