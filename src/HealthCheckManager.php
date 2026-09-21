@@ -6834,6 +6834,15 @@ class HealthCheckManager
             $offenders[] = "E-mails « Couleur des liens » : le réglage de l'onglet Design (vide = identique à l'accent, liens du corps et du pied de page, prévisualisation, remise à zéro) n'est plus câblé de bout en bout (layout.html, EmailRenderer::linkTextColor, ConfigManager, design.tpl, neria-admin.js) — régression du réglage ajouté le 21/09/2026";
         }
 
+        // Constat Outlook (21/09/2026, test à 4 variantes sur un vrai envoi) : Outlook ignore un « color: … !important » posé sur le lien
+        // (le CSS y est recopié en ligne) et applique alors la couleur des liens, dorée : texte du bouton doré au lieu de blanc. Le texte du
+        // bouton est donc blanc SANS !important (Gmail et Outlook l'affichent en blanc).
+        $layoutBtn = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
+        $btnBlock  = preg_match('/\.neria-btn \{[\s\S]*?white-space: nowrap;/', $layoutBtn, $mBtn) === 1 ? $mBtn[0] : '';
+        if ($btnBlock === '' || strpos($btnBlock, 'color: #ffffff;') === false || strpos($btnBlock, '!important') !== false) {
+            $offenders[] = "E-mails : le texte des boutons (.neria-btn de layout.html) est de nouveau déclaré avec !important — Outlook l'ignore et affiche le texte du bouton en doré (couleur des liens) au lieu de blanc (constat du 21/09/2026)";
+        }
+
         // Constat F-002 (21/09/2026) : l'accent (3,11:1 sur blanc) et le gris #8c857e (3,64:1) servaient de couleur de TEXTE
         // dans les e-mails, sous WCAG AA 4,5:1. Le texte utilise neria_color_accent_text (accent assombri), les filets gardent l'accent.
         $layoutF002 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
