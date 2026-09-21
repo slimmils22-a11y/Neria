@@ -84,13 +84,7 @@ class LoyaltyManager
         } catch (\Throwable $e) {
             return 'en';
         }
-        return match ($code) {
-            'pt-br' => 'br',
-            'zh-tw' => 'tw',
-            'en-gb' => 'gb',
-            'zh-cn' => 'zh',
-            default => substr($code, 0, 2),
-        };
+        return ['pt-br' => 'br', 'zh-tw' => 'tw', 'en-gb' => 'gb', 'zh-cn' => 'zh'][$code] ?? substr($code, 0, 2);
     }
 
     private Neria $module;

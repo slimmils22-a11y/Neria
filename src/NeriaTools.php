@@ -656,12 +656,15 @@ class NeriaTools
 
         $score = $max > 0 ? min(100, (int) round(($points / $max) * 100)) : 0;
 
-        $status = match (true) {
-            $score >= 90 => 'excellent',
-            $score >= 70 => 'good',
-            $score >= 50 => 'warning',
-            default      => 'critical',
-        };
+        if ($score >= 90) {
+            $status = 'excellent';
+        } elseif ($score >= 70) {
+            $status = 'good';
+        } elseif ($score >= 50) {
+            $status = 'warning';
+        } else {
+            $status = 'critical';
+        }
 
         return ['score' => $score, 'status' => $status];
     }

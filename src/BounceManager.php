@@ -456,7 +456,7 @@ class BounceManager
         // POST (tableau JSON) — traiter uniquement $payload[0] ignorait
         // silencieusement tous les autres bounces du même lot (fréquent après
         // un envoi de masse), aucun log, aucune erreur renvoyée à SendGrid.
-        if ($source === 'sendgrid' && array_is_list($payload) && isset($payload[0])) {
+        if ($source === 'sendgrid' && $payload === array_values($payload) && isset($payload[0])) {
             $recordedAny = false;
             foreach ($payload as $event) {
                 if (!is_array($event)) {
@@ -471,12 +471,16 @@ class BounceManager
             return $recordedAny;
         }
 
-        $result = match ($source) {
-            'mailgun'   => $this->parseMailgun($payload),
-            'sendgrid'  => $this->parseSendgrid($payload),
-            'postmark'  => $this->parsePostmark($payload),
-            default     => $this->parseGenericWebhook($payload),
-        };
+        // Compatibilité PHP 7.4 (PrestaShop 8.0/8.1) : pas de `match` (PHP 8.0+).
+        if ($source === 'mailgun') {
+            $result = $this->parseMailgun($payload);
+        } elseif ($source === 'sendgrid') {
+            $result = $this->parseSendgrid($payload);
+        } elseif ($source === 'postmark') {
+            $result = $this->parsePostmark($payload);
+        } else {
+            $result = $this->parseGenericWebhook($payload);
+        }
 
         if ($result === null || $result['email'] === '') {
             return false;

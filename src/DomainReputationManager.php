@@ -570,12 +570,7 @@ class DomainReputationManager
                 // pire cas possible, pire qu'une absence totale de SPF).
                 $policy = 'neutral';
                 if (preg_match('/(?:^|\s)([+\-~?]?)all(?:\s|$)/i', $txt, $mAll)) {
-                    $policy = match ($mAll[1]) {
-                        '-'     => 'reject',
-                        '~'     => 'softfail',
-                        '+', '' => 'permissive',
-                        default => 'neutral',
-                    };
+                    $policy = ['-' => 'reject', '~' => 'softfail', '+' => 'permissive', '' => 'permissive'][$mAll[1]] ?? 'neutral';
                 }
                 return [
                     'found'  => true,
@@ -1002,12 +997,7 @@ class DomainReputationManager
             // autorisée), auparavant confondue avec 'neutral' (12 pts, même
             // score qu'un domaine dont le SPF n'a simplement pas de
             // mécanisme 'all' explicite).
-            $score += match($spf['policy'] ?? '') {
-                'reject'     => 25,
-                'softfail'   => 20,
-                'permissive' => 0,
-                default      => 12,
-            };
+            $score += ['reject' => 25, 'softfail' => 20, 'permissive' => 0][$spf['policy'] ?? ''] ?? 12;
         } elseif (!empty($spf['dns_error'])) {
             $score += 12;
         }
@@ -1030,12 +1020,7 @@ class DomainReputationManager
 
         // DMARC — 20 pts. Round 177 : voir commentaire SPF ci-dessus.
         if ($dmarc['found']) {
-            $score += match($dmarc['policy'] ?? 'none') {
-                'reject'     => 20,
-                'quarantine' => 15,
-                'none'       => 8,
-                default      => 8,
-            };
+            $score += ['reject' => 20, 'quarantine' => 15, 'none' => 8][$dmarc['policy'] ?? 'none'] ?? 8;
         } elseif (!empty($dmarc['dns_error'])) {
             $score += 8;
         }
@@ -1106,25 +1091,21 @@ class DomainReputationManager
 
     public function computeGrade(int $score): string
     {
-        return match(true) {
-            $score >= 90 => 'A',
-            $score >= 75 => 'B',
-            $score >= 50 => 'C',
-            $score >= 25 => 'D',
-            default      => 'F',
-        };
+        if ($score >= 90) {
+            return 'A';
+        }
+        if ($score >= 75) {
+            return 'B';
+        }
+        if ($score >= 50) {
+            return 'C';
+        }
+        return $score >= 25 ? 'D' : 'F';
     }
 
     public function gradeColor(string $grade): string
     {
-        return match($grade) {
-            'A'     => '#1a7a40',
-            'B'     => '#3a7a6e',
-            'C'     => '#a0520d',
-            'D'     => '#b03a2e',
-            'F'     => '#7b241c',
-            default => '#888',
-        };
+        return ['A' => '#1a7a40', 'B' => '#3a7a6e', 'C' => '#a0520d', 'D' => '#b03a2e', 'F' => '#7b241c'][$grade] ?? '#888';
     }
 
     // ============================================================

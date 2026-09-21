@@ -19,6 +19,29 @@ if (!defined('_PS_VERSION_')) {
 }
 
 // ============================================================
+// COMPATIBILITÉ PHP 7.4 (PrestaShop 8.0/8.1) : fonctions PHP 8.0 utilisées par le module.
+// PrestaShop les fournit normalement via symfony/polyfill-php80 ; ce repli ne s'active que si elles manquent.
+// ============================================================
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool
+    {
+        return $needle === '' || strpos($haystack, $needle) !== false;
+    }
+}
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool
+    {
+        return strncmp($haystack, $needle, strlen($needle)) === 0;
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool
+    {
+        return $needle === '' || substr($haystack, -strlen($needle)) === $needle;
+    }
+}
+
+// ============================================================
 // AUTOLOAD : charge automatiquement toutes les classes src/
 // ============================================================
 spl_autoload_register(function (string $class): void {
@@ -6082,7 +6105,7 @@ class Neria extends Module
                 $idCurrencyOrder = (int) Db::getInstance()->getValue(
                     'SELECT `id_currency` FROM `' . _DB_PREFIX_ . 'orders` WHERE `id_order` = ' . $idOrder
                 );
-                $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang, idCurrency: $idCurrencyOrder);
+                $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang, null, $idCurrencyOrder);
                 if ($upsell) {
                     // Renvoie le bloc HTML EXACT inséré dans l'email du client
                     $result = [

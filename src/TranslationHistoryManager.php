@@ -61,7 +61,7 @@ class TranslationHistoryManager
         // (round 138) est censé empêcher.
         $acquired = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)", false);
         if ($acquired !== 1) {
-            $this->wd()?->warning(
+            ($wdHist = $this->wd()) !== null && $wdHist->warning(
                 \WatchdogManager::i18nMsg('watchdog.translation_history_lock_failed', [
                     'template' => $template,
                     'lang'     => $lang,
@@ -105,7 +105,7 @@ class TranslationHistoryManager
             // tout ce fichier), contrairement à TranslationInstaller qui
             // logue systématiquement ses échecs SQL.
             if (!$inserted) {
-                $this->wd()?->error(
+                ($wdHist = $this->wd()) !== null && $wdHist->error(
                     \WatchdogManager::i18nMsg('watchdog.translation_history_insert_failed', [
                         'template' => $template,
                         'lang'     => $lang,

@@ -324,12 +324,12 @@ class NeriaErrorHandler
 
     private static function errorTypeName(int $type): string
     {
-        return match ($type) {
+        $names = [
             E_ERROR         => 'E_ERROR',
             E_PARSE         => 'E_PARSE',
             E_CORE_ERROR    => 'E_CORE_ERROR',
             E_COMPILE_ERROR => 'E_COMPILE_ERROR',
-            default         => "E_UNKNOWN($type)",
-        };
+        ];
+        return $names[$type] ?? "E_UNKNOWN($type)";
     }
 }
