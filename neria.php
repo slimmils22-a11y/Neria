@@ -117,6 +117,40 @@ class Neria extends Module
     // ============================================================
 
     /**
+     * Constat F-004 : le module exige PHP 7.4 minimum (PrestaShop 8.0/8.1 acceptent encore PHP 7.2/7.3).
+     * Ce fichier reste volontairement analysable par PHP 7.2 (pas de fonction fléchée `fn`) afin que ce message
+     * s'affiche à l'installation au lieu d'une erreur fatale. Textes intégrés ici : AdminTranslator et les
+     * classes de src/ utilisent la syntaxe 7.4 et ne sont pas chargeables sur une version plus ancienne.
+     */
+    public static function phpTooOldMessage(string $iso, string $phpVersion): string
+    {
+        $messages = [
+            'fr' => 'Neria nécessite PHP 7.4 ou supérieur. Cette boutique utilise PHP %s : demandez à votre hébergeur de passer à PHP 7.4 ou plus, puis réinstallez le module.',
+            'en' => 'Neria requires PHP 7.4 or higher. This shop runs PHP %s: ask your host to switch to PHP 7.4 or later, then install the module again.',
+            'de' => 'Neria benötigt PHP 7.4 oder höher. Dieser Shop verwendet PHP %s: Bitten Sie Ihren Hoster, auf PHP 7.4 oder neuer umzustellen, und installieren Sie das Modul dann erneut.',
+            'it' => 'Neria richiede PHP 7.4 o superiore. Questo negozio usa PHP %s: chieda al suo hosting di passare a PHP 7.4 o successivo, poi reinstalli il modulo.',
+            'es' => 'Neria requiere PHP 7.4 o superior. Esta tienda usa PHP %s: pida a su proveedor de alojamiento que pase a PHP 7.4 o posterior y vuelva a instalar el módulo.',
+            'pt' => 'O Neria requer PHP 7.4 ou superior. Esta loja utiliza PHP %s: peça ao seu alojamento que passe para PHP 7.4 ou posterior e volte a instalar o módulo.',
+            'br' => 'O Neria requer PHP 7.4 ou superior. Esta loja usa PHP %s: peça à sua hospedagem que mude para PHP 7.4 ou posterior e instale o módulo novamente.',
+            'ar' => 'يتطلب Neria الإصدار 7.4 من PHP أو أحدث. يستخدم هذا المتجر PHP %s: اطلبوا من مزوّد الاستضافة الانتقال إلى PHP 7.4 أو أحدث ثم أعيدوا تثبيت الوحدة.',
+            'ja' => 'Neria には PHP 7.4 以上が必要です。このショップは PHP %s を使用しています。ホスティング会社に PHP 7.4 以上への変更を依頼してから、モジュールを再度インストールしてください。',
+            'ko' => 'Neria는 PHP 7.4 이상이 필요합니다. 이 쇼핑몰은 PHP %s를 사용 중입니다. 호스팅 업체에 PHP 7.4 이상으로 변경을 요청한 후 모듈을 다시 설치해 주십시오.',
+            'zh' => 'Neria 需要 PHP 7.4 或更高版本。此商店当前使用 PHP %s：请联系您的主机提供商升级到 PHP 7.4 或更高版本，然后重新安装该模块。',
+            'tw' => 'Neria 需要 PHP 7.4 或更高版本。此商店目前使用 PHP %s：請聯絡您的主機供應商升級至 PHP 7.4 或更高版本，然後重新安裝此模組。',
+            'ru' => 'Для Neria требуется PHP 7.4 или выше. В этом магазине используется PHP %s: попросите вашего хостинг-провайдера перейти на PHP 7.4 или новее, затем установите модуль заново.',
+            'tr' => 'Neria, PHP 7.4 veya üstünü gerektirir. Bu mağaza PHP %s kullanıyor: barındırma sağlayıcınızdan PHP 7.4 veya üstüne geçmesini isteyin, ardından modülü yeniden yükleyin.',
+            'sv' => 'Neria kräver PHP 7.4 eller senare. Den här butiken använder PHP %s: be ditt webbhotell byta till PHP 7.4 eller senare och installera sedan modulen igen.',
+            'no' => 'Neria krever PHP 7.4 eller nyere. Denne butikken bruker PHP %s: be webhotellet om å bytte til PHP 7.4 eller nyere, og installer deretter modulen på nytt.',
+            'da' => 'Neria kræver PHP 7.4 eller nyere. Denne butik bruger PHP %s: bed dit webhotel skifte til PHP 7.4 eller nyere, og installer derefter modulet igen.',
+            'nl' => 'Neria vereist PHP 7.4 of hoger. Deze winkel gebruikt PHP %s: vraag uw hostingprovider over te stappen naar PHP 7.4 of hoger en installeer de module daarna opnieuw.',
+            'gb' => 'Neria requires PHP 7.4 or higher. This shop runs PHP %s: ask your host to switch to PHP 7.4 or later, then install the module again.',
+        ];
+        $iso = strtolower($iso);
+
+        return sprintf($messages[$iso] ?? $messages['en'], $phpVersion);
+    }
+
+    /**
      * Installe le module :
      * 1. Appel du parent (enregistrement en base)
      * 2. Création des tables SQL
@@ -126,6 +160,12 @@ class Neria extends Module
      */
     public function install(): bool
     {
+        if (version_compare(PHP_VERSION, '7.4.0', '<')) {
+            $this->_errors[] = self::phpTooOldMessage(isset($this->context->language->iso_code) ? (string) $this->context->language->iso_code : 'en', PHP_VERSION);
+
+            return false;
+        }
+
         $ok = parent::install()
             && $this->executeSqlFile('install.sql')
             && $this->registerHooks()
@@ -4832,11 +4872,14 @@ class Neria extends Module
                     }
                     // Watchdog : log le nombre de champs réellement modifiés
                     if (class_exists('WatchdogManager') && isset($histMgr)) {
+                        $valsBefore = isset($currentVals) ? $currentVals : [];
                         $changedCount = count(array_filter(
                             array_keys((array) $fields),
-                            fn($k) => preg_replace('/[^a-z0-9_]/i', '', (string) $k) !== ''
-                                   && ($currentVals[preg_replace('/[^a-z0-9_]/i', '', (string) $k)] ?? null)
-                                      !== (string) $fields[$k]
+                            function ($k) use ($valsBefore, $fields) {
+                                return preg_replace('/[^a-z0-9_]/i', '', (string) $k) !== ''
+                                    && ($valsBefore[preg_replace('/[^a-z0-9_]/i', '', (string) $k)] ?? null)
+                                       !== (string) $fields[$k];
+                            }
                         ));
                         if ($changedCount > 0) {
                             (new WatchdogManager($this))->info(
@@ -5341,16 +5384,16 @@ class Neria extends Module
 
             // Détection des anomalies pour le résumé affiché au clic sur le badge ⚠
             $diffChecks = [
-                'Balises <style> supprimées'            => fn ($r, $t) => (bool) preg_match('/<style\b/i', $r) && !preg_match('/<style\b/i', $t),
-                'Liens <link> CSS externes supprimés'   => fn ($r, $t) => substr_count($r, 'rel="stylesheet"') > substr_count($t, 'rel="stylesheet"'),
-                'background-image supprimé'             => fn ($r, $t) => substr_count($r, 'background-image') > substr_count($t, 'background-image'),
-                'border-radius supprimé'                => fn ($r, $t) => substr_count($r, 'border-radius') > substr_count($t, 'border-radius'),
-                'text-shadow / box-shadow supprimés'    => fn ($r, $t) => substr_count($r, '-shadow') > substr_count($t, '-shadow'),
-                'display:flex neutralisé (→ block)'     => fn ($r, $t) => substr_count($r, 'flex') > substr_count($t, 'flex'),
-                'gap (flexbox) supprimé'                => fn ($r, $t) => substr_count($r, 'gap:') > substr_count($t, 'gap:'),
-                'position supprimée'                    => fn ($r, $t) => substr_count($r, 'position:') > substr_count($t, 'position:'),
-                '@media queries supprimées'             => fn ($r, $t) => substr_count($r, '@media') > substr_count($t, '@media'),
-                'Attributs style="" en ligne supprimés' => fn ($r, $t) => substr_count($r, ' style=') > substr_count($t, ' style='),
+                'Balises <style> supprimées'            => function ($r, $t) { return (bool) preg_match('/<style\b/i', $r) && !preg_match('/<style\b/i', $t); },
+                'Liens <link> CSS externes supprimés'   => function ($r, $t) { return substr_count($r, 'rel="stylesheet"') > substr_count($t, 'rel="stylesheet"'); },
+                'background-image supprimé'             => function ($r, $t) { return substr_count($r, 'background-image') > substr_count($t, 'background-image'); },
+                'border-radius supprimé'                => function ($r, $t) { return substr_count($r, 'border-radius') > substr_count($t, 'border-radius'); },
+                'text-shadow / box-shadow supprimés'    => function ($r, $t) { return substr_count($r, '-shadow') > substr_count($t, '-shadow'); },
+                'display:flex neutralisé (→ block)'     => function ($r, $t) { return substr_count($r, 'flex') > substr_count($t, 'flex'); },
+                'gap (flexbox) supprimé'                => function ($r, $t) { return substr_count($r, 'gap:') > substr_count($t, 'gap:'); },
+                'position supprimée'                    => function ($r, $t) { return substr_count($r, 'position:') > substr_count($t, 'position:'); },
+                '@media queries supprimées'             => function ($r, $t) { return substr_count($r, '@media') > substr_count($t, '@media'); },
+                'Attributs style="" en ligne supprimés' => function ($r, $t) { return substr_count($r, ' style=') > substr_count($t, ' style='); },
             ];
 
             foreach (array_keys(MultiClientPreviewManager::CLIENTS) as $clientId) {
@@ -5393,10 +5436,12 @@ class Neria extends Module
                 }
             }
             $this->context->smarty->assign([
-                'mp_previews_meta'     => array_map(fn ($pv) => [
-                    'issues' => $pv['issues'],
-                    'detail' => $pv['detail'],
-                ], $previews),
+                'mp_previews_meta'     => array_map(function ($pv) {
+                    return [
+                        'issues' => $pv['issues'],
+                        'detail' => $pv['detail'],
+                    ];
+                }, $previews),
                 'mp_token'             => $mpToken,
                 'mp_preview_base'      => rtrim($this->context->link->getBaseLink(), '/') . '/modules/neria/getpreview.php',
                 'mp_selected_template' => $mpTemplate,
@@ -6808,7 +6853,9 @@ class Neria extends Module
             'fonts_by_script'  => array_combine(
                 array_keys($fonts->getAllScripts()),
                 array_map(
-                    fn($script) => $fonts->getFontsForScript($script),
+                    function ($script) use ($fonts) {
+                        return $fonts->getFontsForScript($script);
+                    },
                     array_keys($fonts->getAllScripts())
                 )
             ),
@@ -8417,7 +8464,9 @@ class Neria extends Module
         $sql = preg_replace('/--[^\n]*\n/', "\n", $sql);
         $queries = array_filter(
             array_map('trim', explode(';', $sql)),
-            fn(string $q): bool => !empty($q)
+            function (string $q): bool {
+                return !empty($q);
+            }
         );
 
         foreach ($queries as $query) {
