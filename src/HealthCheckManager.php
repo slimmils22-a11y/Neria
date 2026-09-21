@@ -84,6 +84,45 @@ class HealthCheckManager
      * réutilise le résultat pour tous les appels suivants sur le même
      * chemin — voir $srcCache.
      */
+    /**
+     * Constat F-004 (20/09/2026) : config.xml annonce PrestaShop >= 8.0 (PHP 7.2/7.4 possible) alors que le code
+     * utilisait `match`, `?->` et array_is_list() (PHP 8.0/8.1) → erreur fatale au chargement du module. Repère ces
+     * constructions dans les .php d'un dossier grâce au lexeur PHP (commentaires et chaînes ignorés).
+     * Sans effet sous PHP < 8 (le lexeur ne connaît pas ces jetons ; le fichier ne se chargerait de toute façon pas).
+     *
+     * @return string[] « fichier:ligne (construction) »
+     */
+    private function findPhp8OnlySyntax(string $dir): array
+    {
+        $tMatch   = defined('T_MATCH') ? constant('T_MATCH') : null;
+        $tNullsafe = defined('T_NULLSAFE_OBJECT_OPERATOR') ? constant('T_NULLSAFE_OBJECT_OPERATOR') : null;
+        if ($tMatch === null || $tNullsafe === null) {
+            return [];
+        }
+        $found = [];
+        $files = array_merge(glob(rtrim($dir, '/\\') . '/*.php') ?: [], glob(rtrim($dir, '/\\') . '/src/*.php') ?: [], glob(rtrim($dir, '/\\') . '/controllers/*/*.php') ?: [], glob(rtrim($dir, '/\\') . '/upgrade/*.php') ?: []);
+        foreach ($files as $file) {
+            foreach (token_get_all((string) file_get_contents($file)) as $tok) {
+                if (!is_array($tok)) {
+                    continue;
+                }
+                $what = null;
+                if ($tok[0] === $tMatch) {
+                    $what = 'match';
+                } elseif ($tok[0] === $tNullsafe) {
+                    $what = '?->';
+                } elseif ($tok[0] === T_STRING && strtolower($tok[1]) === 'array_is_list') {
+                    $what = 'array_is_list()';
+                }
+                if ($what !== null) {
+                    $found[] = basename(dirname($file)) . '/' . basename($file) . ':' . $tok[2] . ' (' . $what . ')';
+                }
+            }
+        }
+
+        return $found;
+    }
+
     private function readModuleSrc(string $file): string
     {
         if (!array_key_exists($file, $this->srcCache)) {
@@ -6686,6 +6725,32 @@ class HealthCheckManager
             || substr_count($rendF001, "'{\$neria" . "_lang}'") < 2
         ) {
             $offenders[] = "E-mails F-001 : la balise <html> du layout ne porte plus lang/xml:lang (langue du destinataire) ou EmailRenderer n'injecte plus neria_lang dans les deux chemins de compilation — régression du correctif F-001 (20/09/2026, accessibilité WCAG 3.1.1)";
+        }
+
+        // Constat F-004 (20/09/2026) : le module annonce PrestaShop >= 8.0 (PHP 7.4 possible) : aucune syntaxe PHP 8+.
+        $php8Only = $this->findPhp8OnlySyntax(_PS_MODULE_DIR_ . $this->module->name);
+        if ($php8Only) {
+            $offenders[] = "Compatibilité PHP 7.4 (F-004) : syntaxe PHP 8+ réapparue (" . implode(', ', array_slice($php8Only, 0, 6)) . ") alors que config.xml annonce PrestaShop >= 8.0 — erreur fatale au chargement du module sous PHP 7.4 ; réécrire sans match/?->/array_is_list() (correctif F-004, 20/09/2026)";
+        }
+
+        // Constat F-002 (21/09/2026) : l'accent (3,11:1 sur blanc) et le gris #8c857e (3,64:1) servaient de couleur de TEXTE
+        // dans les e-mails, sous WCAG AA 4,5:1. Le texte utilise neria_color_accent_text (accent assombri), les filets gardent l'accent.
+        $layoutF002 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
+        $rendF002   = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $cfgF002    = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        $coreF002   = '';
+        foreach (glob(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/*.html') ?: [] as $coreFile) {
+            $coreF002 .= $this->readModuleSrc($coreFile);
+        }
+        if ($layoutF002 === '' || $rendF002 === '' || $cfgF002 === ''
+            || preg_match('/(?<![-\w])color:\s*\{\$neria_color_accent\}/', $layoutF002) === 1
+            || preg_match('/(?<![-\w])color:\s*\{\$neria_color_accent\}/', $coreF002) === 1
+            || strpos($layoutF002, '8c857' . 'e') !== false
+            || substr_count($layoutF002, 'color: {$neria_color_accent_text}') < 3
+            || substr_count($rendF002, 'getAccessibleTextColor(') < 3
+            || strpos($cfgF002, 'public static function getAccessibleTextColor(string $hex') === false
+        ) {
+            $offenders[] = "E-mails F-002 : une couleur de texte des e-mails (liens, pied de page, prix, codes promo, en-têtes de tableau) est redevenue l'accent brut ou le gris #8c857e, sous le contraste WCAG AA 4,5:1, ou neria_color_accent_text n'est plus injecté — régression du correctif F-002 (21/09/2026)";
         }
 
         // Bloc 7 (19/09/2026) : onglet Historique client (CSV, message « aucun client ») et export du
