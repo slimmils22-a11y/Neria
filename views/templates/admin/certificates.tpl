@@ -182,7 +182,7 @@
             <td style="padding:10px 12px;">{$c.customer_name|escape:'html':'UTF-8'}</td>
             <td style="padding:10px 12px;">
               <a href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&id_order={$c.id_order|intval}&vieworder=1"
-                 target="_blank" style="color:#1a1a2e;font-weight:600;">
+                 target="_blank" rel="noopener" style="color:#1a1a2e;font-weight:600;">
                 #{$c.id_order|intval}
                 {if isset($c.order_ref) && $c.order_ref} · {$c.order_ref|escape:'html':'UTF-8'}{/if}
               </a>

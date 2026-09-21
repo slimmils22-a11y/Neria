@@ -285,7 +285,7 @@
             {$font}
             {if !$present}
               <span class="neria-diag-note">
-                <a href="https://fonts.google.com" target="_blank">
+                <a href="https://fonts.google.com" target="_blank" rel="noopener">
                   {neria_admin key='help.download_google_fonts'}
                 </a>
               </span>
@@ -680,7 +680,7 @@
     <button id="neria-emergency-copy-btn" class="neria-btn neria-btn--ghost neria-btn--sm" style="color:#b38b59; border-color:#b38b59;">
       {neria_admin key='help.emergency_copy'}
     </button>
-    <a href="{$emergency_url|escape:'html'}" target="_blank" class="neria-btn neria-btn--ghost neria-btn--sm" style="color:#b38b59; border-color:#b38b59;">
+    <a href="{$emergency_url|escape:'html'}" target="_blank" rel="noopener" class="neria-btn neria-btn--ghost neria-btn--sm" style="color:#b38b59; border-color:#b38b59;">
       {neria_admin key='help.emergency_open'}
     </a>
   </div>
@@ -982,7 +982,7 @@
     <div class="neria-doc-card">
       <h3 class="neria-doc-card__title">?&nbsp;{neria_admin key='help.support_title'}</h3>
       <p>{neria_admin key='help.support_desc'}</p>
-      <a href="https://www.neria.io/docs" target="_blank"
+      <a href="https://www.neria.io/docs" target="_blank" rel="noopener"
          class="neria-btn neria-btn--ghost neria-btn--sm">
         {neria_admin key='help.documentation'}
       </a>

@@ -9,7 +9,7 @@
     <span style="font-size:14px;font-weight:600;letter-spacing:.04em;">
       📜 {neria_admin key='cert.block_title'}
     </span>
-    <a href="{$cert_bo_url|escape:'html':'UTF-8'}" target="_blank"
+    <a href="{$cert_bo_url|escape:'html':'UTF-8'}" target="_blank" rel="noopener"
        style="font-size:11px;color:#b38b59;text-decoration:none;">
       {neria_admin key='cert.view_all'} →
     </a>

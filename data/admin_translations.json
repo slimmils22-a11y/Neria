@@ -10772,6 +10772,27 @@
         "nl": "Een naam en een geldig e-mailsjabloon zijn verplicht.",
         "gb": "A name and a valid email template are required."
     },
+    "configure.blacklist_remove_confirm": {
+        "fr": "Retirer cette règle de la liste noire ?",
+        "en": "Remove this rule from the blacklist?",
+        "de": "Diese Regel aus der Sperrliste entfernen?",
+        "it": "Rimuovere questa regola dalla lista nera?",
+        "es": "¿Quitar esta regla de la lista negra?",
+        "pt": "Remover esta regra da lista negra?",
+        "br": "Remover esta regra da lista negra?",
+        "ar": "هل تريد إزالة هذه القاعدة من القائمة السوداء؟",
+        "ja": "このルールをブラックリストから削除しますか？",
+        "ko": "이 규칙을 블랙리스트에서 제거하시겠습니까?",
+        "zh": "要从黑名单中移除此规则吗？",
+        "tw": "要從黑名單中移除此規則嗎？",
+        "ru": "Удалить это правило из чёрного списка?",
+        "tr": "Bu kural kara listeden kaldırılsın mı?",
+        "sv": "Ta bort den här regeln från svartlistan?",
+        "no": "Fjerne denne regelen fra svartelisten?",
+        "da": "Fjerne denne regel fra sortlisten?",
+        "nl": "Deze regel van de zwarte lijst verwijderen?",
+        "gb": "Remove this rule from the blacklist?"
+    },
     "design.color_background": {
         "fr": "Fond d'envoi",
         "en": "Email background",

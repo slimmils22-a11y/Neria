@@ -21,7 +21,7 @@
     {/if}
   </div>
   <a href="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=gdpr_pdf"
-     target="_blank"
+     target="_blank" rel="noopener"
      class="neria-btn neria-btn--primary neria-btn--sm">
     {neria_admin key='gdpr.download_pdf'}
   </a>

@@ -833,8 +833,10 @@
                   <input type="hidden" name="neria_action" value="remove_blacklist">
                   <input type="hidden" name="neria_tab"    value="configure">
                   <input type="hidden" name="neria_bl_id"  value="{$rule.id_blacklist}">
-                  <button type="submit" class="neria-btn neria-btn--ghost neria-btn--sm"
+                  <button type="button" class="neria-btn neria-btn--ghost neria-btn--sm"
                           style="color:var(--neria-error);border-color:var(--neria-error);"
+                          data-confirm="{neria_admin key='configure.blacklist_remove_confirm' esc='html'}"
+                          onclick="neriaConfirmDelete(this);"
                           title="{neria_admin key='configure.blacklist_remove'}">✕</button>
                 </form>
               </td>

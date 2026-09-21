@@ -146,7 +146,7 @@ window.neriaAjaxUrl = function(action, extra) {
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <span class="neria-deepl-badge">DeepL</span>
       <span style="font-size:13px;font-weight:600;color:var(--neria-text);">{neria_admin key='translations.deepl_title'}</span>
-      <a href="https://www.deepl.com/pro-api" target="_blank" style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-left:auto;">{neria_admin key='translations.deepl_get_key'} →</a>
+      <a href="https://www.deepl.com/pro-api" target="_blank" rel="noopener" style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-left:auto;">{neria_admin key='translations.deepl_get_key'} →</a>
     </div>
     <p style="margin:0 0 10px;font-size:13px;color:var(--neria-text);line-height:1.7;">
       {neria_admin key='translations.deepl_intro'}

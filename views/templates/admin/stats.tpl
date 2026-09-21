@@ -1346,7 +1346,7 @@ var _nhmLbl = {
       {if !$pagespeed_configured}
       <div style="font-size:12px;color:#5c3d1e;line-height:1.6;margin-bottom:12px;">
         <strong>{neria_admin key='stats.pagespeed_getkey_title'}</strong><br>
-        1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a>
+        1. <a href="https://console.cloud.google.com/" target="_blank" rel="noopener" style="color:#1a7a40;">console.cloud.google.com</a>
         {neria_admin key='stats.pagespeed_getkey_step1'}<br>
         2. {neria_admin key='stats.pagespeed_getkey_step2'}
       </div>
@@ -1840,7 +1840,7 @@ var _nhmLbl = {
                  style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                  placeholder="{neria_admin key='stats.semrush_key_placeholder'}">
           <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">
-            <a href="https://www.semrush.com/api-documentation/" target="_blank" style="color:var(--neria-accent);">{neria_admin key='stats.seo_semrush_doc_link'}</a>
+            <a href="https://www.semrush.com/api-documentation/" target="_blank" rel="noopener" style="color:var(--neria-accent);">{neria_admin key='stats.seo_semrush_doc_link'}</a>
           </div>
         </div>
 
@@ -1855,7 +1855,7 @@ var _nhmLbl = {
                  style="width:100%;padding:7px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                  placeholder="…">
           <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">
-            <a href="https://moz.com/products/api" target="_blank" style="color:var(--neria-accent);">{neria_admin key='stats.seo_moz_doc_link'}</a>
+            <a href="https://moz.com/products/api" target="_blank" rel="noopener" style="color:var(--neria-accent);">{neria_admin key='stats.seo_moz_doc_link'}</a>
           </div>
         </div>
       </div>
@@ -3067,7 +3067,7 @@ var _nCopyLbl = {
           <td>
             <div style="display:flex; align-items:center; gap:10px;">
               {if $urow.thumb_url}<img src="{$urow.thumb_url|escape:'html'}" width="36" alt="" style="border-radius:3px; display:block; flex-shrink:0;">{/if}
-              <a href="{$urow.product_url|escape:'html'}" target="_blank"
+              <a href="{$urow.product_url|escape:'html'}" target="_blank" rel="noopener"
                  style="font-size:13px; color:var(--neria-text); text-decoration:none;">{$urow.product_name|escape:'html'}</a>
             </div>
           </td>
