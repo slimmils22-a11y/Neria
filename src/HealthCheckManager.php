@@ -3773,7 +3773,7 @@ class HealthCheckManager
             $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 125 : signature/réseaux sociaux résolus dans buildCompiledHtml())';
         } else {
             $posbch = strpos($er1Src, 'private function buildCompiledHtml(');
-            $bchBlock = $posbch !== false ? substr($er1Src, $posbch, 10500) : '';
+            $bchBlock = $posbch !== false ? substr($er1Src, $posbch, 11500) : '';
             if ($posbch === false
                 || strpos($bchBlock, '$this->injectSignatureVars($sigVars, (int) $this->context->shop->id);') === false
                 || strpos($bchBlock, '$this->injectSocialVars($socVars);') === false
@@ -5091,7 +5091,7 @@ class HealthCheckManager
             // preg_replace_callback() (bug $ + chiffre traité comme
             // rétro-référence) a allongé cette méthode de part et d'autre.
             // Bloc 7 : 9600→10400 — neria_rule_width ajouté à l'injection du design (méthode allongée).
-            $bchBody149 = $posBch149 !== false ? substr($erSrc149, $posBch149, 10400) : '';
+            $bchBody149 = $posBch149 !== false ? substr($erSrc149, $posBch149, 11400) : '';
             if ($posBch149 === false
                 || strpos($bchBody149, '$safeExtraReplacements = $extraReplacements;') === false
                 || strpos($bchBody149, '!in_array($nameKey, self::HTML_SAFE_RAW_KEYS, true)') === false
@@ -6746,8 +6746,9 @@ class HealthCheckManager
             || preg_match('/(?<![-\w])color:\s*\{\$neria_color_accent\}/', $layoutF002) === 1
             || preg_match('/(?<![-\w])color:\s*\{\$neria_color_accent\}/', $coreF002) === 1
             || strpos($layoutF002, '8c857' . 'e') !== false
-            || substr_count($layoutF002, 'color: {$neria_color_accent_text}') < 3
-            || substr_count($rendF002, 'getAccessibleTextColor(') < 3
+            || substr_count($layoutF002, 'color: {$neria_color_accent_text}') < 2
+            || strpos($layoutF002, 'color: {$neria_color_accent_footer_' . 'text}') === false
+            || substr_count($rendF002, 'getAccessibleTextColor(') < 6
             || strpos($cfgF002, 'public static function getAccessibleTextColor(string $hex') === false
         ) {
             $offenders[] = "E-mails F-002 : une couleur de texte des e-mails (liens, pied de page, prix, codes promo, en-têtes de tableau) est redevenue l'accent brut ou le gris #8c857e, sous le contraste WCAG AA 4,5:1, ou neria_color_accent_text n'est plus injecté — régression du correctif F-002 (21/09/2026)";
