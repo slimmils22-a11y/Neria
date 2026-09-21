@@ -1,5 +1,5 @@
 {
-    "generated": "2026-09-21T20:55:54+02:00",
+    "generated": "2026-09-21T21:26:00+02:00",
     "rows": [
         {
             "key": "json_config_integrity",
@@ -118,7 +118,7 @@
             "after": "error",
             "restored": "ok",
             "result": "DÉTECTÉ",
-            "note": "Quota SMTP journalier dépassé : 89/1 emails envoyés aujourd'hui (8900%). → Que faire : Les emails suivants ris",
+            "note": "Quota SMTP journalier dépassé : 97/1 emails envoyés aujourd'hui (9700%). → Que faire : Les emails suivants ris",
             "changed": true
         },
         {
@@ -219,6 +219,16 @@
             "restored": "ok",
             "result": "DÉTECTÉ",
             "note": "La table neria_behavioral_sent contient 50161 lignes. Croissance normale mais surveillée (seuil : 50 000).",
+            "changed": true
+        },
+        {
+            "key": "assets",
+            "label": "logo configuré introuvable sur le disque",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Logo introuvable : uploads/p8d-logo-inexistant.png",
             "changed": true
         },
         {
@@ -338,7 +348,7 @@
             "after": "warning",
             "restored": "ok",
             "result": "DÉTECTÉ",
-            "note": "1 bon(s) de palier référence(nt) un CartRule inexistant/inactif : 1379 (cart_rule#99999999) → Que faire : ces ",
+            "note": "1 bon(s) de palier référence(nt) un CartRule inexistant/inactif : 1385 (cart_rule#99999999) → Que faire : ces ",
             "changed": true
         },
         {
@@ -382,13 +392,63 @@
             "changed": true
         },
         {
+            "key": "secrets_encrypted",
+            "label": "secret stocké en clair (clé DeepL)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 secret(s) stocké(s) en clair dans la configuration : NERIA_DEEPL_KEY. → Que faire : réexécutez la migration ",
+            "changed": true
+        },
+        {
+            "key": "behavioral_silence",
+            "label": "cron comportemental actif, clients actifs, aucun envoi en 7 jours",
+            "before": "warning",
+            "after": "warning",
+            "restored": "warning",
+            "result": "DÉTECTÉ",
+            "note": "Aucun email comportemental envoyé depuis 7 jours alors que 33 clients sont actifs et que des crons sont activé",
+            "changed": false
+        },
+        {
+            "key": "hooks_registered",
+            "label": "crochet essentiel retiré du module",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "1 hook(s) réenregistré(s) automatiquement : actionEmailSendBefore. Un autre module a pu les désactiver par err",
+            "changed": true
+        },
+        {
+            "key": "segment_freshness",
+            "label": "segments clients calculés il y a plus de 48 h",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Segmentation recalculée automatiquement plutôt que d'attendre le prochain passage du cron — 34 client(s) mis à",
+            "changed": true
+        },
+        {
+            "key": "clv_freshness",
+            "label": "scores de valeur client calculés il y a plus de 72 h",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "result": "DÉTECTÉ",
+            "note": "Scores de risque de désabonnement (source du CLV) recalculés automatiquement — 33 client(s) mis à jour.",
+            "changed": true
+        },
+        {
             "key": "residual_vars_recent",
             "label": "e-mails récents envoyés avec une variable de contenu manquante",
             "before": "warning",
             "after": "warning",
             "restored": "warning",
             "result": "DÉTECTÉ",
-            "note": "43 email(s) envoyé(s) ces 7 derniers jours avaient une variable de contenu manquante (nettoyée automatiquement",
+            "note": "49 email(s) envoyé(s) ces 7 derniers jours avaient une variable de contenu manquante (nettoyée automatiquement",
             "changed": false
         },
         {
@@ -491,6 +551,105 @@
             "changed": true
         },
         {
+            "key": "display_price_missing_lang",
+            "label": "NeriaTools::displayPrice() sans langue explicite (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 appel(s) à NeriaTools::displayPrice() sans langue explicite détecté(s) : src/Bad.php:3 → Que faire : en cont",
+            "changed": true
+        },
+        {
+            "key": "customer_email_shop_scope",
+            "label": "recherche client par e-mail sans id_shop (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 résolution(s) de client par email sans filtre id_shop détectée(s) : src/BadCust.php:3 → Que faire : ajoutez ",
+            "changed": true
+        },
+        {
+            "key": "default_currency_usage",
+            "label": "Currency::getDefaultCurrency() sans idShop (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 occurrence(s) de Currency::getDefaultCurrency() détectée(s) : src/CurBad.php:3 → Que faire : vérifiez chaque",
+            "changed": true
+        },
+        {
+            "key": "upgrade_unique_key_shop_scope",
+            "label": "clé UNIQUE par client sans id_shop dans un script d'upgrade (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 clé(s) UNIQUE sans id_shop détectée(s) dans upgrade/ : upgrade/upgrade-1.0.3.php:2 → Que faire : vérifiez ch",
+            "changed": true
+        },
+        {
+            "key": "tpl_request_uri_escape",
+            "label": "REQUEST_URI jamais échappé dans un gabarit (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 utilisation(s) de $smarty.server.REQUEST_URI sans échappement détectée(s) dans les templates : views/templat",
+            "changed": true
+        },
+        {
+            "key": "sql_pattern_risks",
+            "label": "getRow() avec un LIMIT explicite (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Piège SQL/PHP générique détecté : Bad.php : getRow() avec un LIMIT explicite (Db::getRow() en ajoute déjà un —",
+            "changed": true
+        },
+        {
+            "key": "i18n_pattern_risks",
+            "label": "modificateur de sortie après un paramètre nommé de {neria_admin} (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Piège i18n/Smarty générique détecté : bad.tpl : utilise un modificateur de sortie Smarty (escape/replace/...) ",
+            "changed": true
+        },
+        {
+            "key": "hardcoded_french_text",
+            "label": "texte français codé en dur dans le code (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 texte(s) français potentiellement codé(s) en dur hors traduction : Bad.php:2.",
+            "changed": true
+        },
+        {
+            "key": "cron_loop_try_catch",
+            "label": "boucle d'envoi de cron sans try/catch (faux module)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 méthode(s) avec boucle d'envoi cron sans try/catch détectée(s) : src/BadManager.php:2 (run) → Que faire : un",
+            "changed": true
+        },
+        {
             "key": "tpl_js_escape_missing",
             "label": "variable Smarty non échappée dans un getElementById (faux module)",
             "before": "ok",
@@ -499,6 +658,105 @@
             "clean": null,
             "result": "DÉTECTÉ",
             "note": "1 interpolation(s) JS non échappée(s) détectée(s) : bad.tpl:1 → Que faire : une valeur contenant une apostroph",
+            "changed": true
+        },
+        {
+            "key": "template_files",
+            "label": "fichier .txt d'un e-mail supprimé (fichier réel, restauré)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 fichier(s) template manquant(s) sur disque : order_conf.txt → Que faire : Réinstallez ou réuploadez le dossi",
+            "changed": true
+        },
+        {
+            "key": "html_txt_pairs",
+            "label": "e-mail sans version texte (fichier réel, restauré)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 désynchronisation(s) HTML/TXT détectée(s) : order_conf (.txt manquant).",
+            "changed": true
+        },
+        {
+            "key": "front_controllers",
+            "label": "contrôleur front manquant (fichier réel, restauré)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Fichiers frontaux manquants : cron.php. → Que faire : Réinstallez les fichiers depuis le package Neria. Ces fi",
+            "changed": true
+        },
+        {
+            "key": "version_files_sync",
+            "label": "config.xml annonce une autre version que le code (fichier réel, restauré)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Version désynchronisée : neria.php indique 1.0.48, config.xml indique config.xml (1.0.1) — Module::needUpgrade",
+            "changed": true
+        },
+        {
+            "key": "upgrade_version_file",
+            "label": "script d'upgrade de la version courante manquant (fichier réel, restauré)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "Aucun script upgrade-1.0.48.php trouvé pour la version actuelle du module — toute modification ajoutée dans ce",
+            "changed": true
+        },
+        {
+            "key": "calendar_json_integrity",
+            "label": "data/calendar.json illisible (fichier réel, restauré)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "data/calendar.json est illisible ou mal formé (JSON invalide) → Que faire : vérifiez la syntaxe du fichier ou ",
+            "changed": true
+        },
+        {
+            "key": "txt_raw_html_leak",
+            "label": "balise HTML brute dans une version texte (fichier réel, restauré)",
+            "before": "ok",
+            "after": "error",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 template(s) avec une balise HTML brute détectée dans la version texte — contenu illisible pour le client : o",
+            "changed": true
+        },
+        {
+            "key": "orphan_placeholders",
+            "label": "variable inconnue dans un e-mail (fichier réel, restauré)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 variable(s) présente(s) dans les templates mais jamais référencée(s) dans le code — probablement jamais inje",
+            "changed": true
+        },
+        {
+            "key": "translation_gaps",
+            "label": "traduction gb vidée dans le dictionnaire du back-office (fichier réel, restauré)",
+            "before": "ok",
+            "after": "warning",
+            "restored": "ok",
+            "clean": null,
+            "result": "DÉTECTÉ",
+            "note": "1 manquants max — gb(1)",
             "changed": true
         }
     ]

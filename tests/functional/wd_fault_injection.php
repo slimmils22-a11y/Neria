@@ -156,6 +156,9 @@ $specs = [
         $db->execute("INSERT INTO {$p}neria_behavioral_sent (id_customer, template, ref_id, id_shop, sent_at) WITH RECURSIVE s(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM s WHERE n < 50100) SELECT n, 'birthday', n, {$shop}, NOW() FROM s");
     }, ['warning', 'error']],
     // ── Lot 2 : réglages et intégrité ──
+    'assets' => ['logo configuré introuvable sur le disque', static function () use ($cfg) {
+        $cfg('NERIA_LOGO_PATH', 'uploads/p8d-logo-inexistant.png');
+    }, ['warning', 'error']],
     'smtp_config' => ["envoi par la fonction mail() de PHP", static function () use ($cfg) {
         $cfg('PS_MAIL_METHOD', '1');
     }, ['warning', 'error']],
@@ -221,6 +224,25 @@ $specs = [
         $db->execute("DELETE FROM {$p}neria_seasonal_campaign");
         $db->execute("DELETE FROM {$p}neria_customer_segment");
     }],
+    'secrets_encrypted' => ['secret stocké en clair (clé DeepL)', static function () use ($cfg) {
+        $cfg('NERIA_DEEPL_KEY', 'cle-en-clair-p8d');
+    }, ['error', 'warning']],
+    'behavioral_silence' => ['cron comportemental actif, clients actifs, aucun envoi en 7 jours', static function () use ($cfg, $db, $p) {
+        $db->execute("DELETE FROM {$p}neria_behavioral_sent");
+        $cfg((new ReflectionClassConstant('HealthCheckManager', 'CRON_LAST_BEHAVIORAL'))->getValue(), date('Y-m-d H:i:s'));
+        $cfg('NERIA_BIRTHDAY_ENABLED', 1);
+    }, ['warning'], static function () use ($cfg) {
+        $cfg((new ReflectionClassConstant('HealthCheckManager', 'CRON_LAST_BEHAVIORAL'))->getValue(), date('Y-m-d H:i:s', time() - 10 * 86400)); // cron non exécuté récemment : « ok »
+    }],
+    'hooks_registered' => ['crochet essentiel retiré du module', static function () use ($db, $p, $module) {
+        $db->execute("DELETE hm FROM {$p}hook_module hm JOIN {$p}hook h ON h.id_hook = hm.id_hook WHERE h.name = 'actionEmailSendBefore' AND hm.id_module = " . (int) $module->id);
+    }, ['error', 'warning']],
+    'segment_freshness' => ['segments clients calculés il y a plus de 48 h', static function () use ($db, $p) {
+        $db->execute("UPDATE {$p}neria_customer_segment SET computed_at = DATE_SUB(NOW(), INTERVAL 5 DAY)");
+    }, ['warning', 'error']],
+    'clv_freshness' => ['scores de valeur client calculés il y a plus de 72 h', static function () use ($db, $p) {
+        $db->execute("UPDATE {$p}neria_churn_score SET computed_at = DATE_SUB(NOW(), INTERVAL 6 DAY)");
+    }, ['warning', 'error']],
     'residual_vars_recent' => ['e-mails récents envoyés avec une variable de contenu manquante', static function () use ($db, $p, $shop) {
         $db->execute("INSERT INTO {$p}neria_log (id_shop, level, template, class, message, date_add) VALUES ({$shop}, 'warning', 'order_conf', 'EmailRenderer', 'residual_vars_stripped {\"vars\":\"p8d_var\"}', NOW())");
     }, ['warning']],
@@ -311,6 +333,15 @@ $fakeSpecs = [
     'unescaped_like_metachars' => ['LIKE construit avec une variable non échappée', ['src/Bad.php' => "<?php\n\$q = \"SELECT * FROM t WHERE x LIKE '%\$term%'\";\n"], ['warning']],
     'fragile_neriaconfig_usage' => ['gabarit lisant neriaConfig.adminUrl', ['views/templates/admin/bad.tpl' => "<script>var u = neriaConfig.adminUrl;</script>\n"], ['warning']],    'dev_tool_residue' => ['référence à mailpit (outil de développement) laissée dans un gabarit', ['views/templates/admin/bad.tpl' => "<!-- mailpit -->\n"], ['warning']],
     'cron_strict_date_equality' => ['DATE(colonne) = CURDATE() dans un cron', ['src/BadManager.php' => "<?php\n\$q = \"SELECT 1 FROM t WHERE DATE(sent_at) = CURDATE()\";\n"], ['warning']],
+    'display_price_missing_lang' => ['NeriaTools::displayPrice() sans langue explicite', ['src/Bad.php' => "<?php\nclass Bad {\n function f(\$c){ return \\NeriaTools::displayPrice(1.0, \$c); }\n}\n"], ['warning']],
+    'customer_email_shop_scope' => ['recherche client par e-mail sans id_shop', ['src/BadCust.php' => "<?php\nclass BadCust {\n function f(\$db,\$email){ return \$db->getRow(\"SELECT id_customer FROM `\" . _DB_PREFIX_ . \"customer` WHERE `email` = '\" . pSQL(\$email) . \"'\"); }\n}\n"], ['warning']],
+    'default_currency_usage' => ['Currency::getDefaultCurrency() sans idShop', ['src/CurBad.php' => "<?php\nclass CurBad {\n function f(){ return \\Currency::getDefaultCurrency(); }\n}\n"], ['warning']],
+    'upgrade_unique_key_shop_scope' => ['clé UNIQUE par client sans id_shop dans un script d\'upgrade', ['upgrade/upgrade-1.0.3.php' => "<?php\n\$sql = 'CREATE TABLE u (UNIQUE KEY `uq_live` (`id_customer`, `y`))';\n"], ['warning']],
+    'tpl_request_uri_escape' => ['REQUEST_URI jamais échappé dans un gabarit', ['views/templates/admin/bad.tpl' => "{assign var=\"raw\" value=\$smarty.server.REQUEST_URI}\n<a href=\"{\$raw}\">x</a>\n"], ['warning']],
+    'sql_pattern_risks' => ['getRow() avec un LIMIT explicite', ['src/Bad.php' => "<?php\nclass Bad { function f(\$db){ return \$db->getRow(\"SELECT x FROM t LIMIT 1\"); } }\n"], ['warning']],
+    'i18n_pattern_risks' => ['modificateur de sortie après un paramètre nommé de {neria_admin}', ['views/templates/admin/bad.tpl' => "{neria_admin key='a.b'|escape:'html'}\n"], ['warning']],
+    'hardcoded_french_text' => ['texte français codé en dur dans le code', ['src/Bad.php' => "<?php\n\$m = 'Bonjour cher client, merci de patienter';\n"], ['warning']],
+    'cron_loop_try_catch' => ['boucle d\'envoi de cron sans try/catch', ['src/BadManager.php' => "<?php\nclass BadManager { public function run(array \$rows): void { foreach (\$rows as \$r) { \$this->send(\$r); } } }\n"], ['warning']],
     'tpl_js_escape_missing' => ['variable Smarty non échappée dans un getElementById', ['views/templates/admin/bad.tpl' => "<script>document.getElementById('x_{\$name}');</script>\n"], ['warning']],
 ];
 $fakeRows = [];
@@ -381,6 +412,93 @@ if (empty($opts['child'])) {
         }
     }
     $rows = array_merge($rows, $fakeRows);
+}
+/**
+ * Contrôles portant sur les FICHIERS RÉELS du module : le fichier est modifié ou renommé temporairement (sauvegarde + restauration garanties,
+ * y compris en cas d'arrêt du script), le contrôle doit alors signaler l'anomalie. À n'exécuter que sur une copie de travail (Laragon) :
+ * la source de vérité est le dossier de développement, jamais ce dossier.
+ * clé => [libellé, chemin relatif, mutation ['rename'] | ['replace', 'de', 'vers'] | ['write', contenu], statuts acceptés]
+ */
+$fileSpecs = [
+    'template_files' => ['fichier .txt d\'un e-mail supprimé', 'mails/themes/neria_global/core/order_conf.txt', ['rename'], ['warning', 'error']],
+    'html_txt_pairs' => ['e-mail sans version texte', 'mails/themes/neria_global/core/order_conf.txt', ['rename'], ['warning', 'error']],
+    'front_controllers' => ['contrôleur front manquant', 'controllers/front/cron.php', ['rename'], ['warning', 'error']],
+    'version_files_sync' => ['config.xml annonce une autre version que le code', 'config.xml', ['replace', '<![CDATA[1.0.48]]>', '<![CDATA[1.0.1]]>'], ['warning', 'error']],
+    'upgrade_version_file' => ['script d\'upgrade de la version courante manquant', 'upgrade/upgrade-1.0.48.php', ['rename'], ['warning', 'error']],
+    'calendar_json_integrity' => ['data/calendar.json illisible', 'data/calendar.json', ['write', '{ceci n est pas du json'], ['warning', 'error']],
+    'txt_raw_html_leak' => ['balise HTML brute dans une version texte', 'mails/themes/neria_global/core/order_conf.txt', ['append', "
+<p>fuite html</p>
+"], ['warning', 'error']],
+    'orphan_placeholders' => ['variable inconnue dans un e-mail', 'mails/themes/neria_global/core/order_conf.html', ['append', "
+<p>{p8d_variable_inconnue}</p>
+"], ['warning', 'error']],
+    'translation_gaps' => ['traduction gb vidée dans le dictionnaire du back-office', 'data/admin_translations.json', ['replace', '"gb": "Same as the accent colour"', '"gb": ""'], ['warning', 'error']],
+];
+$fileRows = [];
+if (empty($opts['child'])) {
+    $base = strtr(_PS_MODULE_DIR_ . 'neria/', chr(92), '/');
+    foreach ($fileSpecs as $key => [$label, $rel, $mut, $accepted]) {
+        if (!empty($opts['only']) && !in_array($key, explode(',', (string) $opts['only']), true)) {
+            continue;
+        }
+        if (!isset($methods[$key]) || !is_file($base . $rel)) {
+            $fileRows[] = ['key' => $key, 'label' => $label, 'before' => '-', 'after' => '-', 'restored' => '-', 'result' => 'ABSENT', 'note' => 'contrôle ou fichier introuvable : ' . $rel, 'clean' => null, 'changed' => false];
+            $fail++;
+            continue;
+        }
+        $orig = file_get_contents($base . $rel);
+        $bak = $base . $rel . '.p8dbak';
+        $restore = static function () use ($base, $rel, $bak, $orig): void {
+            if (is_file($bak)) {
+                @rename($bak, $base . $rel);
+            } elseif (file_get_contents($base . $rel) !== $orig) {
+                file_put_contents($base . $rel, $orig);
+            }
+        };
+        register_shutdown_function($restore);
+        $runReal = static function () use ($module, $methods, $key): array {
+            $hcm = new HealthCheckManager($module);
+            $rm = new ReflectionMethod($hcm, $methods[$key]);
+            $rm->setAccessible(true);
+            return (array) $rm->invoke($hcm);
+        };
+        $before = $runReal();
+        try {
+            if ($mut[0] === 'rename') {
+                rename($base . $rel, $bak);
+            } elseif ($mut[0] === 'replace') {
+                if (strpos($orig, $mut[1]) === false) {
+                    throw new RuntimeException("motif introuvable dans {$rel}");
+                }
+                file_put_contents($base . $rel, str_replace($mut[1], $mut[2], $orig));
+            } elseif ($mut[0] === 'append') {
+                file_put_contents($base . $rel, $orig . $mut[1]);
+            } else {
+                file_put_contents($base . $rel, $mut[1]);
+            }
+            $after = $runReal();
+            $note = mb_substr(trim(strip_tags((string) ($after['detail'] ?? ''))), 0, 110);
+        } catch (\Throwable $e) {
+            $after = ['status' => 'exception'];
+            $note = $e->getMessage();
+        } finally {
+            $restore();
+        }
+        $restored = $runReal();
+        $ok = in_array($after['status'] ?? '', $accepted, true) && ($restored['status'] ?? '') === ($before['status'] ?? '') && ($after['status'] ?? '') !== ($before['status'] ?? '');
+        $fileRows[] = ['key' => $key, 'label' => $label . ' (fichier réel, restauré)', 'before' => $before['status'] ?? '?', 'after' => $after['status'] ?? '?', 'restored' => $restored['status'] ?? '?', 'clean' => null,
+            'result' => $ok ? 'DÉTECTÉ' : 'NON DÉTECTÉ', 'note' => $note, 'changed' => true];
+        if (!$ok) {
+            $fail++;
+        }
+        if (empty($opts['quiet'])) {
+            echo str_pad($key, 30) . ' ' . str_pad(($before['status'] ?? '?') . ' → ' . ($after['status'] ?? '?') . ' → ' . ($restored['status'] ?? '?'), 30) . ' ' . ($ok ? 'DÉTECTÉ' : 'NON DÉTECTÉ') . " [fichier réel]\n";
+        }
+        if (file_get_contents($base . $rel) !== $orig || is_file($bak)) {
+            fwrite(STDERR, "ATTENTION : {$rel} n'a pas été restauré — resynchroniser depuis le dossier de développement\n");
+        }
+    }
+    $rows = array_merge($rows, $fileRows);
 }
 $dir = __DIR__ . '/results';
 @mkdir($dir, 0777, true);
