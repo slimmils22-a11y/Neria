@@ -10751,6 +10751,27 @@
         "nl": "berekening",
         "gb": "calculation"
     },
+    "msg.seasonal_name_template_required": {
+        "fr": "Le nom et un modèle d'e-mail valide sont obligatoires.",
+        "en": "A name and a valid email template are required.",
+        "de": "Name und eine gültige E-Mail-Vorlage sind erforderlich.",
+        "it": "Nome e un modello e-mail valido sono obbligatori.",
+        "es": "Se requieren un nombre y una plantilla de correo válida.",
+        "pt": "O nome e um modelo de e-mail válido são obrigatórios.",
+        "br": "O nome e um modelo de e-mail válido são obrigatórios.",
+        "ar": "الاسم وقالب بريد إلكتروني صالح مطلوبان.",
+        "ja": "名前と有効なメールテンプレートは必須です。",
+        "ko": "이름과 유효한 이메일 템플릿이 필요합니다.",
+        "zh": "名称和有效的邮件模板为必填项。",
+        "tw": "名稱與有效的郵件範本為必填項。",
+        "ru": "Необходимы название и допустимый шаблон письма.",
+        "tr": "Ad ve geçerli bir e-posta şablonu zorunludur.",
+        "sv": "Namn och en giltig e-postmall krävs.",
+        "no": "Navn og en gyldig e-postmal kreves.",
+        "da": "Navn og en gyldig e-mailskabelon er påkrævet.",
+        "nl": "Een naam en een geldig e-mailsjabloon zijn verplicht.",
+        "gb": "A name and a valid email template are required."
+    },
     "design.color_background": {
         "fr": "Fond d'envoi",
         "en": "Email background",

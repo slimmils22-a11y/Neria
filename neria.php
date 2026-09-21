@@ -6433,6 +6433,9 @@ class Neria extends Module
             // Bloc 4 : date impossible refusée explicitement (voir isValidAnnualDate()).
             if (!SeasonalCampaignManager::isValidAnnualDate((string) $data['annual_date'])) {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seasonal_invalid_date'));
+            } elseif (trim((string) $data['name']) === '' || !class_exists('ManualSendManager') || !(new ManualSendManager($this))->isSendable((string) $data['template'])) {
+                // P8b : sans nom ni modèle d'e-mail valide, une campagne était créée quand même (le formulaire seul portait l'attribut required)
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seasonal_name_template_required'));
             } elseif ($id > 0) {
                 if ($mgr->update($id, $data)) {
                     $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_updated'));
