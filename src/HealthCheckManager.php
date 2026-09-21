@@ -6793,6 +6793,16 @@ class HealthCheckManager
             $offenders[] = "Back-office P8c : le bouton de retrait d'une règle de la liste noire n'a plus de confirmation, ou un lien target=_blank du Centre d'aide n'a plus rel=noopener — régression du correctif P8c (21/09/2026)";
         }
 
+        // P8c-2 (21/09/2026, navigateur réel) : l'onglet Multi-aperçu levait une TypeError JS à chaque ouverture (bouton du mode
+        // sombre lié sans condition alors qu'il n'existe qu'après génération des aperçus).
+        $mpTplP8c = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/multipreview.tpl');
+        if ($mpTplP8c === ''
+            || strpos($mpTplP8c, 'function neriaMp' . 'On(id, ev, fn)') === false
+            || strpos($mpTplP8c, "document.getElementById('neria-mp-dark-toggle')" . '.addEventListener') !== false
+        ) {
+            $offenders[] = "Back-office P8c-2 : le script de l'onglet Multi-aperçu lie de nouveau le bouton du mode sombre sans vérifier qu'il existe — erreur JavaScript « Cannot read properties of null » à chaque ouverture de l'onglet (correctif du 21/09/2026)";
+        }
+
         // Constat F-004 (suite) : sous PHP < 7.4 le module refuse l'installation avec un message clair (19 langues).
         $mainF004 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
         if ($mainF004 === ''
