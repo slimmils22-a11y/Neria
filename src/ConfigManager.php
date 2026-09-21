@@ -579,7 +579,7 @@ class ConfigManager
      * Constat F-002 (21/09/2026) : la couleur d'accent (or #b38b59 par défaut, librement choisie par le marchand) sert
      * de couleur de TEXTE (liens, pied de page, prix, codes promo) alors qu'elle n'atteint que 3,11:1 sur blanc, sous le
      * seuil WCAG AA de 4,5:1. Renvoie l'accent assombri (même teinte, luminosité réduite par pas) jusqu'à atteindre
-     * $min:1 sur $background ; inchangé s'il suffit déjà. L'accent d'origine reste utilisé pour filets, pastilles et boutons.
+     * $min:1 sur $background (éclairci si ce fond est sombre) ; inchangé s'il suffit déjà. L'accent d'origine reste utilisé pour filets, pastilles et boutons.
      */
     public static function getAccessibleTextColor(string $hex, string $background = '#ffffff', float $min = 4.5): string
     {
@@ -608,9 +608,11 @@ class ConfigManager
         if ($fg === null) {
             return $hex;
         }
+        // Fond clair → on assombrit le texte ; fond sombre (pied de page par défaut) → on l'éclaircit, sinon on aggraverait le contraste.
+        $darkBg = $lum($bg) < 0.18;
         for ($i = 0; $i < 60 && $ratio($fg, $bg) < $min; $i++) {
             foreach ($fg as $k => $v) {
-                $fg[$k] = (int) floor($v * 0.96);
+                $fg[$k] = $darkBg ? (int) ceil($v + (255 - $v) * 0.06) : (int) floor($v * 0.96);
             }
         }
 
