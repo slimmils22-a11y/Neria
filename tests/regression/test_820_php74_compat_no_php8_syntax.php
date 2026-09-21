@@ -30,7 +30,13 @@ function run_test(): array
         file_put_contents($root . '/src/Bad.php', "<?php\n\$a = match (\$x) { 1 => 'a', default => 'b' };\n\$b = \$o?->p;\n\$c = array_is_list(\$z);\n");
         $r = $m->invoke($hm, $root);
         neria_assert(count($r) === 3 && strpos(implode(',', $r), '(match)') !== false && strpos(implode(',', $r), '(?->)') !== false && strpos(implode(',', $r), 'array_is_list') !== false, 'construction PHP 8 non détectée : ' . implode(',', $r));
+        // neria.php doit rester analysable par PHP 7.2/7.3 : une fonction fléchée `fn` y est signalée (ailleurs elle est admise, PHP 7.4).
+        file_put_contents($root . '/neria.php', "<?php
+\$f = fn(\$x) => \$x;
+");
+        neria_assert(strpos(implode(',', $m->invoke($hm, $root)), 'neria.php:2 (fn') !== false, 'fn dans neria.php non détecté');
     } finally {
+        @unlink($root . '/neria.php');
         @unlink($root . '/src/Ok.php');
         @unlink($root . '/src/Bad.php');
         @rmdir($root . '/src');
