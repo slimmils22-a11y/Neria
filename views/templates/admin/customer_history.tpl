@@ -55,7 +55,7 @@
   {/if}
 </div>
 
-{if $neria_hist_selected_customer}
+{if !empty($neria_hist_selected_customer)}
 <div class="neria-section neria-customer-history" id="neria-customer-history">
   <div class="panel-heading neria-history__heading">
     <span><i class="icon-envelope"></i> {neria_admin key='history.title'} — {$neria_hist_selected_label|escape:'html'}</span>
@@ -67,7 +67,7 @@
 {/if}
 
 <script>
-  var neriaHistCurrentCustomer = {if $neria_hist_selected_customer}{ldelim}id: {$neria_customer_id}, label: {$neria_hist_selected_label|json_encode}{rdelim}{else}null{/if};
+  var neriaHistCurrentCustomer = {if !empty($neria_hist_selected_customer)}{ldelim}id: {$neria_customer_id}, label: {$neria_hist_selected_label|json_encode}{rdelim}{else}null{/if};
   var neriaHistBaseUrl         = {$neria_hist_search_base|default:''|json_encode};
 </script>
 <script>

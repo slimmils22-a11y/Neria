@@ -121,7 +121,7 @@
       <div class="neria-kpi__label">{neria_admin key='cert.kpi_this_month'}</div>
       {if $cert_stats.last_month > 0 || $cert_stats.this_month > 0}
         <div class="neria-kpi__rate" style="font-size:11px;color:{if $cert_stats.trend_pct >= 0}#27ae60{else}#c0392b{/if};">
-          {if $cert_stats.trend_pct >= 0}▲{else}▼{/if} {$cert_stats.trend_pct|abs}% {neria_admin key='cert.kpi_vs_last_month'}
+          {if $cert_stats.trend_pct >= 0}▲{else}▼{/if} {if $cert_stats.trend_pct < 0}{-$cert_stats.trend_pct}{else}{$cert_stats.trend_pct}{/if}% {neria_admin key='cert.kpi_vs_last_month'}
         </div>
       {/if}
     </div>

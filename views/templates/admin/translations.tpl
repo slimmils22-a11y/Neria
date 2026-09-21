@@ -186,18 +186,18 @@ window.neriaAjaxUrl = function(action, extra) {
       <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Export CSV</span>
       <form method="post" style="margin:0;">
         <input type="hidden" name="neria_action"   value="export_translations_csv">
-        <input type="hidden" name="trad_template"  value="{$selected_template}">
-        <input type="hidden" name="trad_lang"      value="{$selected_lang}">
+        <input type="hidden" name="trad_template"  value="{$selected_template|default:''}">
+        <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''}">
         <input type="hidden" name="all_langs"      value="0">
         <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm"
                 title="{neria_admin key='translations.export_lang_title' esc='html'}">
-          ⬇ {$lang_flags[$selected_lang]|default:''} {neria_admin key='translations.export_lang'}
+          ⬇ {if isset($selected_lang)}{$lang_flags[$selected_lang]|default:''}{/if} {neria_admin key='translations.export_lang'}
         </button>
       </form>
       <form method="post" style="margin:0;">
         <input type="hidden" name="neria_action"   value="export_translations_csv">
-        <input type="hidden" name="trad_template"  value="{$selected_template}">
-        <input type="hidden" name="trad_lang"      value="{$selected_lang}">
+        <input type="hidden" name="trad_template"  value="{$selected_template|default:''}">
+        <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''}">
         <input type="hidden" name="all_langs"      value="1">
         <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm"
                 title="{neria_admin key='translations.export_all_title' esc='html'}">
@@ -213,8 +213,8 @@ window.neriaAjaxUrl = function(action, extra) {
       <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Import CSV</span>
       <form method="post" enctype="multipart/form-data" style="margin:0;display:flex;gap:6px;align-items:center;">
         <input type="hidden" name="neria_action"  value="import_translations_csv">
-        <input type="hidden" name="trad_template" value="{$selected_template}">
-        <input type="hidden" name="trad_lang"     value="{$selected_lang}">
+        <input type="hidden" name="trad_template" value="{$selected_template|default:''}">
+        <input type="hidden" name="trad_lang"     value="{$selected_lang|default:''}">
         <label class="neria-btn neria-btn--secondary neria-btn--sm" style="cursor:pointer;margin:0;">
           📂 {neria_admin key='translations.import_csv'}
           <input type="file" name="neria_csv" accept=".csv" style="display:none;"
@@ -231,8 +231,8 @@ window.neriaAjaxUrl = function(action, extra) {
       <button type="button"
               class="neria-btn neria-btn--primary neria-btn--sm"
               id="neria-auto-translate"
-              data-template="{$selected_template}"
-              data-lang="{$selected_lang}"
+              data-template="{$selected_template|default:''}"
+              data-lang="{$selected_lang|default:''}"
               {if $deepl_key|default:'' eq ''}disabled title="{neria_admin key='translations.deepl_key_required' esc='html'}"{/if}>
         ✨ {neria_admin key='translations.auto_translate'}
       </button>
@@ -246,7 +246,7 @@ window.neriaAjaxUrl = function(action, extra) {
       <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">{neria_admin key='design.reset'}</span>
       <form method="post" style="margin:0;">
         <input type="hidden" name="neria_action"  value="reset_template_all_langs">
-        <input type="hidden" name="trad_template" value="{$selected_template}">
+        <input type="hidden" name="trad_template" value="{$selected_template|default:''}">
         <button type="button" class="neria-btn neria-btn--warn neria-btn--sm"
                 data-confirm="{neria_admin key='translations.reset_all_langs_confirm' esc='html'}"
                 onclick="neriaConfirmDelete(this);">
@@ -298,8 +298,8 @@ window.neriaAjaxUrl = function(action, extra) {
   <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_voice_profile">
     <input type="hidden" name="neria_tab"    value="translations">
-    <input type="hidden" name="trad_template" value="{$selected_template|escape:'html'}">
-    <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+    <input type="hidden" name="trad_template" value="{$selected_template|default:''|escape:'html'}">
+    <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''|escape:'html'}">
 
     <div class="ns-row ns-row--2">
       <div class="neria-form-group">
@@ -405,7 +405,7 @@ window.neriaAjaxUrl = function(action, extra) {
           <h2 class="neria-section__title">
             {$template_labels[$selected_template]|default:$selected_template}
             <span class="neria-lang-chip">
-              {$lang_flags[$selected_lang]|default:''}
+              {if isset($selected_lang)}{$lang_flags[$selected_lang]|default:''}{/if}
               {$lang_labels[$selected_lang]|default:$selected_lang}
             </span>
           </h2>
@@ -414,8 +414,8 @@ window.neriaAjaxUrl = function(action, extra) {
             <button type="button"
                     class="neria-section-reset"
                     id="neria-trad-reset"
-                    data-template="{$selected_template}"
-                    data-lang="{$selected_lang}"
+                    data-template="{$selected_template|default:''}"
+                    data-lang="{$selected_lang|default:''}"
                     data-confirm="{neria_admin key='translations.reset_confirm' esc='html'}">
               ↺ {neria_admin key='translations.reset_template'}
             </button>
@@ -425,8 +425,8 @@ window.neriaAjaxUrl = function(action, extra) {
         <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="neria-trad-form">
           <input type="hidden" name="neria_action"   value="save_translations">
           <input type="hidden" name="neria_tab"       value="translations">
-          <input type="hidden" name="trad_template"   value="{$selected_template}">
-          <input type="hidden" name="trad_lang"       value="{$selected_lang}">
+          <input type="hidden" name="trad_template"   value="{$selected_template|default:''}">
+          <input type="hidden" name="trad_lang"       value="{$selected_lang|default:''}">
 
           <div class="neria-trad-fields" style="padding:0 20px;">
             {foreach $translations as $key => $value}
@@ -567,8 +567,8 @@ window.neriaAjaxUrl = function(action, extra) {
                     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog" style="margin:0;">
                       <input type="hidden" name="neria_action"  value="restore_translation">
                       <input type="hidden" name="neria_tab"      value="translations">
-                      <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
-                      <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+                      <input type="hidden" name="trad_template"  value="{$selected_template|default:''|escape:'html'}">
+                      <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''|escape:'html'}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
                       <button type="button" class="neria-btn neria-btn--primary neria-btn--xs"
                               data-confirm="{neria_admin key='translations.restore_confirm' esc='html'}"
@@ -579,8 +579,8 @@ window.neriaAjaxUrl = function(action, extra) {
                     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog" style="margin:0;" class="neria-delete-history-form">
                       <input type="hidden" name="neria_action"  value="delete_history">
                       <input type="hidden" name="neria_tab"      value="translations">
-                      <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
-                      <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+                      <input type="hidden" name="trad_template"  value="{$selected_template|default:''|escape:'html'}">
+                      <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''|escape:'html'}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
                       <button type="button" class="neria-btn neria-btn--danger neria-btn--xs"
                               data-confirm="{neria_admin key='translations.delete_history_confirm'}"
@@ -612,7 +612,7 @@ window.neriaAjaxUrl = function(action, extra) {
             <div>
               <h2 class="neria-section__title" style="margin:0 0 4px;">
                 {$template_labels[$selected_template]|default:$selected_template}
-                <span class="neria-lang-chip">{$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
+                <span class="neria-lang-chip">{if isset($selected_lang)}{$lang_flags[$selected_lang]|default:''}{/if} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
                 <span class="neria-badge neria-badge--accent" style="margin-left:8px;">{neria_admin key='translations.variant_b_badge'}</span>
               </h2>
               <p style="margin:0 0 12px;font-size:12px;color:var(--neria-text-muted,#888);">
@@ -627,12 +627,12 @@ window.neriaAjaxUrl = function(action, extra) {
                 <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Export CSV</span>
                 <form method="post" style="margin:0;">
                   <input type="hidden" name="neria_action"   value="export_variant_b_csv">
-                  <input type="hidden" name="trad_template"  value="{$selected_template}">
-                  <input type="hidden" name="trad_lang"      value="{$selected_lang}">
+                  <input type="hidden" name="trad_template"  value="{$selected_template|default:''}">
+                  <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''}">
                   <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
                   <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm"
                           title="{neria_admin key='translations.export_lang_b_title' esc='html'}">
-                    ⬇ {$lang_flags[$selected_lang]|default:''} {neria_admin key='translations.export_lang'}
+                    ⬇ {if isset($selected_lang)}{$lang_flags[$selected_lang]|default:''}{/if} {neria_admin key='translations.export_lang'}
                   </button>
                 </form>
               </div>
@@ -644,8 +644,8 @@ window.neriaAjaxUrl = function(action, extra) {
                 <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Import CSV</span>
                 <form method="post" enctype="multipart/form-data" style="margin:0;display:flex;gap:6px;align-items:center;">
                   <input type="hidden" name="neria_action"   value="import_variant_b_csv">
-                  <input type="hidden" name="trad_template"  value="{$selected_template}">
-                  <input type="hidden" name="trad_lang"      value="{$selected_lang}">
+                  <input type="hidden" name="trad_template"  value="{$selected_template|default:''}">
+                  <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''}">
                   <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
                   <label class="neria-btn neria-btn--secondary neria-btn--sm" style="cursor:pointer;margin:0;">
                     📂 {neria_admin key='translations.import_csv'}
@@ -662,8 +662,8 @@ window.neriaAjaxUrl = function(action, extra) {
                 <button type="button"
                         class="neria-btn neria-btn--primary neria-btn--sm"
                         id="neria-auto-translate-b"
-                        data-template="{$selected_template}"
-                        data-lang="{$selected_lang}"
+                        data-template="{$selected_template|default:''}"
+                        data-lang="{$selected_lang|default:''}"
                         data-idabtest="{$id_abtest_b}"
                         {if $deepl_key|default:'' eq ''}disabled title="{neria_admin key='translations.deepl_key_required' esc='html'}"{/if}>
                   ✨ {neria_admin key='translations.auto_translate'}
@@ -679,8 +679,8 @@ window.neriaAjaxUrl = function(action, extra) {
                 <form method="post" style="margin:0;">
                   <input type="hidden" name="neria_action"   value="reset_variant_b">
                   <input type="hidden" name="neria_tab"       value="translations">
-                  <input type="hidden" name="trad_template"   value="{$selected_template}">
-                  <input type="hidden" name="trad_lang"       value="{$selected_lang}">
+                  <input type="hidden" name="trad_template"   value="{$selected_template|default:''}">
+                  <input type="hidden" name="trad_lang"       value="{$selected_lang|default:''}">
                   <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
                   <button type="button" class="neria-btn neria-btn--warn neria-btn--sm"
                           data-confirm="{neria_admin key='translations.reset_variant_b_confirm' esc='html'}"
@@ -696,8 +696,8 @@ window.neriaAjaxUrl = function(action, extra) {
         <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
           <input type="hidden" name="neria_action"   value="save_variant_b">
           <input type="hidden" name="neria_tab"       value="translations">
-          <input type="hidden" name="trad_template"   value="{$selected_template}">
-          <input type="hidden" name="trad_lang"       value="{$selected_lang}">
+          <input type="hidden" name="trad_template"   value="{$selected_template|default:''}">
+          <input type="hidden" name="trad_lang"       value="{$selected_lang|default:''}">
           <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
           <div class="neria-trad-fields" style="padding:0 20px;">
             {foreach $translations_b as $key => $value}
@@ -828,8 +828,8 @@ window.neriaAjaxUrl = function(action, extra) {
                     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog-b" style="margin:0;">
                       <input type="hidden" name="neria_action"  value="restore_variant_b">
                       <input type="hidden" name="neria_tab"      value="translations">
-                      <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
-                      <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+                      <input type="hidden" name="trad_template"  value="{$selected_template|default:''|escape:'html'}">
+                      <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''|escape:'html'}">
                       <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
                       <button type="button" class="neria-btn neria-btn--primary neria-btn--xs"
@@ -841,8 +841,8 @@ window.neriaAjaxUrl = function(action, extra) {
                     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog-b" style="margin:0;" class="neria-delete-history-form">
                       <input type="hidden" name="neria_action"  value="delete_history">
                       <input type="hidden" name="neria_tab"      value="translations">
-                      <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
-                      <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+                      <input type="hidden" name="trad_template"  value="{$selected_template|default:''|escape:'html'}">
+                      <input type="hidden" name="trad_lang"      value="{$selected_lang|default:''|escape:'html'}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
                       <button type="button" class="neria-btn neria-btn--danger neria-btn--xs"
                               data-confirm="{neria_admin key='translations.delete_history_confirm'}"
@@ -874,7 +874,7 @@ window.neriaAjaxUrl = function(action, extra) {
         <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--neria-text-light);">
           ⊞ {neria_admin key='common.preview'} — {$template_labels[$selected_template]|default:$selected_template}
           <span class="neria-lang-chip" style="margin-left:6px;">
-            {$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}
+            {if isset($selected_lang)}{$lang_flags[$selected_lang]|default:''}{/if} {$lang_labels[$selected_lang]|default:$selected_lang}
           </span>
         </span>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -897,7 +897,7 @@ window.neriaAjaxUrl = function(action, extra) {
         </div>
       </div>
       <iframe id="neria-trad-preview"
-              src="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=preview&neria_template={$selected_template}&neria_lang={$selected_lang}"
+              src="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=preview&neria_template={$selected_template|default:''}&neria_lang={$selected_lang|default:''}"
               frameborder="0" scrolling="auto"
               style="width:100%;height:1200px;border:1px solid var(--neria-border,#e8d5b0);border-radius:4px;background:#fff;display:block;"></iframe>
     </div>

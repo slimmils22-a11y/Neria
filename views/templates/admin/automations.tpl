@@ -53,22 +53,22 @@
           </td>
           <td style="padding:10px 14px;color:#666;font-size:12px;">{$cron.trigger|escape:'html':'UTF-8'}</td>
           <td style="padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:#1a1a2e;">
-            {if $cron.calc_only}
+            {if !empty($cron.calc_only)}
               <span style="font-size:11px;color:#888;font-weight:400;">—</span>
             {else}
               {$cron.today|default:0}
             {/if}
           </td>
           <td style="padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums;color:#555;">
-            {if $cron.calc_only}
+            {if !empty($cron.calc_only)}
               <span style="font-size:11px;color:#888;">—</span>
             {else}
               {$cron.total|default:0}
             {/if}
           </td>
           <td style="padding:10px 14px;text-align:center;">
-            {if $cron.calc_only}
-              <span style="font-size:11px;color:#888;background:#f0e8d8;border-radius:10px;padding:3px 10px;">⚙ calcul</span>
+            {if !empty($cron.calc_only)}
+              <span style="font-size:11px;color:#888;background:#f0e8d8;border-radius:10px;padding:3px 10px;">⚙ {neria_admin key='automations.calc_only_badge'}</span>
             {elseif $cron.config_key}
               <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" style="display:inline;">
                 <input type="hidden" name="neria_action" value="auto_toggle">

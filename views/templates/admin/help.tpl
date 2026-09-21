@@ -559,7 +559,7 @@
 <div class="neria-section" id="neria-help-code-scan">
   <h2 class="neria-section__title">
     🔍 {neria_admin key='help.code_scan_title'}
-    {if $code_diag_last_run}
+    {if !empty($code_diag_last_run)}
       <span style="font-size:12px; font-weight:400; color:var(--neria-text-light); margin-left:10px;">
         {neria_admin key='help.health_last_run'} {$code_diag_last_run}
       </span>
@@ -583,7 +583,7 @@
     </span>
   </div>
 
-  {if $code_diag_results}
+  {if !empty($code_diag_results)}
     {assign var='_codeChecks' value=[
       'admin_trad_usage' => 'help.code_scan_trad_usage',
       'class_references' => 'help.code_scan_class_refs',

@@ -10730,6 +10730,27 @@
         "nl": "Zelfde als de accentkleur",
         "gb": "Same as the accent colour"
     },
+    "automations.calc_only_badge": {
+        "fr": "calcul",
+        "en": "calculation",
+        "de": "Berechnung",
+        "it": "calcolo",
+        "es": "cálculo",
+        "pt": "cálculo",
+        "br": "cálculo",
+        "ar": "حساب",
+        "ja": "計算",
+        "ko": "계산",
+        "zh": "计算",
+        "tw": "計算",
+        "ru": "расчёт",
+        "tr": "hesaplama",
+        "sv": "beräkning",
+        "no": "beregning",
+        "da": "beregning",
+        "nl": "berekening",
+        "gb": "calculation"
+    },
     "design.color_background": {
         "fr": "Fond d'envoi",
         "en": "Email background",

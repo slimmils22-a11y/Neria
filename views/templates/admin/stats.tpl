@@ -85,7 +85,7 @@
         </div>
         {if $delta !== null}
           <div style="font-size:11px;font-weight:600;color:{if $isGood}#16a34a{else}#dc2626{/if};margin-top:5px;">
-            {if $delta > 0}▲{else}▼{/if} {$delta|abs}% {neria_admin key='stats.vs_last_week'}
+            {if $delta > 0}▲{else}▼{/if} {if $delta < 0}{-$delta}{else}{$delta}{/if}% {neria_admin key='stats.vs_last_week'}
           </div>
         {else}
           <div style="font-size:11px;color:var(--neria-muted);margin-top:5px;">— {neria_admin key='stats.no_prev_week_data'}</div>
@@ -1066,52 +1066,52 @@ var _nhmLbl = {
 
       {* SPF *}
       {assign var="spf" value=$dr.spf}
-      <div style="border:1px solid {if $spf.found}#c3e6cb{else}#f5c6cb{/if};
-                  background:{if $spf.found}#f0faf3{else}#fdf0ee{/if};
+      <div style="border:1px solid {if !empty($spf.found)}#c3e6cb{else}#f5c6cb{/if};
+                  background:{if !empty($spf.found)}#f0faf3{else}#fdf0ee{/if};
                   border-radius:6px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:18px;">{if $spf.found}✅{else}❌{/if}</span>
+          <span style="font-size:18px;">{if !empty($spf.found)}✅{else}❌{/if}</span>
           <span style="font-size:13px;font-weight:700;color:var(--neria-dark);">SPF</span>
-          {if $spf.found}
+          {if !empty($spf.found)}
             <span class="neria-badge" style="margin-left:auto;font-size:10px;background:{if $spf.policy === 'reject'}#eaf5ec{else}#faf3ea{/if};color:{if $spf.policy === 'reject'}var(--neria-success){else}var(--neria-accent){/if};border:1px solid {if $spf.policy === 'reject'}#c3e6cb{else}#e8d5b0{/if};">
               {if $spf.policy === 'reject'}-all{elseif $spf.policy === 'softfail'}~all{else}?all{/if}
             </span>
           {/if}
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
-          {if $spf.found}
+          {if !empty($spf.found)}
             {neria_admin key='stats.spf_configured'}{if $spf.policy === 'reject'} · {neria_admin key='stats.policy_strict'}{elseif $spf.policy === 'softfail'} · {neria_admin key='stats.policy_permissive'}{/if}
           {else}
             <span style="color:#c0392b;">{neria_admin key='stats.spf_absent'}</span>
           {/if}
         </div>
-        {if $spf.record}
+        {if !empty($spf.record)}
           <div style="margin-top:8px;font-size:10px;font-family:monospace;color:var(--neria-text-light);
                       background:rgba(0,0,0,.04);border-radius:3px;padding:4px 6px;
                       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-               title="{$spf.record|escape:'html'}">
-            {$spf.record|truncate:55:'…'|escape:'html'}
+               title="{$spf.record|default:''|escape:'html'}">
+            {$spf.record|default:''|truncate:55:'…'|escape:'html'}
           </div>
         {/if}
       </div>
 
       {* DKIM *}
       {assign var="dkim" value=$dr.dkim}
-      <div style="border:1px solid {if $dkim.found}#c3e6cb{else}#f5c6cb{/if};
-                  background:{if $dkim.found}#f0faf3{else}#fdf0ee{/if};
+      <div style="border:1px solid {if !empty($dkim.found)}#c3e6cb{else}#f5c6cb{/if};
+                  background:{if !empty($dkim.found)}#f0faf3{else}#fdf0ee{/if};
                   border-radius:6px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:18px;">{if $dkim.found}✅{else}❌{/if}</span>
+          <span style="font-size:18px;">{if !empty($dkim.found)}✅{else}❌{/if}</span>
           <span style="font-size:13px;font-weight:700;color:var(--neria-dark);">DKIM</span>
-          {if $dkim.selector}
+          {if !empty($dkim.selector)}
             <span class="neria-badge neria-badge--neutral" style="margin-left:auto;font-size:10px;">
-              {$dkim.selector|escape:'html'}
+              {$dkim.selector|default:''|escape:'html'}
             </span>
           {/if}
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
-          {if $dkim.found}
-            {neria_admin key='stats.dkim_selector_prefix'} {$dkim.selector|escape:'html'} {neria_admin key='stats.dkim_selector_suffix'}
+          {if !empty($dkim.found)}
+            {neria_admin key='stats.dkim_selector_prefix'} {$dkim.selector|default:''|escape:'html'} {neria_admin key='stats.dkim_selector_suffix'}
           {else}
             <span style="color:#c0392b;">{neria_admin key='stats.dkim_absent'}</span>
           {/if}
@@ -1120,13 +1120,13 @@ var _nhmLbl = {
 
       {* DMARC *}
       {assign var="dmarc" value=$dr.dmarc}
-      <div style="border:1px solid {if $dmarc.found && $dmarc.policy !== 'none'}#c3e6cb{elseif $dmarc.found}#ffe082{else}#f5c6cb{/if};
-                  background:{if $dmarc.found && $dmarc.policy !== 'none'}#f0faf3{elseif $dmarc.found}#fffde7{else}#fdf0ee{/if};
+      <div style="border:1px solid {if !empty($dmarc.found) && $dmarc.policy !== 'none'}#c3e6cb{elseif !empty($dmarc.found)}#ffe082{else}#f5c6cb{/if};
+                  background:{if !empty($dmarc.found) && $dmarc.policy !== 'none'}#f0faf3{elseif !empty($dmarc.found)}#fffde7{else}#fdf0ee{/if};
                   border-radius:6px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:18px;">{if $dmarc.found && $dmarc.policy !== 'none'}✅{elseif $dmarc.found}⚠️{else}❌{/if}</span>
+          <span style="font-size:18px;">{if !empty($dmarc.found) && $dmarc.policy !== 'none'}✅{elseif !empty($dmarc.found)}⚠️{else}❌{/if}</span>
           <span style="font-size:13px;font-weight:700;color:var(--neria-dark);">DMARC</span>
-          {if $dmarc.found}
+          {if !empty($dmarc.found)}
             <span class="neria-badge" style="margin-left:auto;font-size:10px;
               background:{if $dmarc.policy === 'reject'}#eaf5ec{elseif $dmarc.policy === 'quarantine'}#faf3ea{else}#fffde7{/if};
               color:{if $dmarc.policy === 'reject'}var(--neria-success){elseif $dmarc.policy === 'quarantine'}var(--neria-accent){else}#f57f17{/if};
@@ -1136,7 +1136,7 @@ var _nhmLbl = {
           {/if}
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
-          {if !$dmarc.found}
+          {if empty($dmarc.found)}
             <span style="color:#c0392b;">{neria_admin key='stats.dmarc_absent'}</span>
           {elseif $dmarc.policy === 'reject'}
             {neria_admin key='stats.dmarc_policy_reject'}
@@ -1150,13 +1150,13 @@ var _nhmLbl = {
 
       {* PTR / rDNS *}
       {assign var="ptr" value=$dr.ptr}
-      <div style="border:1px solid {if $ptr.found || $ptr.skipped}#c3e6cb{else}#ffe082{/if};
-                  background:{if $ptr.found || $ptr.skipped}#f0faf3{elseif $ptr.skipped}#f0faf3{else}#fffde7{/if};
+      <div style="border:1px solid {if !empty($ptr.found) || !empty($ptr.skipped)}#c3e6cb{else}#ffe082{/if};
+                  background:{if !empty($ptr.found) || !empty($ptr.skipped)}#f0faf3{elseif !empty($ptr.skipped)}#f0faf3{else}#fffde7{/if};
                   border-radius:6px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:18px;">{if $ptr.found || $ptr.skipped}✅{else}⚠️{/if}</span>
+          <span style="font-size:18px;">{if !empty($ptr.found) || !empty($ptr.skipped)}✅{else}⚠️{/if}</span>
           <span style="font-size:13px;font-weight:700;color:var(--neria-dark);">PTR / rDNS</span>
-          {if $ptr.found && isset($ptr.valid)}
+          {if !empty($ptr.found) && isset($ptr.valid)}
             <span class="neria-badge" style="margin-left:auto;font-size:10px;
               background:{if $ptr.valid}#eaf5ec{else}#fef9ee{/if};
               color:{if $ptr.valid}var(--neria-success){else}var(--neria-accent){/if};
@@ -1166,9 +1166,9 @@ var _nhmLbl = {
           {/if}
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
-          {if $ptr.skipped}
+          {if !empty($ptr.skipped)}
             {neria_admin key='stats.na_local_ip'}
-          {elseif $ptr.found}
+          {elseif !empty($ptr.found)}
             {$ptr.hostname|escape:'html'}
           {else}
             <span style="color:#a07820;">{neria_admin key='stats.ptr_absent'}</span>
@@ -1190,13 +1190,13 @@ var _nhmLbl = {
           {if isset($bl.skipped) && $bl.skipped}
             {neria_admin key='stats.na_local_ip'}
           {elseif $bl_hits_count === 0}
-            ✓ {neria_admin key='stats.blacklist_clean_prefix'} {$bl.checked} {neria_admin key='stats.blacklist_clean_suffix'}
+            ✓ {neria_admin key='stats.blacklist_clean_prefix'} {$bl.checked|default:0} {neria_admin key='stats.blacklist_clean_suffix'}
           {else}
-            <span style="color:#c0392b;">{neria_admin key='stats.blacklist_hit_prefix'} {$bl_hits_count} {neria_admin key='stats.blacklist_hit_middle'} {$bl.checked} {neria_admin key='stats.blacklist_hit_suffix'}</span>
+            <span style="color:#c0392b;">{neria_admin key='stats.blacklist_hit_prefix'} {$bl_hits_count} {neria_admin key='stats.blacklist_hit_middle'} {$bl.checked|default:0} {neria_admin key='stats.blacklist_hit_suffix'}</span>
           {/if}
         </div>
         <div style="font-size:10px;letter-spacing:.04em;color:var(--neria-text-light);margin-top:4px;">
-          {$bl.checked} {neria_admin key='stats.blacklist_rbl_suffix'}
+          {$bl.checked|default:0} {neria_admin key='stats.blacklist_rbl_suffix'}
         </div>
       </div>
 
@@ -1225,25 +1225,25 @@ var _nhmLbl = {
 
     {* ── Recommandations ── *}
     {assign var="has_recs" value=false}
-    {if !$dr.spf.found || !$dr.dkim.found || !$dr.dmarc.found || $dr.dmarc.policy === 'none' || $dr_hits|count > 0}
+    {if empty($dr.spf.found) || empty($dr.dkim.found) || empty($dr.dmarc.found) || $dr.dmarc.policy === 'none' || $dr_hits|count > 0}
       {assign var="has_recs" value=true}
     {/if}
 
     {* ── BIMI ── *}
     {assign var="bimi" value=$dr.bimi}
     <div style="margin-bottom:16px;padding:14px 18px;border-radius:6px;
-         border:1px solid {if $bimi.found}#c3e6cb{elseif $bimi.eligible}#ffe082{else}#e8d5b0{/if};
-         background:{if $bimi.found}#f0faf3{elseif $bimi.eligible}#fffde7{else}#f9f6f1{/if};">
+         border:1px solid {if !empty($bimi.found)}#c3e6cb{elseif !empty($bimi.eligible)}#ffe082{else}#e8d5b0{/if};
+         background:{if !empty($bimi.found)}#f0faf3{elseif !empty($bimi.eligible)}#fffde7{else}#f9f6f1{/if};">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span style="font-size:18px;">{if $bimi.found}✅{elseif $bimi.eligible}💡{else}○{/if}</span>
+        <span style="font-size:18px;">{if !empty($bimi.found)}✅{elseif !empty($bimi.eligible)}💡{else}○{/if}</span>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--neria-dark);">
             {neria_admin key='stats.bimi_title'}
           </div>
           <div style="font-size:12px;color:var(--neria-text-light);margin-top:2px;">
-            {if $bimi.found}
+            {if !empty($bimi.found)}
               {neria_admin key='stats.bimi_configured'}
-            {elseif $bimi.eligible}
+            {elseif !empty($bimi.eligible)}
               {neria_admin key='stats.bimi_eligible_prefix'} <code>default._bimi.{$dr.domain|escape:'html'}</code> {neria_admin key='stats.bimi_eligible_suffix'}
             {else}
               {neria_admin key='stats.bimi_not_eligible'}
@@ -1256,17 +1256,17 @@ var _nhmLbl = {
     {if $has_recs}
     <div style="margin-top:4px;">
       <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neria-text-light);margin-bottom:10px;">{neria_admin key='stats.recommendations'}</div>
-      {if !$dr.spf.found}
+      {if empty($dr.spf.found)}
         <div style="padding:10px 14px;margin-bottom:6px;border-left:3px solid #c0392b;background:#fdf0ee;font-size:13px;line-height:1.6;">
           {neria_admin key='stats.rec_spf_missing'}
         </div>
       {/if}
-      {if !$dr.dkim.found}
+      {if empty($dr.dkim.found)}
         <div style="padding:10px 14px;margin-bottom:6px;border-left:3px solid #c0392b;background:#fdf0ee;font-size:13px;line-height:1.6;">
           {neria_admin key='stats.rec_dkim_missing'}
         </div>
       {/if}
-      {if !$dr.dmarc.found}
+      {if empty($dr.dmarc.found)}
         <div style="padding:10px 14px;margin-bottom:6px;border-left:3px solid #e67e22;background:#fef9ee;font-size:13px;line-height:1.6;">
           {neria_admin key='stats.rec_dmarc_missing_prefix'}{$dr.domain|escape:'html'}{neria_admin key='stats.rec_dmarc_missing_middle'}{$dr.domain|escape:'html'}{neria_admin key='stats.rec_dmarc_missing_suffix'}
         </div>
@@ -4277,7 +4277,7 @@ function neriaPreviewUpsell() {
                 {if $delta > 0}{assign var="up" value=true}{else}{assign var="up" value=false}{/if}
                 {if $mrow.good_up}{assign var="isGood" value=$up}{else}{assign var="isGood" value=!$up}{/if}
                 <span style="font-weight:700;color:{if $isGood}#16a34a{else}#dc2626{/if};">
-                  {if $up}▲{else}▼{/if} {$delta|abs}%
+                  {if $up}▲{else}▼{/if} {if $delta < 0}{-$delta}{else}{$delta}{/if}%
                 </span>
               {else}
                 <span style="color:var(--neria-muted);">—</span>
