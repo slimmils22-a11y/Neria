@@ -6736,6 +6736,25 @@ class HealthCheckManager
             $offenders[] = "Compatibilité PHP 7.4 (F-004) : syntaxe PHP 8+ réapparue (" . implode(', ', array_slice($php8Only, 0, 6)) . ") alors que config.xml annonce PrestaShop >= 8.0 — erreur fatale au chargement du module sous PHP 7.4 ; réécrire sans match/?->/array_is_list() (correctif F-004, 20/09/2026)";
         }
 
+        // P8a (21/09/2026) : les onglets du back-office produisaient des avertissements PHP (clés de tableau/variables Smarty non
+        // définies : {if $cron.calc_only}, {if $spf.found}…), le modificateur |abs (déprécié) et un libellé français codé en dur
+        // (« ⚙ calcul »). Chaque gabarit doit protéger ces accès (empty()/isset()/|default) et traduire ses libellés.
+        $tplDirP8 = _PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/';
+        $autoP8   = $this->readModuleSrc($tplDirP8 . 'automations.tpl');
+        $statsP8  = $this->readModuleSrc($tplDirP8 . 'stats.tpl');
+        $helpP8   = $this->readModuleSrc($tplDirP8 . 'help.tpl');
+        $certP8   = $this->readModuleSrc($tplDirP8 . 'certificates.tpl');
+        if ($autoP8 === '' || $statsP8 === '' || $helpP8 === '' || $certP8 === ''
+            || strpos($autoP8, '{if $cron.calc_' . 'only}') !== false
+            || strpos($autoP8, '⚙ calc' . 'ul<') !== false
+            || strpos($autoP8, "automations.calc_only" . "_badge") === false
+            || preg_match('/\{if \$(spf|dkim|dmarc|bimi)\.(found|eligible)\}/', $statsP8) === 1
+            || strpos($helpP8, '{if $code_diag_' . 'results}') !== false
+            || preg_match('/\|abs\}/', $statsP8 . $certP8) === 1
+        ) {
+            $offenders[] = "Back-office P8a : un gabarit admin (automations, stats, help, certificates) a retrouvé un accès non protégé à une variable Smarty non définie ({if \$cron.calc_only}, {if \$spf.found}, {if \$code_diag_results}…), le modificateur |abs déprécié ou le libellé français « ⚙ calcul » codé en dur — avertissements PHP à chaque affichage de l'onglet, régression du correctif P8a (21/09/2026)";
+        }
+
         // Constat F-004 (suite) : sous PHP < 7.4 le module refuse l'installation avec un message clair (19 langues).
         $mainF004 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
         if ($mainF004 === ''
@@ -6754,8 +6773,7 @@ class HealthCheckManager
         $tplLk    = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/design.tpl');
         $jsLk     = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/js/neria-admin.js');
         if ($layoutLk === '' || $rendLk === '' || $cfgLk === '' || $tplLk === '' || $jsLk === ''
-            || preg_match('/(?:^|
-)[ ]+a[ ]\{\s*color: \{\$neria_color_link\};/', $layoutLk) !== 1
+            || preg_match('/(?:^|\n)[ ]+a[ ]\{\s*color: \{\$neria_color_link\};/', $layoutLk) !== 1
             || substr_count($layoutLk, 'style="color:{$neria_color_link_footer};"') < 5
             || substr_count($rendLk, 'linkTextColor($design,') < 6
             || strpos($rendLk, 'private function linkTextColor(array $design, string $zone): string') === false
