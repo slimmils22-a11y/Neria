@@ -6755,6 +6755,19 @@ class HealthCheckManager
             $offenders[] = "Back-office P8a : un gabarit admin (automations, stats, help, certificates) a retrouvé un accès non protégé à une variable Smarty non définie ({if \$cron.calc_only}, {if \$spf.found}, {if \$code_diag_results}…), le modificateur |abs déprécié ou le libellé français « ⚙ calcul » codé en dur — avertissements PHP à chaque affichage de l'onglet, régression du correctif P8a (21/09/2026)";
         }
 
+        // P8b (21/09/2026) : (1) save_seasonal_campaign créait une campagne sans nom ni modèle d'e-mail valide (le seul garde-fou
+        // était l'attribut HTML required) ; (2) le contrôle des liens front-office passait null à token_get_all() si la limite PCRE
+        // était atteinte, et le fichier échappait au contrôle.
+        $mainP8b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $selfP8b = $this->readModuleSrc(__FILE__);
+        if ($mainP8b === '' || $selfP8b === ''
+            || strpos($mainP8b, 'msg.seasonal_name_template' . '_required') === false
+            || strpos($mainP8b, "isSendable((string) \$" . "data['template'])") === false
+            || strpos($selfP8b, '$rawNeutrali' . 'sed !== null') === false
+        ) {
+            $offenders[] = "Back-office P8b : la sauvegarde d'une campagne saisonnière n'exige plus un nom et un modèle d'e-mail valides côté serveur, ou le contrôle des liens front-office ne protège plus token_get_all() d'un résultat null de preg_replace_callback — régression des correctifs P8b (21/09/2026)";
+        }
+
         // Constat F-004 (suite) : sous PHP < 7.4 le module refuse l'installation avec un message clair (19 langues).
         $mainF004 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
         if ($mainF004 === ''
@@ -13628,13 +13641,18 @@ class HealthCheckManager
             // distinct) veut légitimement la langue ambiante du contexte —
             // le marqueur "idLang volontairement omis" juste au-dessus de
             // l'appel neutralise la ligne suivante avant analyse.
-            $rawFull = preg_replace_callback(
+            // P8b : preg_replace_callback() renvoie null si la limite PCRE est atteinte : on garde alors le source d'origine
+            // (sinon token_get_all(null) plus bas, et le fichier échappait silencieusement au contrôle).
+            $rawNeutralised = preg_replace_callback(
                 '/idLang volontairement omis(?:[^\n]*\n\s*\/\/[^\n]*)*[^\n]*\n((?:\s*\/\/[^\n]*\n)*)(\s*)([^\n]*(?:getPageLink|getModuleLink)[^\n]*)\n/u',
                 static function ($m) {
                     return "idLang volontairement omis (exclu du contrôle)\n" . $m[1] . $m[2] . "/* neutralisé par exception documentée */\n";
                 },
                 $rawFull
             );
+            if ($rawNeutralised !== null) {
+                $rawFull = $rawNeutralised;
+            }
 
             // Retire uniquement les commentaires (pas les littéraux de chaîne,
             // nécessaires pour repérer les parenthèses/virgules d'arguments) —
