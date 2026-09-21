@@ -3,3 +3,4 @@ dist/
 certificates/*.pdf
 bin/phpstan/phpstan.phar
 /tmp/
+tests/functional/results/config_backup_*.json

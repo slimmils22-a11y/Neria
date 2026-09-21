@@ -1,0 +1,1905 @@
+{
+    "generated": "2026-09-21T13:13:25+00:00",
+    "lang": "fr",
+    "rows": [
+        {
+            "action": "activate_license",
+            "level": "S",
+            "note": "non lancée : serveur de licences"
+        },
+        {
+            "action": "add_blacklist",
+            "level": "I",
+            "note": "",
+            "banner": "Impossible d'effectuer cette action sur la liste noire.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 173
+        },
+        {
+            "action": "add_calendar_event",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 171
+        },
+        {
+            "action": "add_manual_bounce",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 228
+        },
+        {
+            "action": "apply_abtest_winner",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 158
+        },
+        {
+            "action": "auto_force_run",
+            "level": "S",
+            "note": "non lancée : exécute les automatisations (envois)"
+        },
+        {
+            "action": "auto_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_GHOST_CART_ENABLED"
+            ],
+            "tables": [],
+            "ms": 27
+        },
+        {
+            "action": "auto_translate_template",
+            "level": "S",
+            "note": "non lancée : API DeepL"
+        },
+        {
+            "action": "auto_translate_variant_b",
+            "level": "S",
+            "note": "non lancée : API DeepL"
+        },
+        {
+            "action": "bounce_cross_shop_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_BOUNCE_CROSS_SHOP_ENABLED"
+            ],
+            "tables": [],
+            "ms": 33
+        },
+        {
+            "action": "cert_delete",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 159
+        },
+        {
+            "action": "cert_download",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "(binaire PDF)",
+            "config": [],
+            "tables": [],
+            "ms": 150
+        },
+        {
+            "action": "cert_issue",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 158
+        },
+        {
+            "action": "cert_save_config",
+            "level": "I",
+            "note": "",
+            "banner": "Configuration du certificat enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_CERT_ENABLED",
+                "NERIA_CERT_SERIAL_PREFIX",
+                "NERIA_CERT_TITLE",
+                "NERIA_CERT_SUBTITLE",
+                "NERIA_CERT_BODY",
+                "NERIA_CERT_QR_ENABLED",
+                "NERIA_CERT_QR_URL"
+            ],
+            "tables": [],
+            "ms": 163
+        },
+        {
+            "action": "check_anniversary_guard",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "{\"blocked\":false,\"sent\":false,\"message\":\"\\u26a0 La fonctionnalit\\u00e9 Anniversaire de la relation client est active. Au",
+            "config": [],
+            "tables": [],
+            "ms": 33
+        },
+        {
+            "action": "check_cooldown_guest_notice",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "{\"notice\":false,\"message\":\"\"}",
+            "config": [],
+            "tables": [],
+            "ms": 34
+        },
+        {
+            "action": "check_preferences_guard",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "{\"blocked\":false,\"message\":\"\"}",
+            "config": [],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "check_send_duplicate",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 30
+        },
+        {
+            "action": "check_voice_profile",
+            "level": "S",
+            "note": "non lancée : API externe"
+        },
+        {
+            "action": "checkout_abandonment_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_CHECKOUT_ABANDONMENT_ENABLED"
+            ],
+            "tables": [],
+            "ms": 26
+        },
+        {
+            "action": "clear_logs",
+            "level": "I",
+            "note": "",
+            "banner": "Journal Watchdog vidé.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": -508
+            },
+            "ms": 167
+        },
+        {
+            "action": "collection_add",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "collection_completion_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_COLLECTION_COMPLETION_ENABLED"
+            ],
+            "tables": [],
+            "ms": 27
+        },
+        {
+            "action": "collection_delete",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_collection": -1,
+                "neria_collection_sent": -1
+            },
+            "ms": 35
+        },
+        {
+            "action": "collection_toggle",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "connect_postmaster",
+            "level": "S",
+            "note": "non lancée : redirection Google"
+        },
+        {
+            "action": "connect_searchconsole",
+            "level": "S",
+            "note": "non lancée : redirection Google"
+        },
+        {
+            "action": "create_abtest",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 158
+        },
+        {
+            "action": "cron_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "Fonctionnalité désactivée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_CRON_ENABLED"
+            ],
+            "tables": [],
+            "ms": 158
+        },
+        {
+            "action": "customer_autocomplete",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 27
+        },
+        {
+            "action": "deactivate_abtest",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 160
+        },
+        {
+            "action": "delete_bounce",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 166
+        },
+        {
+            "action": "delete_calendar_event",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 169
+        },
+        {
+            "action": "delete_history",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 155
+        },
+        {
+            "action": "delete_seasonal_campaign",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 162
+        },
+        {
+            "action": "deliverability_score",
+            "level": "S",
+            "note": "non lancée : requêtes DNS externes"
+        },
+        {
+            "action": "disconnect_postmaster",
+            "level": "I",
+            "note": "",
+            "banner": "Compte Google déconnecté.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_POSTMASTER_REFRESH_TOKEN",
+                "NERIA_POSTMASTER_ACCESS_TOKEN",
+                "NERIA_POSTMASTER_TOKEN_EXPIRY"
+            ],
+            "tables": [],
+            "ms": 166
+        },
+        {
+            "action": "disconnect_searchconsole",
+            "level": "I",
+            "note": "",
+            "banner": "Search Console déconnecté.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_SC_REFRESH_TOKEN",
+                "NERIA_SC_ACCESS_TOKEN",
+                "NERIA_SC_TOKEN_EXPIRY"
+            ],
+            "tables": [],
+            "ms": 167
+        },
+        {
+            "action": "dismiss_design_wizard",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_DESIGN_WIZARD_SEEN"
+            ],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "export_translations_csv",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "﻿template;lang;key;value;is_custom order_conf;fr;carrier_label;Transporteur;0 order_conf;fr;col_product;Produit;0 order_",
+            "config": [],
+            "tables": [],
+            "ms": 32
+        },
+        {
+            "action": "export_variant_b_csv",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "﻿template;lang;key;value",
+            "config": [],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "gdpr_encrypt_all",
+            "level": "S",
+            "note": "non lancée : chiffre toutes les données"
+        },
+        {
+            "action": "gdpr_pdf",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "Rapport de conformité RGPD — Test Neria * { box-sizing: border-box; margin: 0; padding: 0; } body { font-family: Georgia",
+            "config": [],
+            "tables": [],
+            "ms": 143
+        },
+        {
+            "action": "gdpr_purge",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 172
+        },
+        {
+            "action": "generate_signature",
+            "level": "I",
+            "note": "",
+            "banner": "Veuillez renseigner le nom du fondateur dans « Variables personnalisées » avant de générer la signature.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 156
+        },
+        {
+            "action": "ghost_cart_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_GHOST_CART_ENABLED"
+            ],
+            "tables": [],
+            "ms": 27
+        },
+        {
+            "action": "health_pixel_test",
+            "level": "S",
+            "note": "non lancée : requête HTTP"
+        },
+        {
+            "action": "ignore_bounce",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 164
+        },
+        {
+            "action": "import_translations_csv",
+            "level": "I",
+            "note": "",
+            "banner": "Aucun fichier CSV valide reçu.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 154
+        },
+        {
+            "action": "import_variant_b_csv",
+            "level": "I",
+            "note": "",
+            "banner": "Aucun fichier CSV valide reçu pour la Variante B.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 156
+        },
+        {
+            "action": "lifespan_add",
+            "level": "I",
+            "note": "",
+            "banner": "Veuillez renseigner un produit et une durée valides.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 155
+        },
+        {
+            "action": "lifespan_delete",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 162
+        },
+        {
+            "action": "lifespan_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_LIFESPAN_ENABLED"
+            ],
+            "tables": [],
+            "ms": 26
+        },
+        {
+            "action": "load_translations",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 198
+        },
+        {
+            "action": "look_completion_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_LOOK_COMPLETION_ENABLED"
+            ],
+            "tables": [],
+            "ms": 26
+        },
+        {
+            "action": "look_rule_add",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "look_rule_delete",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 27
+        },
+        {
+            "action": "look_rule_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_look_rule": 1
+            },
+            "ms": 30
+        },
+        {
+            "action": "loyalty_cross_shop_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_LOYALTY_CROSS_SHOP_ENABLED"
+            ],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "loyalty_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_LOYALTY_ENABLED"
+            ],
+            "tables": [],
+            "ms": 30
+        },
+        {
+            "action": "menu_visibility_bulk",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_MENU_HIDDEN_ITEMS"
+            ],
+            "tables": [],
+            "ms": 36
+        },
+        {
+            "action": "menu_visibility_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_MENU_HIDDEN_ITEMS"
+            ],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "multipreview_poll_eoa",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "multipreview_poll_litmus",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 30
+        },
+        {
+            "action": "multipreview_render",
+            "level": "I",
+            "note": "",
+            "banner": "Prévisualisation générée pour 15 client(s).",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 297
+        },
+        {
+            "action": "multipreview_submit_eoa",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 60
+        },
+        {
+            "action": "multipreview_submit_litmus",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 58
+        },
+        {
+            "action": "preview",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 71
+        },
+        {
+            "action": "preview_manual",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 81
+        },
+        {
+            "action": "preview_signature",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 77
+        },
+        {
+            "action": "process_queue_now",
+            "level": "S",
+            "note": "non lancée : envoie la file d'e-mails"
+        },
+        {
+            "action": "process_webhook_queue_now",
+            "level": "S",
+            "note": "non lancée : appelle les webhooks"
+        },
+        {
+            "action": "product_search",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "[]",
+            "config": [],
+            "tables": [],
+            "ms": 56
+        },
+        {
+            "action": "propensity_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_PROPENSITY_ENABLED"
+            ],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "purchase_window_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_PURCHASE_WINDOW_ENABLED"
+            ],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "quote_add",
+            "level": "I",
+            "note": "",
+            "banner": "Client, référence et date d'expiration sont requis.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 167
+        },
+        {
+            "action": "quote_delete",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 170
+        },
+        {
+            "action": "quote_mark_lost",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 199
+        },
+        {
+            "action": "quote_mark_won",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 167
+        },
+        {
+            "action": "quote_reminder_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_QUOTE_REMINDERS_ENABLED"
+            ],
+            "tables": [],
+            "ms": 32
+        },
+        {
+            "action": "reactivate_bounce",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 258
+        },
+        {
+            "action": "recompute_churn",
+            "level": "I",
+            "note": "",
+            "banner": "33 score(s) de désabonnement recalculé(s).",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_CHURN_LAST_RUN"
+            ],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 192
+        },
+        {
+            "action": "recompute_segments",
+            "level": "I",
+            "note": "",
+            "banner": "34 client(s) mis à jour.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 181
+        },
+        {
+            "action": "reconciliation_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_REFUND_RECONCILIATION_ENABLED"
+            ],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "refresh_domain_reputation",
+            "level": "S",
+            "note": "non lancée : requêtes DNS/DoH externes"
+        },
+        {
+            "action": "refresh_pagespeed",
+            "level": "S",
+            "note": "non lancée : API Google"
+        },
+        {
+            "action": "refresh_postmaster",
+            "level": "S",
+            "note": "non lancée : API Google"
+        },
+        {
+            "action": "refresh_searchconsole",
+            "level": "S",
+            "note": "non lancée : API Google"
+        },
+        {
+            "action": "refresh_seo_api",
+            "level": "S",
+            "note": "non lancée : API SEO externe"
+        },
+        {
+            "action": "regenerate_cron_token",
+            "level": "I",
+            "note": "",
+            "banner": "Token cron régénéré. Mettez à jour votre tâche planifiée avec la nouvelle URL.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_CRON_TOKEN"
+            ],
+            "tables": [],
+            "ms": 190
+        },
+        {
+            "action": "regenerate_emergency_token",
+            "level": "I",
+            "note": "",
+            "banner": "Token régénéré. Mettez à jour votre signet avec la nouvelle URL.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_EMERGENCY_TOKEN"
+            ],
+            "tables": [],
+            "ms": 162
+        },
+        {
+            "action": "relationship_anniversary_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED"
+            ],
+            "tables": [],
+            "ms": 28
+        },
+        {
+            "action": "reload_all_translations",
+            "level": "I",
+            "note": "",
+            "banner": "Traductions par défaut rechargées depuis le fichier source (vos personnalisations sont conservées).",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 2720
+        },
+        {
+            "action": "remove_blacklist",
+            "level": "I",
+            "note": "",
+            "banner": "Impossible d'effectuer cette action sur la liste noire.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 174
+        },
+        {
+            "action": "repair_bounces_check",
+            "level": "I",
+            "note": "",
+            "banner": "Échec de la vérification de la boîte de rejets : Bounce checker désactivé.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [
+                "NERIA_CRON_LAST_BOUNCES"
+            ],
+            "tables": [],
+            "ms": 179
+        },
+        {
+            "action": "repair_module_version",
+            "level": "S",
+            "note": "non lancée : rejoue les scripts d'upgrade (DDL : commit implicite, non annulable)"
+        },
+        {
+            "action": "reset_all_data",
+            "level": "S",
+            "note": "non lancée : détruit toutes les données"
+        },
+        {
+            "action": "reset_all_translations",
+            "level": "S",
+            "note": "non lancée : détruit les traductions"
+        },
+        {
+            "action": "reset_blacklist",
+            "level": "I",
+            "note": "",
+            "banner": "Liste noire réinitialisée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_blacklist": -1
+            },
+            "ms": 188
+        },
+        {
+            "action": "reset_design",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 177
+        },
+        {
+            "action": "reset_template",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 173
+        },
+        {
+            "action": "reset_template_all_langs",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 175
+        },
+        {
+            "action": "reset_time_greetings_all",
+            "level": "I",
+            "note": "",
+            "banner": "Salutations réinitialisées aux valeurs par défaut (toutes les langues).",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 161
+        },
+        {
+            "action": "reset_time_greetings_lang",
+            "level": "I",
+            "note": "",
+            "banner": "Langue invalide.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 159
+        },
+        {
+            "action": "reset_variant_b",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": -8
+            },
+            "ms": 183
+        },
+        {
+            "action": "restore_translation",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 159
+        },
+        {
+            "action": "restore_variant_b",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 163
+        },
+        {
+            "action": "retry_webhook",
+            "level": "S",
+            "note": "non lancée : appel webhook"
+        },
+        {
+            "action": "run_bounce_check",
+            "level": "S",
+            "note": "non lancée : lecture IMAP externe"
+        },
+        {
+            "action": "run_code_diagnostic",
+            "level": "I",
+            "note": "",
+            "banner": "Scan de code terminé — des anomalies ont été détectées, voir le détail ci-dessous.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 2962
+        },
+        {
+            "action": "run_full_diagnostic",
+            "level": "I",
+            "note": "",
+            "banner": "Diagnostic complet exécuté — résultats mis à jour.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_HEALTH_LAST_RUN",
+                "NERIA_HEALTH_RESULTS",
+                "NERIA_KRG_LAST_RUN"
+            ],
+            "tables": {
+                "neria_log": 7
+            },
+            "ms": 5552
+        },
+        {
+            "action": "save_alert_config",
+            "level": "I",
+            "note": "",
+            "banner": "Configuration des alertes enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_ALERT_IMMEDIATE_ENABLED"
+            ],
+            "tables": [],
+            "ms": 164
+        },
+        {
+            "action": "save_archive_config",
+            "level": "I",
+            "note": "",
+            "banner": "Configuration du Témoin silencieux enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_ARCHIVE_EMAIL"
+            ],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 169
+        },
+        {
+            "action": "save_birthday_voucher",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 163
+        },
+        {
+            "action": "save_bounce_config",
+            "level": "I",
+            "note": "",
+            "banner": "Configuration des bounces enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_BOUNCE_ENABLED",
+                "NERIA_BOUNCE_IMAP_HOST",
+                "NERIA_BOUNCE_IMAP_PORT",
+                "NERIA_BOUNCE_IMAP_USER",
+                "NERIA_BOUNCE_IMAP_SSL",
+                "NERIA_BOUNCE_IMAP_FOLDER",
+                "NERIA_BOUNCE_SOFT_THRESHOLD"
+            ],
+            "tables": [],
+            "ms": 178
+        },
+        {
+            "action": "save_calendar_event",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 180
+        },
+        {
+            "action": "save_carbon",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_CARBON_ENABLED"
+            ],
+            "tables": [],
+            "ms": 165
+        },
+        {
+            "action": "save_cooldown",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_COOLDOWN_MINUTES"
+            ],
+            "tables": [],
+            "ms": 154
+        },
+        {
+            "action": "save_custom_vars",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 167
+        },
+        {
+            "action": "save_deepl_key",
+            "level": "I",
+            "note": "",
+            "banner": "Clé API DeepL enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_DEEPL_KEY"
+            ],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 163
+        },
+        {
+            "action": "save_design",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_CONTAINER_WIDTH",
+                "NERIA_LOGO_WIDTH",
+                "NERIA_SECTION_PADDING",
+                "NERIA_BLOCK_SPACING"
+            ],
+            "tables": [],
+            "ms": 158
+        },
+        {
+            "action": "save_firstname_fallbacks",
+            "level": "I",
+            "note": "",
+            "banner": "Fallbacks de prénom enregistrés.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_FIRSTNAME_FALLBACKS"
+            ],
+            "tables": [],
+            "ms": 162
+        },
+        {
+            "action": "save_log_internal",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_LOG_INTERNAL"
+            ],
+            "tables": [],
+            "ms": 175
+        },
+        {
+            "action": "save_loyalty_tiers",
+            "level": "I",
+            "note": "",
+            "banner": "Paliers de fidélité enregistrés.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_LOYALTY_TIERS"
+            ],
+            "tables": [],
+            "ms": 161
+        },
+        {
+            "action": "save_milestone_voucher",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 155
+        },
+        {
+            "action": "save_multipreview_keys",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_LITMUS_KEY",
+                "NERIA_EOA_KEY"
+            ],
+            "tables": [],
+            "ms": 161
+        },
+        {
+            "action": "save_pagespeed_key",
+            "level": "I",
+            "note": "",
+            "banner": "Configuration PageSpeed enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_PAGESPEED_TARGET_URL_1"
+            ],
+            "tables": [],
+            "ms": 174
+        },
+        {
+            "action": "save_postmaster_config",
+            "level": "I",
+            "note": "",
+            "banner": "Identifiants Google sauvegardés. Cliquez sur « Connecter » pour autoriser l'accès.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_POSTMASTER_CLIENT_ID",
+                "NERIA_POSTMASTER_CLIENT_SECRET",
+                "NERIA_POSTMASTER_REFRESH_TOKEN",
+                "NERIA_POSTMASTER_ACCESS_TOKEN",
+                "NERIA_POSTMASTER_TOKEN_EXPIRY"
+            ],
+            "tables": [],
+            "ms": 167
+        },
+        {
+            "action": "save_report_config",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_REPORT_RECIPIENTS"
+            ],
+            "tables": [],
+            "ms": 172
+        },
+        {
+            "action": "save_searchconsole_config",
+            "level": "I",
+            "note": "",
+            "banner": "Identifiants Search Console enregistrés.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_SC_CLIENT_ID",
+                "NERIA_SC_CLIENT_SECRET",
+                "NERIA_SC_REFRESH_TOKEN",
+                "NERIA_SC_ACCESS_TOKEN",
+                "NERIA_SC_TOKEN_EXPIRY"
+            ],
+            "tables": [],
+            "ms": 172
+        },
+        {
+            "action": "save_seasonal_campaign",
+            "level": "I",
+            "note": "",
+            "banner": "Le nom et un modèle d'e-mail valide sont obligatoires.",
+            "banner_kind": "erreur",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 155
+        },
+        {
+            "action": "save_senders",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_CRON_LAST_DOMREP",
+                "NERIA_DOMAIN_REP_CACHE",
+                "NERIA_DOMAIN_REP_LAST_CHECK",
+                "NERIA_SENDERS_JSON"
+            ],
+            "tables": [],
+            "ms": 721
+        },
+        {
+            "action": "save_seo_config",
+            "level": "I",
+            "note": "",
+            "banner": "Configuration SEO enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_SEO_PROVIDER",
+                "NERIA_SEMRUSH_API_KEY",
+                "NERIA_MOZ_ACCESS_ID"
+            ],
+            "tables": [],
+            "ms": 177
+        },
+        {
+            "action": "save_smtp_quota",
+            "level": "I",
+            "note": "",
+            "banner": "Quota SMTP journalier enregistré.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_SMTP_DAILY_QUOTA"
+            ],
+            "tables": [],
+            "ms": 166
+        },
+        {
+            "action": "save_social",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_SOCIAL_INSTAGRAM"
+            ],
+            "tables": [],
+            "ms": 163
+        },
+        {
+            "action": "save_target_countries",
+            "level": "I",
+            "note": "",
+            "banner": "Pays cibles enregistrés (0 pays activés).",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_TARGET_COUNTRIES"
+            ],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 164
+        },
+        {
+            "action": "save_time_greetings",
+            "level": "I",
+            "note": "",
+            "banner": "Salutations horaires enregistrées.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_TIME_GREETINGS"
+            ],
+            "tables": [],
+            "ms": 169
+        },
+        {
+            "action": "save_translations",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 164
+        },
+        {
+            "action": "save_typography",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 175
+        },
+        {
+            "action": "save_variant_b",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 169
+        },
+        {
+            "action": "save_voice_profile",
+            "level": "I",
+            "note": "",
+            "banner": "Empreinte vocale enregistrée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 192
+        },
+        {
+            "action": "save_voucher_validity",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_VOUCHER_FIXED_CAP"
+            ],
+            "tables": [],
+            "ms": 161
+        },
+        {
+            "action": "save_webhooks",
+            "level": "I",
+            "note": "",
+            "banner": "Enregistré — l'URL des webhooks a été vidée : les webhooks sortants sont désormais désactivés.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_WEBHOOK_EVENTS"
+            ],
+            "tables": [],
+            "ms": 158
+        },
+        {
+            "action": "search_customers",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 26
+        },
+        {
+            "action": "search_translations",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "{\"results\":[]}",
+            "config": [],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "send_log_email",
+            "level": "S",
+            "note": "non lancée : envoi d'e-mail"
+        },
+        {
+            "action": "send_manual",
+            "level": "S",
+            "note": "non lancée : envoi d'e-mail"
+        },
+        {
+            "action": "send_report_now",
+            "level": "S",
+            "note": "non lancée : envoi d'e-mail"
+        },
+        {
+            "action": "send_segment_campaign",
+            "level": "S",
+            "note": "non lancée : envoi d'e-mails groupés"
+        },
+        {
+            "action": "send_test",
+            "level": "S",
+            "note": "non lancée : envoi d'e-mail"
+        },
+        {
+            "action": "test_imap_connection",
+            "level": "S",
+            "note": "non lancée : connexion IMAP externe"
+        },
+        {
+            "action": "test_webhook",
+            "level": "S",
+            "note": "non lancée : appel HTTP externe"
+        },
+        {
+            "action": "toggle_autolang",
+            "level": "I",
+            "note": "",
+            "banner": "Détection automatique de la langue désactivée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_AUTO_LANG"
+            ],
+            "tables": [],
+            "ms": 159
+        },
+        {
+            "action": "toggle_calendar_event",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_log": 1
+            },
+            "ms": 160
+        },
+        {
+            "action": "toggle_cooldown",
+            "level": "I",
+            "note": "",
+            "banner": "Mode Silence désactivé.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_COOLDOWN_ENABLED"
+            ],
+            "tables": [],
+            "ms": 183
+        },
+        {
+            "action": "toggle_firstname_fallback",
+            "level": "I",
+            "note": "",
+            "banner": "Smart Fallbacks désactivés.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_FIRSTNAME_FALLBACK_ENABLED"
+            ],
+            "tables": [],
+            "ms": 176
+        },
+        {
+            "action": "toggle_gdpr_auto_purge",
+            "level": "I",
+            "note": "",
+            "banner": "Purge automatique RGPD désactivée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_GDPR_AUTO_PURGE_ENABLED"
+            ],
+            "tables": [],
+            "ms": 177
+        },
+        {
+            "action": "toggle_multi_sender",
+            "level": "I",
+            "note": "",
+            "banner": "Multi-expéditeur désactivé.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_MULTI_SENDER_ENABLED"
+            ],
+            "tables": [],
+            "ms": 162
+        },
+        {
+            "action": "toggle_report",
+            "level": "I",
+            "note": "",
+            "banner": "Rapport mensuel désactivé.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_REPORT_ENABLED"
+            ],
+            "tables": [],
+            "ms": 170
+        },
+        {
+            "action": "toggle_seasonal_campaign",
+            "level": "I",
+            "note": "",
+            "banner": "Sauvegardé avec succès",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [],
+            "tables": {
+                "neria_seasonal_campaign": 1
+            },
+            "ms": 161
+        },
+        {
+            "action": "toggle_signature",
+            "level": "I",
+            "note": "",
+            "banner": "Signature manuscrite désactivée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_SIGNATURE_ENABLED"
+            ],
+            "tables": [],
+            "ms": 158
+        },
+        {
+            "action": "toggle_time_greeting",
+            "level": "I",
+            "note": "",
+            "banner": "Smart Salutation désactivée.",
+            "banner_kind": "succès",
+            "direct": "",
+            "config": [
+                "NERIA_TIME_GREETING_ENABLED"
+            ],
+            "tables": [],
+            "ms": 165
+        },
+        {
+            "action": "upsell_preview",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "{\"status\":\"not_found\"}",
+            "config": [],
+            "tables": [],
+            "ms": 30
+        },
+        {
+            "action": "upsell_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_UPSELL_ENABLED"
+            ],
+            "tables": [],
+            "ms": 36
+        },
+        {
+            "action": "waitlist_reservation_save",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_WAITLIST_RESERVATION_HOURS"
+            ],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "waitlist_toggle",
+            "level": "I",
+            "note": "",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [
+                "NERIA_WAITLIST_ENABLED"
+            ],
+            "tables": [],
+            "ms": 29
+        },
+        {
+            "action": "watchdog_refresh",
+            "level": "I",
+            "note": "sortie directe (redirection/exit) sans effet mesuré avec ces paramètres",
+            "banner": "",
+            "banner_kind": "",
+            "direct": "",
+            "config": [],
+            "tables": [],
+            "ms": 34
+        }
+    ]
+}
