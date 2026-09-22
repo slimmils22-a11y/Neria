@@ -6834,6 +6834,17 @@ class HealthCheckManager
             $offenders[] = "E-mails « Couleur des liens » : le réglage de l'onglet Design (vide = identique à l'accent, liens du corps et du pied de page, prévisualisation, remise à zéro) n'est plus câblé de bout en bout (layout.html, EmailRenderer::linkTextColor, ConfigManager, design.tpl, neria-admin.js) — régression du réglage ajouté le 21/09/2026";
         }
 
+        // Constat réel (21/09/2026, campagne de tests fonctionnels) : ManualSendManager::send()/
+        // scheduleManual() doivent transmettre {id_customer} — sans lui, EmailRenderer::
+        // resolveCustomerTimezone() ne peut jamais lire l'adresse réelle du client (Priorité 1) et
+        // retombe systématiquement sur le pays par défaut de la boutique pour tout envoi manuel,
+        // quel que soit le pays réel du destinataire (constaté sur ps-test : salutation calculée sur
+        // l'heure de New York pour un client français).
+        $msmIdCust = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msmIdCust === '' || substr_count($msmIdCust, "'{id_customer}' => (int) (\$customer['id_customer'] ?? 0),") < 2) {
+            $offenders[] = "ManualSendManager : send() et/ou scheduleManual() ne transmettent plus {id_customer} — la salutation horaire ({time_greeting}) des envois manuels retomberait de nouveau sur le pays par défaut de la boutique au lieu du pays réel du client (constat du 21/09/2026)";
+        }
+
         // Constat Outlook (21/09/2026, test à 4 variantes sur un vrai envoi) : Outlook ignore un « color: … !important » posé sur le lien
         // (le CSS y est recopié en ligne) et applique alors la couleur des liens, dorée : texte du bouton doré au lieu de blanc. Le texte du
         // bouton est donc blanc SANS !important (Gmail et Outlook l'affichent en blanc).
