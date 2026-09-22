@@ -6834,6 +6834,20 @@ class HealthCheckManager
             $offenders[] = "E-mails « Couleur des liens » : le réglage de l'onglet Design (vide = identique à l'accent, liens du corps et du pied de page, prévisualisation, remise à zéro) n'est plus câblé de bout en bout (layout.html, EmailRenderer::linkTextColor, ConfigManager, design.tpl, neria-admin.js) — régression du réglage ajouté le 21/09/2026";
         }
 
+        // Constat réel (22/09/2026, campagne de tests fonctionnels) : les champs de contenu éditables d'un
+        // envoi manuel (ex. {product_name} de product_recall) n'avaient AUCUNE validation, ni le formulaire
+        // (pas d'attribut HTML required) ni send()/scheduleManual() — un envoi validé avec le champ vide livrait
+        // au client un mail avec une phrase visiblement tronquée ("Produit concerné :" suivi de rien).
+        $mevSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        $sendTplSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/send.tpl');
+        if ($mevSrc === '' || $sendTplSrc === ''
+            || strpos($mevSrc, 'private function findMissingEditableVars(string $template, array $contentVars): array') === false
+            || substr_count($mevSrc, '$this->findMissingEditableVars(') < 2
+            || strpos($sendTplSrc, 'name="neria_var[{$f.key}]" required') === false
+        ) {
+            $offenders[] = "ManualSendManager : les champs de contenu éditables d'un envoi manuel (ex. {product_name}) peuvent de nouveau rester vides sans être bloqués — un client recevrait un mail avec une phrase visiblement tronquée (constat du 22/09/2026)";
+        }
+
         // Constat réel (21/09/2026, campagne de tests fonctionnels) : ManualSendManager::send()/
         // scheduleManual() doivent transmettre {id_customer} — sans lui, EmailRenderer::
         // resolveCustomerTimezone() ne peut jamais lire l'adresse réelle du client (Priorité 1) et
