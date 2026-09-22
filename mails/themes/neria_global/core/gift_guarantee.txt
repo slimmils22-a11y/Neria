@@ -12,7 +12,7 @@
 
 {neria_trad key='gift_detail_3'}
 
-{neria_trad key='gift_detail_4'}
+{neria_trad key='gift_detail_4'} {gift_return_date}
 
 {neria_trad key='gift_message'}
 

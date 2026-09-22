@@ -3220,6 +3220,12 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
+        if (Tools::getValue('neria_action') === 'save_gift_guarantee' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $days = (int) Tools::getValue('neria_gift_guarantee_days', 30);
+            (new ConfigManager($this))->saveGiftGuaranteeDays($days);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
         if (Tools::getValue('neria_action') === 'save_smtp_quota' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $quota = max(0, (int) Tools::getValue('neria_smtp_quota', 0));
             Configuration::updateValue('NERIA_SMTP_DAILY_QUOTA', $quota);
@@ -6724,6 +6730,7 @@ class Neria extends Module
             'all_countries'                => ConfigManager::getAllCountries(),
             'cooldown_enabled'      => $config->isCooldownEnabled(),
             'cooldown_minutes'      => $config->getCooldownMinutes(),
+            'gift_guarantee_days'   => $config->getGiftGuaranteeDays(),
             'smtp_daily_quota'      => (int) Configuration::get('NERIA_SMTP_DAILY_QUOTA'),
             'carbon_enabled'        => $config->isCarbonEnabled(),
             'carbon_link'           => $config->getCarbonLink(),

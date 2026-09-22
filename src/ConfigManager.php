@@ -120,6 +120,15 @@ class ConfigManager
     // ── Mode Silence (anti-doublon) ───────────────────────────────
     const KEY_COOLDOWN_ENABLED      = 'NERIA_COOLDOWN_ENABLED';
     const KEY_COOLDOWN_MINUTES      = 'NERIA_COOLDOWN_MINUTES';
+    // ── Garantie cadeau (durée d'échange/retour, gift_guarantee) ──
+    // Round 362 (22/09/2026) : la date de retour était un texte figé "31 janvier" dans les 19 langues, hors de
+    // tout contexte (le modèle est générique, pas saisonnier — Noël a ses propres modèles christmas/
+    // end_of_year_gift). Rendue dynamique (date d'envoi + ce délai), avec un plancher légal.
+    const KEY_GIFT_GUARANTEE_DAYS   = 'NERIA_GIFT_GUARANTEE_DAYS';
+    // Plancher légal : délai de rétractation minimum pour une vente à distance dans l'UE (art. L221-18 du Code
+    // de la consommation, Directive 2011/83/UE) — 14 jours calendaires. Le marchand peut choisir plus long
+    // (politique commerciale plus généreuse), jamais moins.
+    const GIFT_GUARANTEE_DAYS_FLOOR = 14;
     const KEY_FIRSTNAME_FALLBACKS         = 'NERIA_FIRSTNAME_FALLBACKS';
     const KEY_FIRSTNAME_FALLBACK_ENABLED  = 'NERIA_FIRSTNAME_FALLBACK_ENABLED';
     const KEY_TIME_GREETINGS              = 'NERIA_TIME_GREETINGS';
@@ -199,6 +208,7 @@ class ConfigManager
         self::KEY_MENU_HIDDEN_ITEMS  => '[]',
         self::KEY_COOLDOWN_ENABLED    => 0,
         self::KEY_COOLDOWN_MINUTES    => 10,
+        self::KEY_GIFT_GUARANTEE_DAYS => 30,
         self::KEY_CARBON_ENABLED      => 0,
         self::KEY_CARBON_LINK         => '',
         self::KEY_SENDERS_JSON        => '',
@@ -1327,6 +1337,27 @@ class ConfigManager
     public function getCooldownMinutes(): int
     {
         return max(1, (int) $this->get(self::KEY_COOLDOWN_MINUTES, 10));
+    }
+
+    /**
+     * Durée de la garantie d'échange/retour affichée dans gift_guarantee (jours calendaires à partir de la
+     * date d'envoi). Round 362 : jamais sous le plancher légal (14 jours, délai de rétractation UE), quelle
+     * que soit la valeur enregistrée — protège même contre une valeur invalide écrite hors de saveGiftGuaranteeDays().
+     */
+    public function getGiftGuaranteeDays(): int
+    {
+        return max(self::GIFT_GUARANTEE_DAYS_FLOOR, (int) $this->get(self::KEY_GIFT_GUARANTEE_DAYS, 30));
+    }
+
+    /**
+     * @param int $days
+     * @return bool
+     */
+    public function saveGiftGuaranteeDays(int $days): bool
+    {
+        $days = max(self::GIFT_GUARANTEE_DAYS_FLOOR, min(365, $days));
+
+        return $this->set(self::KEY_GIFT_GUARANTEE_DAYS, $days);
     }
 
     public function isCarbonEnabled(): bool

@@ -69,6 +69,8 @@ class ManualSendManager
         'meta_products', 'meta_products_txt', 'nbProducts',
         // Divers contexte
         'subject', 'check_name', 'check_address_html', 'check_address_txt',
+        // Garantie cadeau (round 362) : date de retour calculée automatiquement, pas saisie par le marchand.
+        'gift_return_date',
     ];
 
     /**
@@ -844,6 +846,21 @@ class ManualSendManager
             // liens voisins, jamais répliqué ici).
             $vars['{order_url}']  = \Context::getContext()->link->getPageLink(
                 'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']], false, $idShop
+            );
+        }
+
+        // {gift_return_date} (round 362, gift_guarantee) : date d'échange/retour calculée à partir de la date
+        // d'ENVOI (pas de la commande) + durée configurable par le marchand (Configurer, plancher légal 14 j).
+        // Round 22/09/2026 : corrige un texte auparavant figé ("31 janvier", identique dans les 19 langues,
+        // toute l'année) — un cadeau envoyé en juin affichait déjà une date passée ou à 7 mois d'écart.
+        if ($template === 'gift_guarantee' && class_exists('ConfigManager') && class_exists('NeriaTools')) {
+            $giftDays = (new \ConfigManager($this->module))->getGiftGuaranteeDays();
+            $langIsoGift = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: 'en');
+            $vars['{gift_return_date}'] = \NeriaTools::formatDate(
+                date('Y-m-d', strtotime('+' . $giftDays . ' days')),
+                $langIsoGift
             );
         }
 
@@ -1627,6 +1644,21 @@ class ManualSendManager
             $vars['{id_order}']   = (int) $order['id_order'];
             $vars['{order_url}']  = \Context::getContext()->link->getPageLink(
                 'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']], false, $idShopManual
+            );
+        }
+
+        // {gift_return_date} : même correctif que send() (round 362). Calculée à la PLANIFICATION (comme
+        // {shop_name} et les autres variables de ce tableau, déjà figées ici plutôt qu'au moment de l'envoi
+        // réel par QueueManager) — cohérent avec le reste de ce mécanisme, écart négligeable pour un envoi
+        // planifié à quelques heures ou jours, contrairement au texte figé "31 janvier" corrigé ici.
+        if ($template === 'gift_guarantee' && class_exists('ConfigManager') && class_exists('NeriaTools')) {
+            $giftDaysManual = (new \ConfigManager($this->module))->getGiftGuaranteeDays();
+            $langIsoGiftManual = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: 'en');
+            $vars['{gift_return_date}'] = \NeriaTools::formatDate(
+                date('Y-m-d', strtotime('+' . $giftDaysManual . ' days')),
+                $langIsoGiftManual
             );
         }
 

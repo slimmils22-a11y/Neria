@@ -545,6 +545,34 @@
   </form>
 
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
+    <h3 style="font-size:14px;font-weight:700;color:#5c3d1e;margin:0 0 8px;">🎁 {neria_admin key='configure.gift_guarantee_title'}</h3>
+    <p style="font-size:13px;color:#7a6a5a;margin:0 0 12px;line-height:1.6;">
+      {neria_admin key='configure.gift_guarantee_desc'}
+    </p>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
+      <input type="hidden" name="neria_action" value="save_gift_guarantee">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-gift-guarantee-days">
+          {neria_admin key='configure.gift_guarantee_days_label'}
+        </label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="neria-gift-guarantee-days" name="neria_gift_guarantee_days"
+                 class="neria-input" min="14" max="365" style="max-width:100px;"
+                 value="{$gift_guarantee_days|default:30}">
+          <span style="font-size:13px;color:var(--neria-text-light);">{neria_admin key='configure.gift_guarantee_days_unit'}</span>
+        </div>
+        <p class="neria-hint">{neria_admin key='configure.gift_guarantee_days_hint'}</p>
+      </div>
+      <div style="margin-top:16px;">
+        <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+          {neria_admin key='common.register'}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
     <h3 style="font-size:14px;font-weight:700;color:#5c3d1e;margin:0 0 8px;">📬 {neria_admin key='configure.smtp_quota_title'}</h3>
     <p style="font-size:13px;color:#7a6a5a;margin:0 0 12px;line-height:1.6;">
       {neria_admin key='configure.smtp_quota_desc1'}
