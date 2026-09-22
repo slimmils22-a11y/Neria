@@ -92,12 +92,15 @@
     }
 
     /* BOXES */
+    /* Round 364 (22/09/2026) : même défaut que .neria-text ci-dessous (text-align manquant) — ces encadrés
+       portent le numéro de commande, les détails de retour/garantie/cadeau, etc. */
     .neria-info-box {
       background-color: #fefefe;
       border: 1px solid #e8e0d5;
       padding: 20px 24px;
       font-size: {$neria_font_size}px;
       line-height: {$neria_line_height};
+      text-align: {$neria_text_align};
     }
     .neria-address-box {
       background-color: #fefefe;
@@ -106,18 +109,28 @@
       font-size: {$neria_font_size}px;
       line-height: {$neria_line_height};
       margin-top: 8px;
+      text-align: {$neria_text_align};
     }
 
     /* TEXTE */
+    /* Round 364 (22/09/2026) : text-align manquant, contrairement à .neria-signature et .neria-products-table
+       th (toutes deux suivent déjà {$neria_text_align}) — constaté en réel, un e-mail arabe complet
+       (private_sale) affichait sa signature bien alignée à droite mais tout le corps du texte aligné à
+       gauche par défaut. dir="{$neria_dir}" est posé sur <html>, mais plusieurs clients de messagerie
+       (constaté : Gmail) n'héritent pas fiablement cette direction jusqu'aux paragraphes profondément
+       imbriqués dans les tableaux de mise en page — un text-align explicite par classe est nécessaire, comme
+       pour les autres éléments de ce fichier. */
     .neria-text {
       font-size: {$neria_font_size}px;
       line-height: {$neria_line_height};
       color: #3a3530;
+      text-align: {$neria_text_align};
     }
     .neria-text-note {
       font-size: 13px;
       line-height: 1.7;
       color: #6f6a62;
+      text-align: {$neria_text_align};
     }
 
     /* BOUTON */
