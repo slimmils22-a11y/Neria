@@ -6834,6 +6834,17 @@ class HealthCheckManager
             $offenders[] = "E-mails « Couleur des liens » : le réglage de l'onglet Design (vide = identique à l'accent, liens du corps et du pied de page, prévisualisation, remise à zéro) n'est plus câblé de bout en bout (layout.html, EmailRenderer::linkTextColor, ConfigManager, design.tpl, neria-admin.js) — régression du réglage ajouté le 21/09/2026";
         }
 
+        // Constat réel (22/09/2026, campagne de tests fonctionnels) : sur un vrai e-mail arabe complet, la
+        // signature ({$neria_text_align} déjà câblé) s'alignait correctement à droite, mais TOUT LE CORPS DU
+        // TEXTE ({.neria-text}, sans aucune règle text-align) restait aligné à gauche par défaut — oubli lors
+        // de l'introduction de {$neria_text_align} sur les autres classes de ce même fichier.
+        $rtlSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/layout.html');
+        if ($rtlSrc === ''
+            || substr_count($rtlSrc, 'text-align: {$neria_text_align};') < 6
+        ) {
+            $offenders[] = "layout.html : .neria-text/.neria-text-note/.neria-info-box/.neria-address-box n'appliquent plus tous {\$neria_text_align} — régression du correctif du 22/09/2026 (le corps d'un e-mail en arabe/hébreu redeviendrait aligné à gauche alors que la signature reste alignée à droite)";
+        }
+
         // Constat réel (22/09/2026, campagne de tests fonctionnels) : checkSmtpConfig() doit escalader en
         // erreur (pas un simple avertissement générique) dès qu'une SEULE langue active de la boutique est à
         // alphabet non latin et que le mail() basique est utilisé — un marchand mono-langue arabe, par
