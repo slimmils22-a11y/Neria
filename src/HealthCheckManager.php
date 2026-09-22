@@ -6834,6 +6834,23 @@ class HealthCheckManager
             $offenders[] = "E-mails « Couleur des liens » : le réglage de l'onglet Design (vide = identique à l'accent, liens du corps et du pied de page, prévisualisation, remise à zéro) n'est plus câblé de bout en bout (layout.html, EmailRenderer::linkTextColor, ConfigManager, design.tpl, neria-admin.js) — régression du réglage ajouté le 21/09/2026";
         }
 
+        // Constat réel (22/09/2026, campagne de tests fonctionnels) : checkSmtpConfig() doit escalader en
+        // erreur (pas un simple avertissement générique) dès qu'une SEULE langue active de la boutique est à
+        // alphabet non latin et que le mail() basique est utilisé — un marchand mono-langue arabe, par
+        // exemple, ne doit pas passer inaperçu sous prétexte qu'aucune "seconde langue" ne serait active.
+        // Piège auto-référentiel (déjà rencontré, cf. feedback_self_auditing_guard_strrpos.md) : ce contrôle
+        // vit dans LE MÊME fichier que checkSmtpConfig(), donc une simple recherche "!== false" trouverait
+        // TOUJOURS le texte recherché — ne serait-ce que dans la propre chaîne littérale de CE contrôle,
+        // ci-dessous. On compte les occurrences (>= 2 attendu : la ligne ci-dessous + la vraie implémentation)
+        // au lieu de vérifier une simple présence.
+        $smtpSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($smtpSrc === ''
+            || substr_count($smtpSrc, "NON_LATIN_SCRIPT_LANGS = ['ar', 'ja', 'ko', 'zh', 'tw', 'ru'];") < 2
+            || substr_count($smtpSrc, "tVars('health.smtp_php_mail_non_latin'") < 2
+        ) {
+            $offenders[] = "HealthCheckManager::checkSmtpConfig() n'escalade plus en erreur pour une langue active à alphabet non latin avec mail() basique — régression du correctif du 22/09/2026 (un marchand mono-langue arabe/russe/japonais/coréen/chinois ne serait plus alerté du risque de perte silencieuse de mails)";
+        }
+
         // Constat réel (22/09/2026, campagne de tests fonctionnels) : gift_guarantee affichait une date de
         // retour FIXE ("31 janvier"), identique dans les 19 langues, toute l'année — ce modèle est générique
         // (pas saisonnier, contrairement à christmas.html/end_of_year_gift.html) : un cadeau envoyé en juin
@@ -16288,12 +16305,43 @@ class HealthCheckManager
      * Détecte les configurations vides ou non testées susceptibles de faire
      * échouer tous les envois sans message d'erreur explicite.
      */
+    /**
+     * Langues NON dérivées de l'alphabet latin, parmi les 19 langues supportées (TranslationEngine::
+     * SUPPORTED_LANGS) — leur SUJET de mail (pas le corps, cf. constat ci-dessous) est celui qui s'est révélé
+     * exposé au risque documenté ci-dessous, sur au moins 2 langues de cet ensemble.
+     */
+    const NON_LATIN_SCRIPT_LANGS = ['ar', 'ja', 'ko', 'zh', 'tw', 'ru'];
+
     private function checkSmtpConfig(): array
     {
         $method = (string) \Configuration::get('PS_MAIL_METHOD');
 
         // Méthode 1 = PHP mail() — valide mais sans retour d'erreur SMTP
         if ($method === '1') {
+            // Round 363 (22/09/2026) : constat réel, campagne de tests fonctionnels — un domaine récent/faible
+            // volume envoyant via mail() basique (au lieu d'un SMTP authentifié) a vu SES SUJETS d'e-mail en
+            // arabe et en russe bloqués SILENCIEUSEMENT (accepté localement, jamais livré, ni boîte de
+            // réception ni indésirables), reproduit sur 3 fournisseurs de réception distincts (Gmail, Yahoo,
+            // iCloud), résolu uniquement par un SMTP authentifié (domaine + expéditeur vérifiés). Le japonais,
+            // lui, est passé sans problème dans les mêmes conditions — mais UN SEUL test favorable ne prouve
+            // rien pour un autre marchand/domaine : on avertit donc pour TOUTE langue à alphabet non latin
+            // active, dès UNE SEULE (un marchand mono-langue arabe, par exemple, ne doit pas passer inaperçu
+            // sous prétexte qu'aucune "seconde langue" ne serait active), sans prétendre distinguer celles
+            // réellement sûres — les 19 langues n'ont pas toutes été testées.
+            $nonLatinActive = [];
+            foreach (\Language::getLanguages(true, $this->idShop) as $langRow) {
+                $iso = strtolower((string) ($langRow['iso_code'] ?? ''));
+                if (in_array($iso, self::NON_LATIN_SCRIPT_LANGS, true)) {
+                    $nonLatinActive[] = $iso;
+                }
+            }
+            if (!empty($nonLatinActive)) {
+                return [
+                    'status' => self::STATUS_ERROR,
+                    'detail' => AdminTranslator::tVars('health.smtp_php_mail_non_latin', ['langs' => implode(', ', array_unique($nonLatinActive))]),
+                ];
+            }
+
             return [
                 'status' => self::STATUS_WARNING,
                 'detail' => AdminTranslator::t('health.smtp_php_mail'),
