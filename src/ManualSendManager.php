@@ -774,6 +774,13 @@ class ManualSendManager
 
         // Contexte de base
         $vars = [
+            // {id_customer} : round 360 — sans lui, EmailRenderer::resolveCustomerTimezone()
+            // (Priorité 1) ne peut jamais retrouver l'adresse réelle du client pour la
+            // salutation horaire {time_greeting}, et retombe sur le pays PAR DÉFAUT de la
+            // boutique (Priorité 3) pour TOUS les envois manuels, quel que soit le pays
+            // réel du destinataire — constaté sur ps-test (boutique par défaut États-Unis) :
+            // un client français recevait "Bonjour" calculé sur l'heure de New York.
+            '{id_customer}' => (int) ($customer['id_customer'] ?? 0),
             '{firstname}'   => $customer['firstname'] ?? '',
             '{lastname}'    => $customer['lastname'] ?? '',
             '{email}'       => $email,
@@ -1548,6 +1555,10 @@ class ManualSendManager
         }
 
         $vars = [
+            // {id_customer} : même correctif que send() (round 360) — sans lui, la
+            // salutation horaire {time_greeting} retombe sur le pays par défaut de la
+            // boutique au lieu du pays réel du client pour les envois planifiés aussi.
+            '{id_customer}' => (int) ($customer['id_customer'] ?? 0),
             '{firstname}'   => $customer['firstname'] ?? '',
             '{lastname}'    => $customer['lastname'] ?? '',
             '{email}'       => $email,
