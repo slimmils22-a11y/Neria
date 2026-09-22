@@ -344,6 +344,34 @@ class ManualSendManager
     }
 
     /**
+     * Round 361 (22/09/2026) : variables de CONTENU éditables (getEditableVars(), ex. {product_name} de
+     * product_recall) restées vides à l'envoi — constaté en réel : "Produit concerné :" suivi de rien.
+     * Contrairement au garde-fou voisin (variables personnalisées PERSISTÉES, Configurer → Variables
+     * personnalisées), ces champs sont saisis au moment de CET envoi précis (send.tpl, name="neria_var[xxx]")
+     * et n'avaient aucune validation ni côté navigateur (pas d'attribut HTML required) ni côté serveur.
+     * {custom_message}/{custom_message_txt} sont volontairement exclus : ce champ est explicitement facultatif
+     * (send.custom_message_hint) sur tous les templates qui le proposent.
+     *
+     * @param string $template
+     * @param array  $contentVars
+     * @return string[] Clés des variables éditables restées vides
+     */
+    private function findMissingEditableVars(string $template, array $contentVars): array
+    {
+        $missing = [];
+        foreach ($this->getEditableVars($template) as $key) {
+            if ($key === 'custom_message') {
+                continue;
+            }
+            if (trim((string) ($contentVars[$key] ?? '')) === '') {
+                $missing[] = $key;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
      * Extrait tous les placeholders {xxx} des sources .html et .txt d'un
      * template. Ignore {neria_trad ...} (espace) et {$smarty} (dollar).
      *
@@ -721,6 +749,18 @@ class ManualSendManager
                     'message' => AdminTranslator::tVars('msg.send_blocked_missing_vars', ['list' => implode(', ', $missingVars)]),
                 ];
             }
+        }
+
+        // ── Garde-fou champs de CONTENU éditables restés vides (round 361) ──
+        // {product_name}/etc. saisis au moment de CET envoi précis (send.tpl),
+        // sans validation navigateur ni serveur jusqu'ici — constaté en réel :
+        // "Produit concerné :" suivi de rien dans le mail livré au client.
+        $missingContentVars = $this->findMissingEditableVars($template, $contentVars);
+        if (!empty($missingContentVars)) {
+            return [
+                'ok'      => false,
+                'message' => AdminTranslator::tVars('msg.send_blocked_missing_content_vars', ['list' => implode(', ', $missingContentVars)]),
+            ];
         }
 
         // ── Garde-fou contexte commande ─────────────────────────────────────
@@ -1552,6 +1592,16 @@ class ManualSendManager
                     'message' => AdminTranslator::tVars('msg.send_blocked_missing_vars', ['list' => implode(', ', $missingVars)]),
                 ];
             }
+        }
+
+        // ── Garde-fou champs de CONTENU éditables restés vides (round 361) ──
+        // Même correctif que send() ci-dessus, appliqué à l'envoi planifié.
+        $missingContentVarsManual = $this->findMissingEditableVars($template, $contentVars);
+        if (!empty($missingContentVarsManual)) {
+            return [
+                'ok'      => false,
+                'message' => AdminTranslator::tVars('msg.send_blocked_missing_content_vars', ['list' => implode(', ', $missingContentVarsManual)]),
+            ];
         }
 
         $vars = [

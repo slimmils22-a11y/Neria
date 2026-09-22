@@ -146,7 +146,11 @@
                      texte" sans préciser lequel sur ce formulaire d'envoi
                      manuel utilisé quotidiennement. *}
                   <label class="neria-label" for="neria-send-var-{$tpl|escape:'html'}-{$f.key|escape:'html'}">{$f.label|escape:'html'}</label>
-                  <input type="text" class="neria-input" id="neria-send-var-{$tpl|escape:'html'}-{$f.key|escape:'html'}" name="neria_var[{$f.key}]"
+                  {* Round 361 : required ajouté — ce champ était saisi sans aucune validation, ni ici ni côté
+                     serveur (ManualSendManager::findMissingEditableVars() couvre désormais le second volet) ;
+                     un envoi validé avec le champ vide produisait un mail livré au client avec une phrase
+                     visiblement tronquée (ex. "Produit concerné :" suivi de rien). *}
+                  <input type="text" class="neria-input" id="neria-send-var-{$tpl|escape:'html'}-{$f.key|escape:'html'}" name="neria_var[{$f.key}]" required
                          value="{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var[$f.key])}{$smarty.post.neria_var[$f.key]|escape:'html'}{/if}">
                 </div>
               {/foreach}

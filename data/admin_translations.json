@@ -61697,6 +61697,27 @@
         "da": "Afsendelse blokeret: denne skabelon bruger brugerdefinerede variabler, der ikke er udfyldt: {list} → udfyld dem under Konfigurer → Brugerdefinerede variabler før afsendelse.",
         "nl": "Verzending geblokkeerd: deze sjabloon gebruikt aangepaste variabelen die niet zijn ingevuld: {list} → vul ze in onder Configureren → Aangepaste variabelen voordat u verzendt."
     },
+    "msg.send_blocked_missing_content_vars": {
+        "fr": "Envoi bloqué : les champs à remplir pour cet envoi sont restés vides : {list} → complétez-les dans le formulaire avant d'envoyer.",
+        "en": "Send blocked: the fields to fill in for this send are still empty: {list} → complete them in the form before sending.",
+        "de": "Versand blockiert: die für diesen Versand auszufüllenden Felder sind noch leer: {list} → füllen Sie sie im Formular aus, bevor Sie senden.",
+        "it": "Invio bloccato: i campi da compilare per questo invio sono ancora vuoti: {list} → completali nel modulo prima di inviare.",
+        "es": "Envío bloqueado: los campos que hay que rellenar para este envío siguen vacíos: {list} → complételos en el formulario antes de enviar.",
+        "pt": "Envio bloqueado: os campos a preencher para este envio continuam vazios: {list} → preencha-os no formulário antes de enviar.",
+        "br": "Envio bloqueado: os campos a preencher para este envio continuam vazios: {list} → preencha-os no formulário antes de enviar.",
+        "gb": "Send blocked: the fields to fill in for this send are still empty: {list} → complete them in the form before sending.",
+        "ar": "تم حظر الإرسال: الحقول الواجب تعبئتها لهذا الإرسال لا تزال فارغة: {list} → أكملها في النموذج قبل الإرسال.",
+        "ja": "送信がブロックされました：この送信で入力すべき項目が空のままです：{list} → 送信前にフォームで入力してください。",
+        "ko": "발송이 차단되었습니다: 이 발송을 위해 입력해야 할 항목이 비어 있습니다: {list} → 발송 전에 양식에서 입력하세요.",
+        "zh": "发送已阻止：本次发送需要填写的字段仍为空：{list} → 请在发送前于表单中填写。",
+        "tw": "寄送已阻止：本次寄送需要填寫的欄位仍為空：{list} → 請在寄送前於表單中填寫。",
+        "ru": "Отправка заблокирована: поля, которые нужно заполнить для этой отправки, остаются пустыми: {list} → заполните их в форме перед отправкой.",
+        "tr": "Gönderim engellendi: bu gönderim için doldurulması gereken alanlar hâlâ boş: {list} → göndermeden önce formda doldurun.",
+        "sv": "Utskick blockerat: fälten som ska fyllas i för det här utskicket är fortfarande tomma: {list} → fyll i dem i formuläret innan du skickar.",
+        "no": "Utsending blokkert: feltene som skal fylles ut for denne utsendelsen, er fortsatt tomme: {list} → fyll dem ut i skjemaet før du sender.",
+        "da": "Afsendelse blokeret: felterne, der skal udfyldes til denne afsendelse, er stadig tomme: {list} → udfyld dem i formularen før afsendelse.",
+        "nl": "Verzending geblokkeerd: de velden die voor deze verzending moeten worden ingevuld, zijn nog leeg: {list} → vul ze in het formulier in voordat u verzendt."
+    },
     "msg.send_blocked_missing_order": {
         "fr": "Envoi bloqué : ce template a besoin d'une commande liée pour remplir {list} → renseignez une référence de commande valide avant d'envoyer.",
         "en": "Send blocked: this template needs a linked order to fill {list} → provide a valid order reference before sending.",
