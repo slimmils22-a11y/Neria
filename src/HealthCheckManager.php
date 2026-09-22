@@ -6834,6 +6834,23 @@ class HealthCheckManager
             $offenders[] = "E-mails « Couleur des liens » : le réglage de l'onglet Design (vide = identique à l'accent, liens du corps et du pied de page, prévisualisation, remise à zéro) n'est plus câblé de bout en bout (layout.html, EmailRenderer::linkTextColor, ConfigManager, design.tpl, neria-admin.js) — régression du réglage ajouté le 21/09/2026";
         }
 
+        // Constat réel (22/09/2026, campagne de tests fonctionnels) : gift_guarantee affichait une date de
+        // retour FIXE ("31 janvier"), identique dans les 19 langues, toute l'année — ce modèle est générique
+        // (pas saisonnier, contrairement à christmas.html/end_of_year_gift.html) : un cadeau envoyé en juin
+        // affichait déjà une date passée ou à 7 mois d'écart. Rendue dynamique (date d'envoi + délai
+        // configurable, plancher légal 14 jours — délai de rétractation UE).
+        $ggSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        $ggCfgSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        $ggTplSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/gift_guarantee.html');
+        if ($ggSrc === '' || $ggCfgSrc === '' || $ggTplSrc === ''
+            || substr_count($ggSrc, "'{gift_return_date}'") < 2
+            || strpos($ggCfgSrc, 'const GIFT_GUARANTEE_DAYS_FLOOR = 14;') === false
+            || strpos($ggCfgSrc, 'public function getGiftGuaranteeDays(): int') === false
+            || strpos($ggTplSrc, '{gift_return_date}') === false
+        ) {
+            $offenders[] = "gift_guarantee : la date de retour est de nouveau figée (ex. \"31 janvier\") au lieu d'être calculée à partir de la date d'envoi — régression du correctif du 22/09/2026";
+        }
+
         // Constat réel (22/09/2026, campagne de tests fonctionnels) : les champs de contenu éditables d'un
         // envoi manuel (ex. {product_name} de product_recall) n'avaient AUCUNE validation, ni le formulaire
         // (pas d'attribut HTML required) ni send()/scheduleManual() — un envoi validé avec le champ vide livrait
