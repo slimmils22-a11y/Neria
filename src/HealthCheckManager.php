@@ -4132,6 +4132,16 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer n'a plus son fallback central de fuseau par e-mail du destinataire — régression du correctif du 23/09/2026 (round 368) : la salutation horaire des e-mails sans {id_customer} suivrait de nouveau le fuseau de la boutique";
         }
 
+        // Round 369 (2026-09-23) : la réputation de domaine ne doit pas auditer un
+        // domaine de messagerie GRATUITE (gmail.com…) — score D et erreur
+        // Watchdog trompeurs, sans rapport avec la boutique.
+        $drSrc369 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drSrc369 === ''
+            || substr_count($drSrc369, 'freemailReport(') < 2
+            || substr_count($drSrc369, 'isFreemailDomain(') < 2) {
+            $offenders[] = "DomainReputationManager n'écarte plus les domaines de messagerie gratuite (freemailReport/isFreemailDomain) — régression du bug corrigé le 23/09/2026 (round 369) : un expéditeur gmail.com recevrait de nouveau un « score D » et une erreur Watchdog trompeurs";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
@@ -18275,6 +18285,13 @@ class HealthCheckManager
 
         if ($cached === null) {
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.domain_rep_no_report')];
+        }
+
+        if (!empty($cached['freemail'])) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.domain_rep_freemail', ['domain' => (string) ($cached['domain'] ?? '')]),
+            ];
         }
 
         $score = (int) ($cached['score'] ?? 100);
