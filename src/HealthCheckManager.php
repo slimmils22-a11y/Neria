@@ -4045,6 +4045,39 @@ class HealthCheckManager
             }
         }
 
+        // Round 365 (2026-09-23) : les 4 méthodes qui sauvegardent puis
+        // restaurent le contexte boutique statique (BehavioralCronManager::
+        // sendGhostCarts(), CollectionManager::getProductImageUrl(),
+        // LookCompletionManager::buildProductBlocks(), WaitlistManager::
+        // notifyProduct()) doivent capturer l'id d'origine via
+        // Shop::getContextShopID() SANS argument — avec l'argument `true`
+        // ($null_value_without_multishop), PrestaShop renvoie NULL dès que
+        // la fonctionnalité multiboutique est désactivée (le cas de
+        // l'immense majorité des installations mono-boutique, PAS seulement
+        // "une seule boutique existe"), et le finally restaure alors
+        // Shop::setContext(CONTEXT_SHOP, null) — corrompant durablement le
+        // contexte statique à 0 pour tout le reste du process PHP. Sur
+        // BehavioralCronManager, ceci faisait planter (uncaught) la boucle
+        // multi-boutique suivante de run() ("Shop id 0 is invalid") dès
+        // qu'un seul panier fantôme était détecté, abandonnant sans trace
+        // le recalcul segments/churn, la purge RGPD, les complétions
+        // collection/look ET le heartbeat Watchdog final — sur la quasi-
+        // totalité des installations réelles.
+        $shopIdRestoreFiles = [
+            'BehavioralCronManager.php' => 'sendGhostCarts',
+            'CollectionManager.php'     => 'getProductImageUrl',
+            'LookCompletionManager.php' => 'buildProductBlocks',
+            'WaitlistManager.php'       => 'notifyProduct',
+        ];
+        foreach ($shopIdRestoreFiles as $fname => $method) {
+            $fsrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/' . $fname);
+            if ($fsrc === '') {
+                $offenders[] = "{$fname} introuvable (garde-fou round 365 : getContextShopID() sans argument dans {$method}())";
+            } elseif (strpos($fsrc, 'getContextShopID(true)') !== false) {
+                $offenders[] = "{$fname}::{$method}() utilise de nouveau getContextShopID(true) — régression du bug corrigé le 23/09/2026 (round 365) : le contexte boutique statique serait de nouveau corrompu (restauré à NULL/0) sur toute installation mono-boutique, faisant planter le reste du traitement en cours";
+            }
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
