@@ -272,20 +272,116 @@ class DomainReputationManager
         return null;
     }
 
-    // Round 369 : domaines de messagerie GRATUITE — leurs enregistrements
-    // SPF/DKIM/DMARC appartiennent au fournisseur, pas au marchand : auditer
-    // gmail.com produisait un « score D » alarmant (et une erreur Watchdog)
-    // sans rapport avec la boutique. On n'audite pas ; on explique.
+    // Round 369/370 : domaines de messagerie GRATUITE ou de fournisseur d'accès —
+    // leurs enregistrements SPF/DKIM/DMARC appartiennent au fournisseur, pas au
+    // marchand : auditer gmail.com produisait un « score D » alarmant (et une
+    // erreur Watchdog) sans rapport avec la boutique. On n'audite pas ; on
+    // explique. Liste mondiale par région ; le marchand peut la compléter
+    // (réglage NERIA_FREEMAIL_EXTRA_DOMAINS, onglet Statistiques).
     private const FREEMAIL_DOMAINS = [
-        'gmail.com', 'googlemail.com', 'icloud.com', 'me.com', 'mac.com', 'aol.com',
-        'proton.me', 'protonmail.com', 'pm.me', 'orange.fr', 'wanadoo.fr', 'free.fr',
-        'sfr.fr', 'neuf.fr', 'laposte.net', 'bbox.fr', 'mail.ru', 'bk.ru', 'inbox.ru',
-        'list.ru', 'qq.com', '163.com', '126.com', 'sina.com', 'web.de', 't-online.de',
-        'libero.it', 'virgilio.it', 'tiscali.it', 'ymail.com', 'rocketmail.com',
+        // Mondial
+        'gmail.com', 'googlemail.com', 'icloud.com', 'me.com', 'mac.com', 'aol.com', 'aim.com',
+        'proton.me', 'protonmail.com', 'protonmail.ch', 'pm.me', 'tutanota.com', 'tutanota.de', 'tuta.io',
+        'tutamail.com', 'zoho.com', 'zohomail.com', 'mail.com', 'email.com', 'usa.com', 'inbox.com',
+        'fastmail.com', 'fastmail.fm', 'hushmail.com', 'lycos.com', 'ymail.com', 'rocketmail.com',
+        'posteo.de', 'mailbox.org', 'runbox.com', 'yopmail.com',
+        // France / Belgique / Suisse / Luxembourg
+        'orange.fr', 'wanadoo.fr', 'free.fr', 'sfr.fr', 'neuf.fr', 'laposte.net', 'bbox.fr', 'numericable.fr',
+        'aliceadsl.fr', 'club-internet.fr', 'cegetel.net', 'voila.fr', 'skynet.be', 'telenet.be', 'proximus.be',
+        'bluewin.ch', 'sunrise.ch', 'hispeed.ch', 'vtxnet.ch', 'pt.lu',
+        // Allemagne / Autriche
+        'web.de', 't-online.de', 'freenet.de', 'arcor.de', 'online.de', '1und1.de', 'aon.at', 'chello.at',
+        // Royaume-Uni / Irlande
+        'btinternet.com', 'sky.com', 'talktalk.net', 'virginmedia.com', 'ntlworld.com', 'blueyonder.co.uk',
+        'eircom.net', 'btopenworld.com',
+        // Italie / Espagne / Portugal / Grèce
+        'libero.it', 'virgilio.it', 'tiscali.it', 'alice.it', 'tin.it', 'fastwebnet.it', 'email.it', 'inwind.it',
+        'iol.it', 'terra.es', 'telefonica.net', 'movistar.es', 'ono.com', 'orange.es', 'sapo.pt', 'clix.pt',
+        'iol.pt', 'netcabo.pt', 'otenet.gr', 'in.gr', 'hol.gr',
+        // Pays-Bas
+        'ziggo.nl', 'kpnmail.nl', 'planet.nl', 'hetnet.nl', 'home.nl', 'xs4all.nl', 'upcmail.nl',
+        // Pays nordiques et baltes
+        'telia.com', 'tele2.se', 'bredband.net', 'spray.se', 'online.no', 'tdcadsl.dk', 'mail.dk', 'sol.dk',
+        'jubii.dk', 'luukku.com', 'elisa.fi', 'suomi24.fi', 'kolumbus.fi', 'netti.fi', 'inbox.lv', 'one.lv',
+        'tvnet.lv', 'inbox.lt', 'takas.lt', 'mail.ee', 'hot.ee', 'online.ee',
+        // Europe centrale et orientale, Balkans
+        'wp.pl', 'o2.pl', 'onet.pl', 'onet.eu', 'interia.pl', 'interia.eu', 'gazeta.pl', 'poczta.fm', 'tlen.pl',
+        'op.pl', 'vp.pl', 'seznam.cz', 'centrum.cz', 'email.cz', 'volny.cz', 'atlas.cz', 'post.cz', 'azet.sk',
+        'zoznam.sk', 'centrum.sk', 'freemail.hu', 'citromail.hu', 't-online.hu', 'indamail.hu', 'rol.ro',
+        'abv.bg', 'dir.bg', 'mail.bg',
+        // Russie / CEI
+        'mail.ru', 'bk.ru', 'inbox.ru', 'list.ru', 'internet.ru', 'rambler.ru', 'ya.ru', 'ukr.net', 'i.ua',
+        'meta.ua', 'email.ua', 'tut.by', 'mail.by',
+        // Turquie / Moyen-Orient / Afrique
+        'mynet.com', 'superonline.com', 'maktoob.com', 'walla.co.il', '012.net.il', 'netvision.net.il',
+        'bezeqint.net', 'mweb.co.za', 'webmail.co.za', 'telkomsa.net', 'vodamail.co.za', 'iafrica.com',
+        'absamail.co.za', 'menara.ma',
+        // Chine
+        'qq.com', 'vip.qq.com', 'foxmail.com', '163.com', '126.com', 'yeah.net', 'sina.com', 'sina.cn',
+        'sohu.com', 'aliyun.com', '139.com', 'tom.com', '21cn.com',
+        // Japon
+        'docomo.ne.jp', 'ezweb.ne.jp', 'au.com', 'softbank.ne.jp', 'i.softbank.jp', 'nifty.com', 'biglobe.ne.jp',
+        'ocn.ne.jp', 'so-net.ne.jp', 'plala.or.jp', 'infoseek.jp', 'goo.ne.jp', 'excite.co.jp', 'livedoor.com',
+        'ybb.ne.jp',
+        // Corée
+        'naver.com', 'daum.net', 'hanmail.net', 'kakao.com', 'nate.com', 'korea.com', 'dreamwiz.com', 'empas.com',
+        // Inde / Asie du Sud-Est
+        'rediffmail.com', 'rediff.com', 'sify.com', 'indiatimes.com', 'in.com', 'singnet.com.sg',
+        'pacific.net.sg', 'streamyx.com', 'tm.net.my', 'pldt.com.ph', 'globe.com.ph', 'vnn.vn', 'zing.vn',
+        // Amérique latine
+        'uol.com.br', 'bol.com.br', 'terra.com.br', 'ig.com.br', 'globo.com', 'globomail.com', 'oi.com.br',
+        'r7.com', 'zipmail.com.br', 'click21.com.br', 'fibertel.com.ar', 'arnet.com.ar', 'speedy.com.ar',
+        'ciudad.com.ar', 'terra.com.ar', 'vtr.net', 'entelchile.net', 'tie.cl', 'prodigy.net.mx',
+        'telmexmail.com', 'terra.com.mx', 'terra.com.co', 'etb.net.co',
+        // Amérique du Nord
+        'comcast.net', 'verizon.net', 'att.net', 'sbcglobal.net', 'bellsouth.net', 'cox.net', 'charter.net',
+        'earthlink.net', 'juno.com', 'netzero.net', 'optonline.net', 'roadrunner.com', 'rr.com', 'twc.com',
+        'frontier.com', 'windstream.net', 'sympatico.ca', 'rogers.com', 'shaw.ca', 'telus.net', 'bell.net',
+        'videotron.ca', 'cogeco.ca',
+        // Océanie
+        'bigpond.com', 'bigpond.net.au', 'optusnet.com.au', 'tpg.com.au', 'iinet.net.au', 'ozemail.com.au',
+        'internode.on.net', 'xtra.co.nz', 'slingshot.co.nz', 'orcon.net.nz', 'vodafone.co.nz', 'spark.co.nz',
     ];
-    private const FREEMAIL_BASE_LABELS = ['yahoo', 'hotmail', 'outlook', 'live', 'msn', 'gmx', 'yandex'];
+    // Fournisseurs à variantes par pays (yahoo.fr, hotmail.co.uk, outlook.de, gmx.ch…)
+    private const FREEMAIL_BASE_LABELS = [
+        'yahoo', 'hotmail', 'outlook', 'live', 'msn', 'gmx', 'yandex', 'rediffmail', 'zoho', 'ymail',
+    ];
 
-    public static function isFreemailDomain(string $domain): bool
+    /**
+     * Normalise une saisie marchand (virgules, espaces, retours à la ligne, « @domaine »,
+     * « https://domaine/… ») en liste de domaines valides, uniques, en minuscules.
+     *
+     * @return array{valid: string[], invalid: string[]}
+     */
+    public static function parseFreemailDomains(string $raw): array
+    {
+        $valid = [];
+        $invalid = [];
+        foreach (preg_split('/[\s,;]+/u', $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $token) {
+            $d = strtolower(trim($token));
+            $d = (string) preg_replace('~^[a-z]+://~', '', $d);
+            $d = (string) preg_replace('~[/?#].*$~', '', $d);
+            $d = rtrim(ltrim($d, '@'), '.');
+            if (function_exists('idn_to_ascii') && preg_match('/[^\x00-\x7F]/', $d)) {
+                $ascii = idn_to_ascii($d, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
+                $d = $ascii !== false ? $ascii : $d;
+            }
+            if ($d === '') {
+                continue;
+            }
+            if (strlen($d) <= 253 && preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/', $d)) {
+                $valid[$d] = true;
+            } else {
+                $invalid[] = $token;
+            }
+            if (count($valid) >= 200) {
+                break;
+            }
+        }
+        return ['valid' => array_keys($valid), 'invalid' => $invalid];
+    }
+
+    public static function isFreemailDomain(string $domain, ?int $idShop = null): bool
     {
         $domain = strtolower(trim($domain));
         if ($domain === '') {
@@ -294,12 +390,16 @@ class DomainReputationManager
         if (in_array($domain, self::FREEMAIL_DOMAINS, true)) {
             return true;
         }
-        return (bool) preg_match('/^(' . implode('|', self::FREEMAIL_BASE_LABELS) . ')\.[a-z]{2,3}(\.[a-z]{2})?$/', $domain);
+        if (preg_match('/^(' . implode('|', self::FREEMAIL_BASE_LABELS) . ')\.[a-z]{2,3}(\.[a-z]{2})?$/', $domain)) {
+            return true;
+        }
+        $extra = (string) \Configuration::get('NERIA_FREEMAIL_EXTRA_DOMAINS', null, null, $idShop);
+        return $extra !== '' && in_array($domain, self::parseFreemailDomains($extra)['valid'], true);
     }
 
     private function freemailReport(string $domain): ?array
     {
-        if (!self::isFreemailDomain($domain)) {
+        if (!self::isFreemailDomain($domain, $this->idShop)) {
             return null;
         }
         $skipped = ['found' => false, 'record' => null, 'policy' => null, 'skipped' => true];

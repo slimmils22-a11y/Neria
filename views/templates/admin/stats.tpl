@@ -1016,6 +1016,18 @@ var _nhmLbl = {
     </div>
   </div>
 
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-domain-rep"
+        style="background:#fff;border:1px solid var(--neria-border);border-radius:6px;padding:16px 20px;margin-bottom:24px;">
+    <input type="hidden" name="neria_action" value="save_freemail_domains">
+    <input type="hidden" name="neria_tab"    value="stats">
+    <label for="neria-freemail-extra" style="display:block;font-weight:700;font-size:13px;margin-bottom:4px;">{neria_admin key='stats.freemail_extra_title'}</label>
+    <div style="font-size:12px;color:var(--neria-text-light);margin-bottom:8px;line-height:1.5;">{neria_admin key='stats.freemail_extra_desc'}</div>
+    <textarea id="neria-freemail-extra" name="freemail_extra_domains" rows="3" style="width:100%;max-width:520px;font-family:monospace;font-size:12px;padding:8px;box-sizing:border-box;">{$freemail_extra_domains|escape:'html'}</textarea>
+    <div style="margin-top:8px;">
+      <button type="submit" style="padding:6px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;">{neria_admin key='stats.freemail_extra_save'}</button>
+    </div>
+  </form>
+
   {if $domain_reputation}
     {assign var="dr" value=$domain_reputation}
     {assign var="dr_hits" value=$dr.blacklists.hits|default:[]}

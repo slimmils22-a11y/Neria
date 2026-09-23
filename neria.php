@@ -4277,6 +4277,22 @@ class Neria extends Module
             }
         }
 
+        // ── Réputation de domaine : domaines de messagerie gratuite supplémentaires ──
+        if (Tools::getValue('neria_action') === 'save_freemail_domains'
+            && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('DomainReputationManager')) {
+            $fmParsed = DomainReputationManager::parseFreemailDomains((string) Tools::getValue('freemail_extra_domains', ''));
+            $fmShop   = (int) $this->context->shop->id;
+            Configuration::updateValue('NERIA_FREEMAIL_EXTRA_DOMAINS', implode("\n", $fmParsed['valid']), false, null, $fmShop);
+            DomainReputationManager::invalidateCache($fmShop);
+            $this->context->smarty->assign(
+                'neria_success',
+                AdminTranslator::tVars('msg.freemail_domains_saved', [
+                    'n'       => count($fmParsed['valid']),
+                    'invalid' => count($fmParsed['invalid']),
+                ])
+            );
+        }
+
         if (Tools::getValue('neria_action') === 'deliverability_score') {
             // Round 155 : score_template était le seul point d'entrée de ce
             // type à ne pas normaliser sa valeur (contrairement à
@@ -7151,6 +7167,8 @@ class Neria extends Module
                 ? (new UpsellManager($this))->getLog((int) $this->context->language->id, 30)
                 : [],
             'upsell_action_url'   => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name,
+
+            'freemail_extra_domains' => (string) Configuration::get('NERIA_FREEMAIL_EXTRA_DOMAINS', null, null, (int) $this->context->shop->id),
 
             // Réputation de domaine (onglet stats) — lecture du cache uniquement
             'domain_reputation' => class_exists('DomainReputationManager')
