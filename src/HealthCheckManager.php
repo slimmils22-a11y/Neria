@@ -4104,6 +4104,20 @@ class HealthCheckManager
             }
         }
 
+        // Round 367 (2026-09-23) : les emails comportementaux (BehavioralCronManager::
+        // send() en direct, QueueManager::processSingle() en différé) doivent
+        // transmettre {id_customer} — sans lui, EmailRenderer::
+        // resolveCustomerTimezone() retombe sur le pays par défaut de la
+        // boutique et la salutation horaire suit le fuseau de la boutique,
+        // pas celui du client (même défaut que l'envoi manuel, round 363).
+        $bcm367 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $qm367  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($bcm367 === '' || $qm367 === ''
+            || strpos($bcm367, "'{id_customer}' => (int) (\$customer['id_customer'] ?? 0),") === false
+            || strpos($qm367, "'{id_customer}' => \$idCustomerRow,") === false) {
+            $offenders[] = "BehavioralCronManager::send() ou QueueManager::processSingle() ne transmet plus {id_customer} — régression du bug corrigé le 23/09/2026 (round 367) : la salutation horaire des emails comportementaux suivrait de nouveau le fuseau de la boutique au lieu de celui du client";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
