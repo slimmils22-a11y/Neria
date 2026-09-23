@@ -4142,6 +4142,19 @@ class HealthCheckManager
             $offenders[] = "DomainReputationManager n'écarte plus les domaines de messagerie gratuite (freemailReport/isFreemailDomain) — régression du bug corrigé le 23/09/2026 (round 369) : un expéditeur gmail.com recevrait de nouveau un « score D » et une erreur Watchdog trompeurs";
         }
 
+        // Round 370 (2026-09-23) : le marchand doit pouvoir compléter la liste des
+        // domaines de messagerie gratuite (module vendu dans le monde entier) : réglage
+        // NERIA_FREEMAIL_EXTRA_DOMAINS lu par isFreemailDomain(), normalisé par
+        // parseFreemailDomains() et enregistré par l'action BO save_freemail_domains.
+        $mainSrc370 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($drSrc369 === ''
+            || substr_count($drSrc369, 'parseFreemailDomains(') < 2
+            || substr_count($drSrc369, 'NERIA_FREEMAIL_EXTRA_DOMAINS') < 1
+            || $mainSrc370 === ''
+            || strpos($mainSrc370, "'save_freemail_domains'") === false) {
+            $offenders[] = "Le réglage marchand des domaines de messagerie gratuite (NERIA_FREEMAIL_EXTRA_DOMAINS / save_freemail_domains) n'est plus câblé — régression du correctif du 23/09/2026 (round 370) : un expéditeur chez un fournisseur régional absent de la liste intégrée retomberait sur l'audit trompeur du domaine du fournisseur";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
