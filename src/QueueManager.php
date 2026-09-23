@@ -558,6 +558,7 @@ class QueueManager
                 [
                     '{firstname}'   => $firstname,
                     '{lastname}'    => $lastname,
+                    '{id_customer}' => $idCustomerRow,
                     // Configuration::get(..., $idShop) : round 106, même
                     // piège que CollectionManager::checkAndSend() corrigé au
                     // round 105 — cette méthode tourne dans le cron

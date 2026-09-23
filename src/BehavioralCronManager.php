@@ -2388,6 +2388,7 @@ class BehavioralCronManager
                 [
                     '{firstname}'   => $customer['firstname'],
                     '{lastname}'    => $customer['lastname'],
+                    '{id_customer}' => (int) ($customer['id_customer'] ?? 0),
                     // Round 187 : $idShop ajouté — absent jusqu'ici alors que
                     // ce même send() résout déjà $idShop correctement pour
                     // historyUrl()/Mail::Send() juste en-dessous, et que
