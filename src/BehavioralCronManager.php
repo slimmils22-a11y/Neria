@@ -2117,6 +2117,22 @@ class BehavioralCronManager
     // GHOST CART — même produit ajouté 3+ fois sans achat
     // Ref_id = id_product (un email unique par produit par client)
     // ============================================================
+    //
+    // Round 365 (23/09/2026) : capture du contexte boutique statique
+    // d'origine via Shop::getContextShopID() SANS argument, pas avec le
+    // booléen à vrai — avec ce booléen, PrestaShop renvoie NULL dès que
+    // Shop::isFeatureActive() est faux, c'est-à-dire sur TOUTE installation
+    // mono-boutique (l'immense majorité des marchands Neria, fonctionnalité
+    // multiboutique désactivée par défaut), pas seulement "une seule
+    // boutique existe". Le finally plus bas restaurait alors le contexte à
+    // NULL, corrompant durablement Shop::$context_id_shop (pas seulement
+    // Context->shop) pour tout le reste du process PHP — la boucle
+    // multi-boutique suivante de run() (segmentation/churn/purge RGPD)
+    // plantait alors avec "Shop id 0 is invalid" dès qu'un seul panier
+    // fantôme était détecté, abandonnant sans trace tout le reste du cron
+    // comportemental de ce jour-là. Même correctif appliqué à
+    // CollectionManager::getProductImageUrl(), LookCompletionManager::
+    // buildProductBlocks() et WaitlistManager::notifyProduct().
 
     private function sendGhostCarts(): void
     {
@@ -2181,7 +2197,8 @@ class BehavioralCronManager
             // Product::getCover() (via Shop::addSqlAssociation()) en plus du
             // constructeur Product — round 132.
             $ghostShopId = (int) $r['id_shop'];
-            $originalGhostShopId = \Shop::getContextShopID(true);
+            // Round 365 : SANS argument (voir doc au-dessus de la méthode).
+            $originalGhostShopId = \Shop::getContextShopID();
             // Round 158 : try/finally (SANS catch) englobait seulement les
             // instanciations Product/Link — contrairement à toutes les
             // autres méthodes send*() de ce fichier, qui ont un try/catch

@@ -307,7 +307,11 @@ class WaitlistManager
             // BO admin qui a déclenché la mise à jour pendant toute la
             // boucle : sans ce switch complet, un client de la Boutique B
             // recevait le nom/prix/image/lien produit de la Boutique A.
-            $originalShopId = \Shop::getContextShopID(true);
+            // Round 365 : SANS argument — même correctif que
+            // BehavioralCronManager::sendGhostCarts() (avec le booléen à
+            // vrai, cela renvoie NULL dès que le multiboutique est
+            // désactivé, corrompant la restauration du contexte statique).
+            $originalShopId = \Shop::getContextShopID();
             \Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId);
             $context      = \Context::getContext();
             $originalShop = $context->shop;

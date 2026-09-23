@@ -400,7 +400,11 @@ class LookCompletionManager
         // boutique du client passait à tort le test $product->active, et
         // getCover() pouvait résoudre l'image via la mauvaise association
         // de boutique.
-        $originalShopId = \Shop::getContextShopID(true);
+        // Round 365 : SANS argument — même correctif que
+        // BehavioralCronManager::sendGhostCarts() (avec le booléen à vrai,
+        // cela renvoie NULL dès que le multiboutique est désactivé,
+        // corrompant la restauration du contexte statique).
+        $originalShopId = \Shop::getContextShopID();
         \Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);
         try {
             $blocks = [];

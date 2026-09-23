@@ -699,7 +699,12 @@ class CollectionManager
         // CollectionManager"), CE fichier n'avait en fait jamais reçu la
         // version complète du correctif — resté sur la réassignation
         // partielle de Context->shop, insuffisante pour getCover().
-        $originalShopId = \Shop::getContextShopID(true);
+        // Round 365 : SANS argument — avec le booléen à vrai, cela renvoie NULL dès
+        // que la fonctionnalité multiboutique est désactivée (mono-boutique,
+        // cas de l'immense majorité des marchands), corrompant durablement
+        // le contexte statique à sa restauration (voir BehavioralCronManager
+        // ::sendGhostCarts(), même correctif, explication complète).
+        $originalShopId = \Shop::getContextShopID();
         \Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);
         $context = \Context::getContext();
         $originalShop = $context->shop;
