@@ -2472,6 +2472,21 @@
       "ui": [
         "configure.tpl"
       ]
+    },
+    {
+      "name": "save_freemail_domains",
+      "lines": [
+        4281
+      ],
+      "post_only": true,
+      "ajax": false,
+      "banner": true,
+      "managers": [
+        "DomainReputationManager"
+      ],
+      "ui": [
+        "stats.tpl"
+      ]
     }
   ],
   "buttons": [
@@ -4919,6 +4934,16 @@
       },
       "in_form": true,
       "form_action": "save_gift_guarantee"
+    },
+    {
+      "tpl": "stats.tpl",
+      "line": 1027,
+      "label": "stats.freemail_extra_save",
+      "attrs": {
+        "type": "submit"
+      },
+      "in_form": true,
+      "form_action": "save_freemail_domains"
     }
   ],
   "tabs": [
