@@ -4254,7 +4254,7 @@ class Neria extends Module
                 $domRep = (new DomainReputationManager($this))->runFullCheck();
                 $this->context->smarty->assign('domain_reputation', $domRep);
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.domain_reputation_refreshed'));
-                if (class_exists('WatchdogManager')) {
+                if (class_exists('WatchdogManager') && empty($domRep['freemail'])) {
                     $wd      = new WatchdogManager($this);
                     $hits    = count($domRep['blacklists']['hits'] ?? []);
                     $score   = $domRep['score'];

@@ -1020,6 +1020,13 @@ var _nhmLbl = {
     {assign var="dr" value=$domain_reputation}
     {assign var="dr_hits" value=$dr.blacklists.hits|default:[]}
 
+    {if !empty($dr.freemail)}
+    <div style="background:#fff8e6;border:1px solid #f0d78c;border-radius:6px;padding:18px 22px;margin-bottom:20px;font-size:13px;line-height:1.6;">
+      <div style="font-size:16px;font-weight:600;margin-bottom:6px;">{$dr.domain|escape:'html'}</div>
+      {neria_admin key='stats.domainrep_freemail_notice'}
+    </div>
+    {else}
+
     {* ── Bandeau score principal ── *}
     <div style="display:flex;align-items:center;gap:32px;margin-bottom:28px;flex-wrap:wrap;">
 
@@ -1276,6 +1283,7 @@ var _nhmLbl = {
         </div>
       {/if}
     </div>
+    {/if}
     {/if}
 
   {else}

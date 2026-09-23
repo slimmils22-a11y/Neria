@@ -272,9 +272,60 @@ class DomainReputationManager
         return null;
     }
 
+    // Round 369 : domaines de messagerie GRATUITE — leurs enregistrements
+    // SPF/DKIM/DMARC appartiennent au fournisseur, pas au marchand : auditer
+    // gmail.com produisait un « score D » alarmant (et une erreur Watchdog)
+    // sans rapport avec la boutique. On n'audite pas ; on explique.
+    private const FREEMAIL_DOMAINS = [
+        'gmail.com', 'googlemail.com', 'icloud.com', 'me.com', 'mac.com', 'aol.com',
+        'proton.me', 'protonmail.com', 'pm.me', 'orange.fr', 'wanadoo.fr', 'free.fr',
+        'sfr.fr', 'neuf.fr', 'laposte.net', 'bbox.fr', 'mail.ru', 'bk.ru', 'inbox.ru',
+        'list.ru', 'qq.com', '163.com', '126.com', 'sina.com', 'web.de', 't-online.de',
+        'libero.it', 'virgilio.it', 'tiscali.it', 'ymail.com', 'rocketmail.com',
+    ];
+    private const FREEMAIL_BASE_LABELS = ['yahoo', 'hotmail', 'outlook', 'live', 'msn', 'gmx', 'yandex'];
+
+    public static function isFreemailDomain(string $domain): bool
+    {
+        $domain = strtolower(trim($domain));
+        if ($domain === '') {
+            return false;
+        }
+        if (in_array($domain, self::FREEMAIL_DOMAINS, true)) {
+            return true;
+        }
+        return (bool) preg_match('/^(' . implode('|', self::FREEMAIL_BASE_LABELS) . ')\.[a-z]{2,3}(\.[a-z]{2})?$/', $domain);
+    }
+
+    private function freemailReport(string $domain): ?array
+    {
+        if (!self::isFreemailDomain($domain)) {
+            return null;
+        }
+        $skipped = ['found' => false, 'record' => null, 'policy' => null, 'skipped' => true];
+        $report = [
+            'domain' => $domain, 'ip' => null, 'freemail' => true,
+            'spf' => $skipped, 'dkim' => $skipped, 'dmarc' => $skipped, 'mx' => $skipped,
+            'ptr' => ['found' => false, 'hostname' => null, 'skipped' => true],
+            'bimi' => $skipped,
+            'blacklists' => ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => true],
+            'score' => 0, 'grade' => '-', 'color' => '#8c857e',
+            'checked_at' => date('Y-m-d H:i:s'), 'timestamp' => time(),
+        ];
+        $this->cacheReport($report);
+        $this->watchdog()->warning(
+            \WatchdogManager::i18nMsg('watchdog.domain_reputation_freemail', ['domain' => $domain]),
+            '', 'DomainReputation'
+        );
+        return $report;
+    }
+
     public function runFullCheck(): array
     {
         $domain = $this->getSenderDomain();
+        if (($freemail = $this->freemailReport($domain)) !== null) {
+            return $freemail;
+        }
         $lockName = $this->lockName($domain);
 
         // Round 299 : mutualisation par domaine tentée AVANT toute prise de
