@@ -38,7 +38,10 @@ function run_test(): array
     neria_assert($posEnd !== false, 'Méthode suivante introuvable — jeu de test invalide');
     $body = substr($src, $posFn, $posEnd - $posFn);
 
-    $posOriginalShopId = strpos($body, '$originalGhostShopId = \Shop::getContextShopID(true);');
+    // Round 365 : ancre mise à jour — getContextShopID() sans argument
+    // (l'argument `true` corrompait le contexte boutique statique sur
+    // toute install mono-boutique, cf. test_838).
+    $posOriginalShopId = strpos($body, '$originalGhostShopId = \Shop::getContextShopID();');
     neria_assert($posOriginalShopId !== false, '$originalGhostShopId introuvable — jeu de test invalide');
     $posTry = strpos($body, 'try {', $posOriginalShopId);
     $posSetContext = strpos($body, '\Shop::setContext(\Shop::CONTEXT_SHOP, $ghostShopId);', $posOriginalShopId);
