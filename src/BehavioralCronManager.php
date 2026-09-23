@@ -76,6 +76,19 @@ class BehavioralCronManager
         $this->prefix = _DB_PREFIX_;
     }
 
+    // Round 366 : lien de reprise du panier/paiement abandonné. Auparavant
+    // « index.php » était collé directement au domaine renvoyé par
+    // Tools::getShopDomainSsl(), qui ne finit par AUCUN "/" — d'où
+    // "https://boutique.comindex.php?..." (hôte invalide) dans les 4
+    // relances panier/paiement abandonné.
+    private function orderPageUrl(int $idLang, int $idShop): string
+    {
+        $ctx = \Context::getContext();
+        return ($ctx && $ctx->link)
+            ? $ctx->link->getPageLink('order', true, $idLang > 0 ? $idLang : null, null, false, $idShop > 0 ? $idShop : null)
+            : rtrim(\Tools::getShopDomainSsl(true), '/') . '/index.php?controller=order';
+    }
+
     private function historyUrl(int $idLang = 0, ?int $idShop = null): string
     {
         $ctx = \Context::getContext();
@@ -984,7 +997,7 @@ class BehavioralCronManager
                     continue;
                 }
 
-                $cartUrl  = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
+                $cartUrl  = $this->orderPageUrl((int) $r['id_lang'], (int) $r['id_shop']);
                 $products = $this->buildCartProducts($idCart);
 
                 // Round 350 : si le panier a été vidé/modifié entre le
@@ -1128,7 +1141,7 @@ class BehavioralCronManager
                     continue;
                 }
 
-                $cartUrl = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
+                $cartUrl = $this->orderPageUrl((int) $r['id_lang'], (int) $r['id_shop']);
                 $products = $this->buildCartProducts($idCart);
 
                 // Round 350 : même garde-fou que sendAbandonedCarts() —
@@ -1296,6 +1309,12 @@ class BehavioralCronManager
     // ORDER SHIPPED DELAY — expédié depuis 7 j sans livraison
     // Ref_id = id_order
     // ============================================================
+    //
+    // Round 366 : « livré » = l'état PS_OS_DELIVERED (ou annulé), PAS
+    // order_state.delivery=1 — ce drapeau signifie « bon de livraison
+    // imprimable » et vaut 1 pour Préparation, Expédié ET Livré. Le test
+    // précédent excluait donc TOUTE commande passée par la préparation :
+    // order_shipped_delay ne partait jamais.
 
     private function sendShippedDelayAlerts(): void
     {
@@ -1318,9 +1337,8 @@ class BehavioralCronManager
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'order_history` oh
-                   JOIN `' . $this->prefix . 'order_state` os ON os.id_order_state = oh.id_order_state
                    WHERE oh.id_order = o.id_order
-                     AND (os.delivery = 1 OR oh.id_order_state = ' . (int) \Configuration::get('PS_OS_CANCELED') . ')
+                     AND oh.id_order_state IN (' . (int) (\Configuration::get('PS_OS_DELIVERED') ?: self::STATUS_DELIVERED) . ', ' . (int) \Configuration::get('PS_OS_CANCELED') . ')
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
