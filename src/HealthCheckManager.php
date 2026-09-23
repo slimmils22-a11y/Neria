@@ -4078,6 +4078,32 @@ class HealthCheckManager
             }
         }
 
+        // Round 366 (2026-09-23) : deux régressions de BehavioralCronManager.
+        // (a) Le lien de reprise des relances panier/paiement abandonné doit
+        // passer par orderPageUrl() (Link::getPageLink) — le coller à
+        // Tools::getShopDomainSsl(), qui ne finit par aucun "/", produisait
+        // "https://boutique.comindex.php?..." (lien invalide).
+        // (b) order_shipped_delay doit exclure les commandes LIVRÉES via
+        // l'état PS_OS_DELIVERED, pas via order_state.delivery=1 (drapeau
+        // « bon de livraison » vrai pour Préparation/Expédié/Livré : la
+        // relance ne partait jamais).
+        $bcm366 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcm366 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 366 : lien panier + expédié en retard)';
+        } else {
+            if (strpos($bcm366, "getShopDomainSsl(true) . 'index.php") !== false
+                || substr_count($bcm366, 'orderPageUrl(') < 3) {
+                $offenders[] = "BehavioralCronManager : le lien des relances panier/paiement abandonné n'est plus construit via orderPageUrl() — régression du bug corrigé le 23/09/2026 (round 366) : le lien redeviendrait « https://boutique.comindex.php?... » (hôte invalide)";
+            }
+            $posSd366 = strpos($bcm366, 'private function sendShippedDelayAlerts(');
+            $sdBody366 = $posSd366 !== false ? substr($bcm366, $posSd366, 3200) : '';
+            if ($posSd366 === false
+                || strpos($sdBody366, 'os.delivery = 1') !== false
+                || strpos($sdBody366, "Configuration::get('PS_OS_DELIVERED')") === false) {
+                $offenders[] = "BehavioralCronManager::sendShippedDelayAlerts() ne teste plus l'état PS_OS_DELIVERED (ou réutilise order_state.delivery=1) — régression du bug corrigé le 23/09/2026 (round 366) : la relance « expédié en retard » ne partirait plus jamais";
+            }
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
