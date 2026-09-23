@@ -4118,6 +4118,20 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::send() ou QueueManager::processSingle() ne transmet plus {id_customer} — régression du bug corrigé le 23/09/2026 (round 367) : la salutation horaire des emails comportementaux suivrait de nouveau le fuseau de la boutique au lieu de celui du client";
         }
 
+        // Round 368 (2026-09-23) : EmailRenderer doit garder son fallback
+        // CENTRAL par e-mail du destinataire pour la salutation horaire — les
+        // émetteurs qui n'envoient ni {id_customer} ni {id_address_delivery}
+        // (segments, saisonnier, liste d'attente, collections, looks,
+        // fidélité, certificats…) retomberaient sinon sur le fuseau de la
+        // boutique, pas celui du client.
+        $er368 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($er368 === ''
+            || substr_count($er368, 'findCustomerIdByRecipient(') < 2
+            || strpos($er368, 'resolveCustomerTimezone($templateVars, $recipient)') === false
+            || strpos($er368, "\$params['to'] ?? ''") === false) {
+            $offenders[] = "EmailRenderer n'a plus son fallback central de fuseau par e-mail du destinataire — régression du correctif du 23/09/2026 (round 368) : la salutation horaire des e-mails sans {id_customer} suivrait de nouveau le fuseau de la boutique";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
