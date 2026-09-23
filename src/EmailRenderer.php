@@ -486,7 +486,7 @@ class EmailRenderer
 
         // Salutation horaire : {time_greeting} selon l'heure locale du client
         if ($this->config->isTimeGreetingEnabled()) {
-            $this->injectTimeGreeting($params['templateVars'], $lang);
+            $this->injectTimeGreeting($params['templateVars'], $lang, $params['to'] ?? '');
         }
 
         // Injecte {email} depuis le destinataire si absent (ex: newsletter_conf → subscription_confirmation)
@@ -1363,10 +1363,10 @@ class EmailRenderer
         }
     }
 
-    private function injectTimeGreeting(array &$templateVars, string $lang): void
+    private function injectTimeGreeting(array &$templateVars, string $lang, $recipient = ''): void
     {
         try {
-            $timezone = $this->resolveCustomerTimezone($templateVars);
+            $timezone = $this->resolveCustomerTimezone($templateVars, $recipient);
             $hour     = (int) (new \DateTime('now', new \DateTimeZone($timezone)))->format('H');
             $slot     = $this->getTimeSlot($hour);
             $greetings = $this->config->getTimeGreetings();
@@ -1383,7 +1383,28 @@ class EmailRenderer
         }
     }
 
-    private function resolveCustomerTimezone(array $templateVars): string
+    // Round 368 : retrouve le client par l'adresse e-mail du DESTINATAIRE quand
+    // l'émetteur n'a transmis ni {id_customer} ni {id_address_delivery} (rounds
+    // 363/367 : envoi manuel, cron comportemental et file l'oubliaient ; d'autres
+    // émetteurs — segments, saisonnier, liste d'attente, collections… — aussi).
+    // Correctif central : couvre tous les chemins d'envoi, présents et futurs.
+    private function findCustomerIdByRecipient($recipient): int
+    {
+        $email = is_array($recipient) ? (string) reset($recipient) : (string) $recipient;
+        if ($email === '' || !\Validate::isEmail($email)) {
+            return 0;
+        }
+        $idShop = (int) \Context::getContext()->shop->id;
+        $db = \Db::getInstance();
+        $id = (int) $db->getValue(
+            'SELECT id_customer FROM `' . _DB_PREFIX_ . 'customer`
+             WHERE email = \'' . pSQL($email) . '\' AND deleted = 0 AND is_guest = 0
+             ORDER BY (id_shop = ' . $idShop . ') DESC, id_customer ASC'
+        );
+        return $id;
+    }
+
+    private function resolveCustomerTimezone(array $templateVars, $recipient = ''): string
     {
         $countryIso = '';
 
@@ -1402,6 +1423,17 @@ class EmailRenderer
             if ($idAddress > 0) {
                 $address    = new \Address($idAddress);
                 $countryIso = \Country::getIsoById((int) $address->id_country);
+            }
+        }
+
+        // Priorité 2 bis : via l'e-mail du destinataire (émetteur sans contexte client)
+        if (!$countryIso && !($idCustomer > 0)) {
+            $idByEmail = $this->findCustomerIdByRecipient($recipient);
+            if ($idByEmail > 0) {
+                $addresses = (new \Customer($idByEmail))->getAddresses((int) \Configuration::get('PS_LANG_DEFAULT'));
+                if (!empty($addresses)) {
+                    $countryIso = \Country::getIsoById((int) $addresses[0]['id_country']);
+                }
             }
         }
 
