@@ -57,6 +57,11 @@ class BehavioralCronManager
     // prochain passage du cron — rien n'est perdu, juste étalé.
     const MAX_BATCH_PER_RUN = 500;
 
+    // Round 375 : modèles LIÉS À UNE DATE — l'e-mail n'a de sens que le jour même. Si l'heure d'achat
+    // préférée du client est déjà passée quand le cron les détecte, on envoie tout de suite au lieu de
+    // les programmer le lendemain (l'anniversaire arrivait le jour d'après, cf. campagne P5).
+    const DAY_BOUND_TEMPLATES = ['birthday', 'relationship_anniversary'];
+
     private \Neria $module;
     private \Db $db;
     private string $prefix;
@@ -2366,6 +2371,10 @@ class BehavioralCronManager
                 && class_exists('QueueManager')
             ) {
                 $preferredHour = (new \PurchaseWindowManager())->getPreferredHour((int) $customer['id_customer'], $idShop);
+                if ($preferredHour !== null && in_array($template, self::DAY_BOUND_TEMPLATES, true)
+                    && (int) $this->db->getValue('SELECT HOUR(NOW())', false) > $preferredHour) {
+                    $preferredHour = null;
+                }
                 if ($preferredHour !== null) {
                     (new \QueueManager($this->module))->enqueue($template, $customer, $extraVars, $refId, $preferredHour);
                     // La dédup n'est PLUS posée ici, à la mise en file — elle
