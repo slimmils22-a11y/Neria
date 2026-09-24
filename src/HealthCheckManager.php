@@ -4188,6 +4188,16 @@ class HealthCheckManager
             $offenders[] = "WebhookManager (3 encodages) ou LoyaltyManager::saveTiers() n'utilise plus NeriaTools::jsonEncode() — régression du bug corrigé le 24/09/2026 (round 374) : sur un hébergement à serialize_precision élevé (O2switch), les payloads de webhooks et les paliers stockés porteraient de nouveau des chiffres parasites (19.12 → 19.1200000000000009947…)";
         }
 
+        // Round 375 (2026-09-24) : les e-mails comportementaux LIÉS À UNE DATE (anniversaire, anniversaire de
+        // relation) ne doivent pas être reportés au lendemain par la fenêtre d'achat individuelle quand l'heure
+        // préférée du client est déjà passée — l'e-mail d'anniversaire arrivait le jour d'après.
+        $bcmSrc375 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc375 === ''
+            || strpos($bcmSrc375, "const DAY_BOUND_TEMPLATES = ['birthday', 'relationship_anniversary'];") === false
+            || strpos($bcmSrc375, 'in_array($template, self::DAY_BOUND_TEMPLATES, true)') === false) {
+            $offenders[] = "BehavioralCronManager::send() ne traite plus les modèles liés à une date (DAY_BOUND_TEMPLATES) — régression du correctif du 24/09/2026 (round 375) : l'e-mail d'anniversaire serait de nouveau reporté au lendemain par la fenêtre d'achat";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
