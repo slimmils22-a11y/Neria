@@ -574,7 +574,7 @@ class WaitlistManager
                     } else {
                         if (class_exists('WatchdogManager')) {
                             (new \WatchdogManager($this->module))->warning(
-                                sprintf('Waitlist : email envoyé à %s mais notified_at non confirmé en base (produit #%d) — risque de second envoi au prochain réassort', $row['email'], $idProduct),
+                                WatchdogManager::i18nMsg('watchdog.waitlist_notified_unconfirmed', ['email' => (string) $row['email'], 'product' => $idProduct]),
                                 'waitlist_available', 'WaitlistManager'
                             );
                         }

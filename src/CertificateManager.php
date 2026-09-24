@@ -223,8 +223,9 @@ class CertificateManager
                 }
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this->module))->warning(
-                        'Échec d\'émission de certificat : ' . $serialNumber . ' — ' . $productName
-                        . ' (commande #' . $idOrder . ', client : ' . $customerEmail . ')',
+                        WatchdogManager::i18nMsg('watchdog.certificate_issue_failed', [
+                            'serial' => $serialNumber, 'product' => $productName, 'order' => $idOrder, 'email' => $customerEmail,
+                        ]),
                         '', 'CertificateManager'
                     );
                 }
@@ -262,8 +263,9 @@ class CertificateManager
                 // trace explicite du problème d'envoi dans le journal.
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this->module))->warning(
-                        'Certificat émis mais email non envoyé : ' . $serialNumber . ' — ' . $productName
-                        . ' (commande #' . $idOrder . ', client : ' . $customerEmail . ') — ' . $err,
+                        WatchdogManager::i18nMsg('watchdog.certificate_issued_email_failed', [
+                            'serial' => $serialNumber, 'product' => $productName, 'order' => $idOrder, 'email' => $customerEmail, 'error' => $err,
+                        ]),
                         '', 'CertificateManager'
                     );
                 }
@@ -277,8 +279,9 @@ class CertificateManager
         // ── Log Watchdog ──────────────────────────────────────────
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this->module))->info(
-                'Certificat émis : ' . $serialNumber . ' — ' . $productName
-                . ' (commande #' . $idOrder . ', client : ' . $customerEmail . ')',
+                WatchdogManager::i18nMsg('watchdog.certificate_issued', [
+                    'serial' => $serialNumber, 'product' => $productName, 'order' => $idOrder, 'email' => $customerEmail,
+                ]),
                 '', 'CertificateManager'
             );
         }
