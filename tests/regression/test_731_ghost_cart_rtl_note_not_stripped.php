@@ -65,7 +65,9 @@ function run_test(): array
     // Bloc 5 (19/09/2026) : fenêtre élargie 17000→18000 octets — l'ajout de
     // localizeLabelColons() et de {contact_page_url} dans compileNeriaTemplate()
     // a repoussé la propagation de {neria_is_rtl} (offset mesuré : ~17011).
-    $windowCompile = substr($src, $posCompile, 18000);
+    // 24/09/2026 (rounds 376/377) : variante A/B et {contact_url} dans compileNeriaTemplate() → 18000→19500
+    // (offset mesuré : ~18065).
+    $windowCompile = substr($src, $posCompile, 19500);
     neria_assert(
         strpos($windowCompile, "\$templateVars['{neria_is_rtl}'] = \$this->engine->isRtl(\$lang);") !== false,
         "compileNeriaTemplate() (envoi réel) ne propage plus {neria_is_rtl} dans templateVars — régression du bug corrigé le 13/09/2026 (round 350) pour le chemin d'envoi réel"
