@@ -1,11 +1,11 @@
 module.exports = {
   meta: {
-    version: "1.0.48",
+    version: "1.0.49",
     lang_name: "Nederlands",
     doc_title: "Volledige gebruikershandleiding",
-    doc_subtitle: "PrestaShop 8 & 9-module — Versie 1.0.48",
+    doc_subtitle: "PrestaShop 8 & 9-module — Versie 1.0.49",
     doc_tagline: "19 talen  ·  117 sjablonen  ·  88 functies",
-    header_text: "NERIA — Luxury Email Suite  |  Gebruikershandleiding v1.0.48",
+    header_text: "NERIA — Luxury Email Suite  |  Gebruikershandleiding v1.0.49",
     footer_text: "© 2026 Neriasoftware — Alle rechten voorbehouden",
     toc_title: "Inhoudsopgave",
     cover_name: "NERIA",

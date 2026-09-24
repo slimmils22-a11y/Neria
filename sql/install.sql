@@ -771,7 +771,11 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_queue` (
     -- sans lui, un client partagé entre boutiques ne recevait l'événement
     -- que de la première boutique dont l'INSERT IGNORE réussissait — cf.
     -- upgrade-1.0.36.php.
-    UNIQUE KEY `uq_customer_template_ref_shop` (`id_customer`, `template`, `ref_id`, `id_shop`)
+    -- recipient_email (préfixe 191 = compatible index 767 octets) : les personnes
+    -- SANS compte partagent id_customer = 0 — sans l'adresse dans la clé, un envoi
+    -- planifié d'un modèle à une adresse libre bloquait ce modèle pour toutes les
+    -- autres adresses libres de la boutique — cf. upgrade-1.0.49.php.
+    UNIQUE KEY `uq_customer_template_ref_shop` (`id_customer`, `template`, `ref_id`, `id_shop`, `recipient_email`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='File d\'attente d\'emails Neria — envoi à la fenêtre d\'achat individuelle';
 
