@@ -4206,6 +4206,26 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::send() ne traite plus les modèles liés à une date (DAY_BOUND_TEMPLATES) — régression du correctif du 24/09/2026 (round 375) : l'e-mail d'anniversaire serait de nouveau reporté au lendemain par la fenêtre d'achat";
         }
 
+        // Round 376 (2026-09-24) : un test A/B n'attribuait jamais de variante ni ne montrait le texte B dans un vrai
+        // courriel. Trois causes : (1) l'attribution exigeait NERIA_ABTEST_ENABLED, jamais passé à 1 ; (2)
+        // $params['neria_variant'] n'était jamais posé (StatsManager enregistrait une variante vide) ; (3)
+        // compileNeriaTemplate() résolvait {neria_trad} sans consulter la variante B (seul l'aperçu le faisait).
+        $abSrc376 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
+        $erSrc376 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($abSrc376 === '' || $erSrc376 === ''
+            || strpos($abSrc376, 'public static function hasAnyActiveTest()') === false
+            || substr_count($abSrc376, '$this->syncEnabledFlag();') < 3
+            || strpos($erSrc376, 'ABTestManager::hasAnyActiveTest()') === false
+            || strpos($erSrc376, 'isAbtestEnabled()') !== false) {
+            $offenders[] = "L'attribution d'une variante A/B ne dépend plus de l'existence d'un test actif (ABTestManager::hasAnyActiveTest(), réglage synchronisé à l'activation/arrêt/suppression) — régression du bug corrigé le 24/09/2026 (round 376) : NERIA_ABTEST_ENABLED n'étant jamais passé à 1, aucun test A/B n'attribuerait de variante";
+        }
+        if ($erSrc376 === ''
+            || strpos($erSrc376, '$params[\'neria_variant\'] = $variant;') === false
+            || substr_count($erSrc376, '$this->tradValue(') < 5
+            || strpos($erSrc376, '$engine->get($template, $m[1], $lang, $idShop)') !== false) {
+            $offenders[] = "EmailRenderer ne transmet plus la variante A/B à l'envoi réel (neria_variant posé pour StatsManager, tradValue() dans compileNeriaTemplate() et le sujet) — régression du bug corrigé le 24/09/2026 (round 376) : les statistiques A/B resteraient vides et le texte de la variante B ne partirait jamais dans un vrai courriel";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
@@ -5890,7 +5910,8 @@ class HealthCheckManager
         }
         $erSrc357 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
         if ($erSrc357 === ''
-            || strpos($erSrc357, "\$headline = \$this->engine->get(\$template, 'greeting_main', \$lang, \$this->resolveShopId(\$params));") === false
+            || strpos($erSrc357, "\$headline = \$this->tradValue(\$template, 'greeting_main', \$lang, \$this->resolveShopId(\$params), \$variant);") === false
+            || strpos($erSrc357, 'return $this->engine->get($template, $key, $lang, $idShop);') === false
             || strpos($erSrc357, '?int $idShop = null') === false
         ) {
             $offenders[] = "EmailRenderer ne transmet plus resolveShopId(\$params) à TranslationEngine::get() — régression du bug corrigé le 14/09/2026 (round 357)";
