@@ -447,6 +447,18 @@ class EmailRenderer
             $headline = $this->engine->get($template, 'greeting_main', $lang, $this->resolveShopId($params));
             if ($headline !== '') {
                 $params['subject'] = trim(strip_tags($headline));
+                // Round 373 : les variables de l'e-mail ({milestone_count}, {firstname}…) sont aussi
+                // substituées dans ce sujet dérivé du titre — jusqu'ici seul le corps les recevait,
+                // et le sujet du palier de commandes partait avec « {milestone_count} » en clair.
+                $subjectVars = [];
+                foreach ((array) ($params['templateVars'] ?? []) as $subjectKey => $subjectVal) {
+                    if (is_scalar($subjectVal) && strpos((string) $subjectKey, '{') === 0 && (string) $subjectVal !== '') {
+                        $subjectVars[(string) $subjectKey] = trim(strip_tags((string) $subjectVal));
+                    }
+                }
+                if ($subjectVars !== []) {
+                    $params['subject'] = trim((string) preg_replace('/\s+/u', ' ', strtr($params['subject'], $subjectVars)));
+                }
             } else {
                 $this->softLog(
                     'warning',
