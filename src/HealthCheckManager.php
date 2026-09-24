@@ -4242,6 +4242,15 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 379 (2026-09-24) : le contrôle à blanc d'une campagne segment doit compter les adresses en
+        // rebond (l'envoi réel les ignore) — il annonçait un nombre de destinataires trop optimiste.
+        $sgSrc379 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($sgSrc379 === ''
+            || strpos($sgSrc379, "AdminTranslator::tVars('msg.segment_some_bounced'") === false
+            || strpos($sgSrc379, '\BounceManager::isBounced((string) $bouncedCandidate[\'email\'])') === false) {
+            $offenders[] = "SegmentManager::preflightCheck() ne signale plus les adresses en rebond — régression du bug corrigé le 24/09/2026 (round 379) : le contrôle à blanc annoncerait plus de destinataires que l'envoi réel n'en atteint";
+        }
+
         // Round 378 (2026-09-24) : un envoi manuel planifié dans 3 h partait tout de suite — l'heure saisie à
         // l'horloge PHP (boutique) était stockée telle quelle dans neria_queue.send_at, comparé à NOW() de MySQL.
         $ntSrc378 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
