@@ -4242,6 +4242,19 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 378 (2026-09-24) : un envoi manuel planifié dans 3 h partait tout de suite — l'heure saisie à
+        // l'horloge PHP (boutique) était stockée telle quelle dans neria_queue.send_at, comparé à NOW() de MySQL.
+        $ntSrc378 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        $msSrc378 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        $qmSrc378 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($ntSrc378 === '' || $msSrc378 === '' || $qmSrc378 === ''
+            || strpos($ntSrc378, 'public static function dbClockOffsetSeconds(): int') === false
+            || strpos($ntSrc378, 'public static function shiftWallClock(string $datetime, int $seconds): string') === false
+            || strpos($msSrc378, 'NeriaTools::shiftWallClock($sendAt, NeriaTools::dbClockOffsetSeconds())') === false
+            || strpos($qmSrc378, '\NeriaTools::shiftWallClock((string) $row[\'send_at\'], -$offset)') === false) {
+            $offenders[] = "ManualSendManager::scheduleManual() ne convertit plus l'heure saisie (horloge boutique) vers l'horloge de la base, ou QueueManager::getPendingManual() ne la reconvertit plus pour l'affichage — régression du bug corrigé le 24/09/2026 (round 378) : un envoi planifié partirait avec l'écart de fuseau PHP/MySQL (immédiatement, ou plusieurs heures trop tôt/tard)";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
