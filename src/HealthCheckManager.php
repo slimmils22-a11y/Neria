@@ -4242,6 +4242,26 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 383 (2026-09-24) : le contrôleur front de la liste d'attente doit vérifier un jeton anti-CSRF
+        // (Tools::getToken(false)) présent dans les deux formulaires — un POST seul ne protège pas.
+        $wcSrc383 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/waitlist.php');
+        $wtSrc383 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/front/waitlist_button.tpl');
+        if ($wcSrc383 === '' || $wtSrc383 === ''
+            || strpos($wcSrc383, 'hash_equals((string) Tools::getToken(false), (string) Tools::getValue(\'token\'))') === false
+            || substr_count($wtSrc383, 'name="token" value="{$waitlist_token|escape:\'html\'}"') < 2) {
+            $offenders[] = "La liste d'attente n'est plus protégée par un jeton anti-CSRF (contrôleur + 2 formulaires) — régression du correctif du 24/09/2026 (round 383) : une page tierce pourrait de nouveau inscrire ou désinscrire un client connecté";
+        }
+
+        // Round 382 (2026-09-24) : l'effacement/export RGPD d'une personne SANS compte client doit retrouver ses
+        // lignes de suivi chiffrées (neria_stat id_customer = 0) et sa file d'envoi (recipient_email).
+        $gdSrc382 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdSrc382 === ''
+            || strpos($gdSrc382, 'private function guestStatRows(string $emailLower, int $idShop): array') === false
+            || substr_count($gdSrc382, '$this->guestStatRows(') < 2
+            || strpos($gdSrc382, 'LOWER(`recipient_email`)') === false) {
+            $offenders[] = "GdprAuditManager n'efface / n'exporte plus les lignes de suivi et la file d'envoi d'une personne sans compte client — régression du correctif du 24/09/2026 (round 382) : le droit à l'effacement et d'accès ne couvrirait plus les envois faits à une adresse sans compte";
+        }
+
         // Round 381 (2026-09-24) : les messages Watchdog portant l'e-mail d'un client doivent être au format
         // ::i18n:: (variable « email ») — seule forme que l'effacement RGPD retrouve dans neria_log. Certificats
         // et liste d'attente écrivaient l'adresse en texte libre : elle survivait à l'effacement du client.
