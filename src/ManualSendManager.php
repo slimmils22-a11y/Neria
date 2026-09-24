@@ -1687,7 +1687,7 @@ class ManualSendManager
             $vars['{' . $key . '}'] = (string) $value;
         }
 
-        $queued = (new \QueueManager($this->module))->enqueueAt($template, $customer, $vars, 0, $sendAt);
+        $queued = (new \QueueManager($this->module))->enqueueAt($template, $customer, $vars, 0, NeriaTools::shiftWallClock($sendAt, NeriaTools::dbClockOffsetSeconds()));
         if (!$queued) {
             // La contrainte UNIQUE (id_customer, template, ref_id=0, id_shop)
             // empêche un 2e envoi manuel planifié du même template au même

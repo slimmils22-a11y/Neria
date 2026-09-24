@@ -297,7 +297,19 @@ class QueueManager
              ORDER BY `send_at` ASC
              LIMIT 20'
         );
-        return is_array($rows) ? $rows : [];
+        if (!is_array($rows)) {
+            return [];
+        }
+        // Round 378 : send_at est stocké à l'horloge de la base (voir NeriaTools::dbClockOffsetSeconds()) ; le BO
+        // l'affiche et le compare à l'heure de la boutique (PHP) — même horloge que celle saisie à la planification.
+        $offset = \NeriaTools::dbClockOffsetSeconds();
+        foreach ($rows as &$row) {
+            $row['send_at'] = \NeriaTools::shiftWallClock((string) $row['send_at'], -$offset);
+            $shopDt = \DateTime::createFromFormat('Y-m-d H:i:s', $row['send_at']);
+            $row['send_at_fmt'] = $shopDt ? $shopDt->format('d/m/Y H:i') : (string) $row['send_at_fmt'];
+        }
+        unset($row);
+        return $rows;
     }
 
     /**

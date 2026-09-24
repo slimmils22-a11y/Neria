@@ -1221,6 +1221,35 @@ class NeriaTools
         ];
     }
 
+    /**
+     * Round 378 : convertit une date/heure saisie à l'horloge de la boutique (PHP) vers l'horloge de la base
+     * (MySQL) — et inversement avec un décalage négatif. neria_queue.send_at est comparé à NOW() de MySQL ;
+     * une heure saisie par le marchand à l'horloge PHP partait donc avec l'écart de fuseau entre les deux
+     * serveurs (6 h sur ps-test) : un envoi planifié dans 3 h partait immédiatement. Écart mesuré au moment
+     * de l'appel, arrondi à la minute (les deux lectures ne sont pas simultanées).
+     */
+    public static function dbClockOffsetSeconds(): int
+    {
+        $mysqlNow = (string) \Db::getInstance()->getValue('SELECT NOW()', false);
+        $utc      = new \DateTimeZone('UTC');
+        $mysql    = \DateTime::createFromFormat('Y-m-d H:i:s', $mysqlNow, $utc);
+        $php      = \DateTime::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s'), $utc);
+        if (!$mysql || !$php) {
+            return 0;
+        }
+        return (int) (round(($mysql->getTimestamp() - $php->getTimestamp()) / 60) * 60);
+    }
+
+    /** Décale une date 'Y-m-d H:i:s' de $seconds secondes (heure murale, sans effet d'heure d'été). */
+    public static function shiftWallClock(string $datetime, int $seconds): string
+    {
+        $dt = \DateTime::createFromFormat('Y-m-d H:i:s', $datetime, new \DateTimeZone('UTC'));
+        if (!$dt) {
+            return $datetime;
+        }
+        return $dt->modify(($seconds >= 0 ? '+' : '-') . abs($seconds) . ' seconds')->format('Y-m-d H:i:s');
+    }
+
     public static function displayPrice(float $amount, \Currency $currency, ?int $idLang = null): string
     {
         // Round 285 : $currency peut être un objet Currency NON CHARGÉ — les
