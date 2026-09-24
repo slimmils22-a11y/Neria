@@ -4242,6 +4242,17 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 384 (2026-09-24) : la clé unique de neria_queue doit porter recipient_email — sinon un envoi planifié
+        // d'un modèle à une adresse SANS compte (id_customer = 0) bloque ce modèle pour toutes les autres adresses libres.
+        $sqlSrc384 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/sql/install.sql');
+        $upSrc384  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.49.php');
+        if ($sqlSrc384 === '' || $upSrc384 === ''
+            || strpos($sqlSrc384, '`id_shop`, `recipient_email`(191))') === false
+            || strpos($upSrc384, '`recipient_email`(191)') === false
+            || strpos($upSrc384, "in_array('recipient_email', \$columns, true)") === false) {
+            $offenders[] = "La clé unique de neria_queue ne porte plus recipient_email (install.sql ou upgrade 1.0.49) — régression du défaut corrigé le 24/09/2026 (round 384) : un envoi planifié à une adresse sans compte bloquerait de nouveau le même modèle pour toutes les autres adresses libres de la boutique";
+        }
+
         // Round 383 (2026-09-24) : le contrôleur front de la liste d'attente doit vérifier un jeton anti-CSRF
         // (Tools::getToken(false)) présent dans les deux formulaires — un POST seul ne protège pas.
         $wcSrc383 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/waitlist.php');
@@ -17253,6 +17264,7 @@ class HealthCheckManager
             '1.0.34' => ['type' => 'index',  'table' => 'neria_stat', 'name' => 'idx_shop_date'],
             '1.0.35' => ['type' => 'column', 'table' => 'neria_upsell', 'name' => 'id_shop'],
             '1.0.36' => ['type' => 'index',  'table' => 'neria_queue', 'name' => 'uq_customer_template_ref_shop'],
+            '1.0.49' => ['type' => 'index_column', 'table' => 'neria_queue', 'index' => 'uq_customer_template_ref_shop', 'name' => 'recipient_email'],
         ];
 
         $failures = [];
