@@ -602,7 +602,8 @@ class LoyaltyManager
         // rejeté au checkout ("code invalide") jusqu'à ce que les horloges
         // se rejoignent — même piège horloge PHP/MySQL déjà corrigé
         // ailleurs dans le module, jamais porté ici.
-        $nowSql314 = (string) $this->db->getValue('SELECT NOW()');
+        // Round 372 : voir NeriaTools::voucherWindow() — le cœur valide aussi avec l'horloge PHP.
+        $window372 = \NeriaTools::voucherWindow((int) (new \ConfigManager($this->module))->getVoucherValidity());
 
         $cartRule = new \CartRule();
         $cartRule->name                    = $names;
@@ -611,8 +612,8 @@ class LoyaltyManager
         $cartRule->quantity                = 1;
         $cartRule->quantity_per_user       = 1;
         $cartRule->active                  = 1;
-        $cartRule->date_from               = $nowSql314;
-        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime($nowSql314 . ' +' . (new \ConfigManager($this->module))->getVoucherValidity() . ' days'));
+        $cartRule->date_from               = $window372['from'];
+        $cartRule->date_to                 = $window372['to'];
         $cartRule->minimum_amount          = 0;
         // Hors round (suite round 336) : scopé par $reservationShopId, même
         // raisonnement que reduction_currency plus bas dans cette méthode —

@@ -1170,6 +1170,34 @@ class NeriaTools
         return $formatted !== false ? $formatted : null;
     }
 
+    /**
+     * Fenêtre de validité d'un bon de réduction (date_from / date_to), sûre quelle que soit la
+     * différence de fuseau entre PHP et MySQL.
+     *
+     * Round 372 : le cœur PrestaShop valide un bon avec DEUX horloges — la recherche par code
+     * (`NOW() BETWEEN date_from AND date_to`, horloge MySQL) ET CartRule::checkValidity()
+     * (`strtotime(date_from) > time()`, horloge PHP), notamment à la validation de la commande.
+     * Une date_from écrite avec une seule des deux horloges est « dans le futur » pour l'autre dès
+     * que les fuseaux diffèrent (cas courant en hébergement) : le bon fraîchement émis, déjà
+     * envoyé au client, est refusé pendant des heures. On prend donc le plus TÔT des deux pour le
+     * début, le plus TARD pour la fin — aucun effet pour le client (il ne connaît le code
+     * qu'après l'e-mail), et un bon jamais rejeté ni expiré prématurément.
+     *
+     * @return array{from: string, to: string}
+     */
+    public static function voucherWindow(int $validityDays): array
+    {
+        $phpNow   = date('Y-m-d H:i:s');
+        $mysqlNow = (string) \Db::getInstance()->getValue('SELECT NOW()', false);
+        if ($mysqlNow === '') {
+            $mysqlNow = $phpNow;
+        }
+        return [
+            'from' => min($phpNow, $mysqlNow),
+            'to'   => date('Y-m-d H:i:s', strtotime(max($phpNow, $mysqlNow) . ' +' . max(1, $validityDays) . ' days')),
+        ];
+    }
+
     public static function displayPrice(float $amount, \Currency $currency, ?int $idLang = null): string
     {
         // Round 285 : $currency peut être un objet Currency NON CHARGÉ — les

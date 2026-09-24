@@ -477,9 +477,9 @@ class BehavioralCronManager
         // fraîchement émis (et déjà envoyé par email au client) était
         // rejeté au checkout ("code invalide") jusqu'à ce que les horloges
         // se rejoignent.
-        $nowSql314 = (string) $this->db->getValue('SELECT NOW()');
-        $cartRule->date_from               = $nowSql314;
-        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime($nowSql314 . ' +' . $config->getVoucherValidity() . ' days'));
+        $window372 = \NeriaTools::voucherWindow((int) $config->getVoucherValidity());
+        $cartRule->date_from               = $window372['from'];
+        $cartRule->date_to                 = $window372['to'];
         $cartRule->minimum_amount          = 0;
         // Round 338 : scopé par $idShop, même correctif que
         // LoyaltyManager::generateVoucher() (round 336) — incohérent avec
