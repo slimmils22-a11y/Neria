@@ -10181,10 +10181,13 @@ class HealthCheckManager
         // 314 (ancrage NOW() MySQL + commentaire explicatif) sur cette même
         // méthode a repoussé $cartRule->date_to plus loin dans le corps.
         $loyDateToBody277 = ($loyDateToPos277 !== false && $loyDateToPos277 - $loyFnPos277 < 4500) ? substr($loySrc277, $loyDateToPos277, 200) : '';
+        // Round 372 : la validité est désormais lue dans l'appel à NeriaTools::voucherWindow()
+        // (placé avant $cartRule->date_to), plus dans la ligne date_to elle-même.
+        $loyMethodBody277 = $loyFnPos277 !== false ? substr($loySrc277, $loyFnPos277, 5000) : '';
         if ($loySrc277 === ''
             || $loyFnPos277 === false
             || $loyDateToPos277 === false
-            || strpos($loyDateToBody277, 'getVoucherValidity()') === false
+            || strpos($loyMethodBody277, 'voucherWindow((int) (new \ConfigManager($this->module))->getVoucherValidity())') === false
             || strpos($loyDateToBody277, "strtotime('+1 year')") !== false
         ) {
             $offenders[] = "LoyaltyManager::generateVoucher() ne respecte plus le réglage marchand NERIA_VOUCHER_VALIDITY pour l'expiration du bon de récompense fidélité — régression du bug corrigé le 02/09/2026 (round 277) : le bon de palier fidélité redeviendrait fixé à +1 an quel que soit le réglage BO, contrairement aux bons anniversaire et palier de commande";
@@ -11439,21 +11442,24 @@ class HealthCheckManager
         // date_to purement côté MySQL au checkout.
         $lomSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
         if ($lomSrc314 === ''
-            || strpos($lomSrc314, '$cartRule->date_from               = $nowSql314;') === false
+            || strpos($lomSrc314, '$cartRule->date_from               = $window372[\'from\'];') === false
+            || strpos($lomSrc314, 'NeriaTools::voucherWindow(') === false
         ) {
-            $offenders[] = "LoyaltyManager::generateVoucher() n'ancre plus date_from sur NOW() MySQL — régression du bug corrigé le 07/09/2026 (round 314) : un bon de fidélité fraîchement émis serait de nouveau rejeté au checkout si le serveur web est en avance sur MySQL";
+            $offenders[] = "LoyaltyManager::generateVoucher() n'utilise plus NeriaTools::voucherWindow() pour date_from/date_to — régression du bug corrigé le 24/09/2026 (round 372) : le cœur PrestaShop valide un bon avec l'horloge MySQL ET l'horloge PHP, un bon fraîchement émis serait de nouveau refusé à la validation de la commande tant que les fuseaux PHP/MySQL diffèrent";
         }
         $bcmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
         if ($bcmSrc314 === ''
-            || strpos($bcmSrc314, '$cartRule->date_from               = $nowSql314;') === false
+            || strpos($bcmSrc314, '$cartRule->date_from               = $window372[\'from\'];') === false
+            || strpos($bcmSrc314, 'NeriaTools::voucherWindow(') === false
         ) {
-            $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() n'ancre plus date_from sur NOW() MySQL — régression du bug corrigé le 07/09/2026 (round 314)";
+            $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() n'utilise plus NeriaTools::voucherWindow() pour date_from/date_to — régression du bug corrigé le 24/09/2026 (round 372) : le cœur PrestaShop valide un bon avec l'horloge MySQL ET l'horloge PHP, un bon fraîchement émis serait de nouveau refusé à la validation de la commande tant que les fuseaux PHP/MySQL diffèrent";
         }
         $otmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
         if ($otmSrc314 === ''
-            || strpos($otmSrc314, '$cartRule->date_from               = $nowSql314;') === false
+            || strpos($otmSrc314, '$cartRule->date_from               = $window372[\'from\'];') === false
+            || strpos($otmSrc314, 'NeriaTools::voucherWindow(') === false
         ) {
-            $offenders[] = "OrderTriggersManager::generateMilestoneVoucher() n'ancre plus date_from sur NOW() MySQL — régression du bug corrigé le 07/09/2026 (round 314)";
+            $offenders[] = "OrderTriggersManager::generateMilestoneVoucher() n'utilise plus NeriaTools::voucherWindow() pour date_from/date_to — régression du bug corrigé le 24/09/2026 (round 372) : le cœur PrestaShop valide un bon avec l'horloge MySQL ET l'horloge PHP, un bon fraîchement émis serait de nouveau refusé à la validation de la commande tant que les fuseaux PHP/MySQL diffèrent";
         }
 
         // Round 314 (07/09/2026) : LoyaltyManager::computeRecapWindowDays()
