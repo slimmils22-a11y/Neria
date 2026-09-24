@@ -4237,7 +4237,8 @@ class HealthCheckManager
             || substr_count($msSrc377, '$vars[\'{carrier_name}\'] = (string) ($order[\'carrier_name\'] ?? \'\');') < 2
             || strpos($msSrc377, 'c.`name` AS carrier_name') === false
             || strpos($coSrc377, '{if products}') === false
-            || strpos($coSrc377, '{/if}') === false) {
+            || strpos($coSrc377, '{/if}') === false
+            || strpos($this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/corporate_order_confirm.txt'), '{if products_txt}') === false) {
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
