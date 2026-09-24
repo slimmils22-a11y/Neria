@@ -53,18 +53,21 @@ function run_test(): array
 
         $body = substr($src, $posFn, 4500);
 
+        // Round 372 : la prémisse du round 314 (« validation purement MySQL ») était incomplète —
+        // CartRule::checkValidity() compare aussi date_from à l'horloge PHP. Les 3 méthodes passent
+        // désormais par NeriaTools::voucherWindow() (le plus tôt des deux horloges), cf. test_846.
         neria_assert(
-            strpos($body, "\$nowSql314 = (string) \$this->db->getValue('SELECT NOW()');") !== false,
-            "{$c['label']} ne calcule plus \$nowSql314 via SELECT NOW() côté MySQL — régression du bug corrigé le 07/09/2026 (round 314)"
+            strpos($body, "\$window372 = \\NeriaTools::voucherWindow(") !== false,
+            "{$c['label']} ne calcule plus la fenêtre de validité via NeriaTools::voucherWindow() — régression du bug corrigé le 24/09/2026 (round 372)"
         );
         neria_assert(
-            strpos($body, '$cartRule->date_from               = $nowSql314;') !== false,
-            "{$c['label']} n'ancre plus \$cartRule->date_from sur \$nowSql314 — régression du bug corrigé le 07/09/2026 (round 314) : un bon fraîchement émis serait de nouveau rejeté au checkout si le serveur web est en avance sur MySQL"
+            strpos($body, '$cartRule->date_from               = $window372[\'from\'];') !== false,
+            "{$c['label']} n'utilise plus \$window372['from'] pour \$cartRule->date_from — régression du bug corrigé le 24/09/2026 (round 372) : un bon fraîchement émis serait de nouveau refusé à la validation de la commande quand les fuseaux PHP/MySQL diffèrent"
         );
     }
 
     return [
         'pass'    => true,
-        'message' => "LoyaltyManager::generateVoucher()/BehavioralCronManager::generateBirthdayVoucher()/OrderTriggersManager::generateMilestoneVoucher() ancrent bien date_from sur NOW() MySQL, cohérent avec la validation du cœur PrestaShop au checkout — bug corrigé le 07/09/2026 (round 314)",
+        'message' => "LoyaltyManager::generateVoucher()/BehavioralCronManager::generateBirthdayVoucher()/OrderTriggersManager::generateMilestoneVoucher() calculent date_from/date_to via NeriaTools::voucherWindow() (le plus tôt des horloges PHP et MySQL) — round 314 complété par le round 372",
     ];
 }

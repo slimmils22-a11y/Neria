@@ -49,8 +49,11 @@ function run_test(): array
 
     $body = substr($src, $posDateTo, 200);
 
+    // Round 372 : la validité est lue dans l'appel à NeriaTools::voucherWindow(), placé juste
+    // avant $cartRule->date_to (le début de fenêtre suit les deux horloges PHP/MySQL, cf. test_846).
+    $windowCall = substr($src, $posFn, $posDateTo - $posFn);
     neria_assert(
-        strpos($body, 'getVoucherValidity()') !== false,
+        strpos($windowCall, 'voucherWindow((int) (new \ConfigManager($this->module))->getVoucherValidity())') !== false,
         "LoyaltyManager::generateVoucher() n'appelle plus getVoucherValidity() pour la date d'expiration du bon — régression du bug corrigé le 02/09/2026 (round 277) : le bon de récompense fidélité ignorerait de nouveau le réglage marchand NERIA_VOUCHER_VALIDITY, contrairement aux bons anniversaire et palier de commande"
     );
     neria_assert(
