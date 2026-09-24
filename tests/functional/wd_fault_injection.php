@@ -419,12 +419,14 @@ if (empty($opts['child'])) {
  * la source de vérité est le dossier de développement, jamais ce dossier.
  * clé => [libellé, chemin relatif, mutation ['rename'] | ['replace', 'de', 'vers'] | ['write', contenu], statuts acceptés]
  */
+// Version courante lue dans neria.php (plus de numéro figé : chaque montée de version cassait ces 2 pannes)
+$currentVersion = preg_match("/const\s+VERSION\s*=\s*'([\d.]+)'/", (string) file_get_contents(dirname(__DIR__, 2) . '/neria.php'), $vm) ? $vm[1] : '0';
 $fileSpecs = [
     'template_files' => ['fichier .txt d\'un e-mail supprimé', 'mails/themes/neria_global/core/order_conf.txt', ['rename'], ['warning', 'error']],
     'html_txt_pairs' => ['e-mail sans version texte', 'mails/themes/neria_global/core/order_conf.txt', ['rename'], ['warning', 'error']],
     'front_controllers' => ['contrôleur front manquant', 'controllers/front/cron.php', ['rename'], ['warning', 'error']],
-    'version_files_sync' => ['config.xml annonce une autre version que le code', 'config.xml', ['replace', '<![CDATA[1.0.48]]>', '<![CDATA[1.0.1]]>'], ['warning', 'error']],
-    'upgrade_version_file' => ['script d\'upgrade de la version courante manquant', 'upgrade/upgrade-1.0.48.php', ['rename'], ['warning', 'error']],
+    'version_files_sync' => ['config.xml annonce une autre version que le code', 'config.xml', ['replace', '<![CDATA[' . $currentVersion . ']]>', '<![CDATA[1.0.1]]>'], ['warning', 'error']],
+    'upgrade_version_file' => ['script d\'upgrade de la version courante manquant', 'upgrade/upgrade-' . $currentVersion . '.php', ['rename'], ['warning', 'error']],
     'calendar_json_integrity' => ['data/calendar.json illisible', 'data/calendar.json', ['write', '{ceci n est pas du json'], ['warning', 'error']],
     'txt_raw_html_leak' => ['balise HTML brute dans une version texte', 'mails/themes/neria_global/core/order_conf.txt', ['append', "
 <p>fuite html</p>
