@@ -1171,6 +1171,29 @@ class NeriaTools
     }
 
     /**
+     * json_encode() indépendant du réglage PHP `serialize_precision`.
+     *
+     * Round 374 : certains hébergements (O2switch : serialize_precision=100) écrivent 19.12 sous la forme
+     * 19.120000000000000994759830064140260219573974609375 — payloads de webhooks envoyés à des systèmes
+     * externes, réglages stockés en JSON. On impose la représentation la plus courte (-1, défaut PHP)
+     * le temps de l'encodage, puis on restaure le réglage d'origine.
+     *
+     * @param mixed $value
+     * @return string|false
+     */
+    public static function jsonEncode($value, int $flags = 0)
+    {
+        $previous = ini_set('serialize_precision', '-1');
+        try {
+            return json_encode($value, $flags);
+        } finally {
+            if ($previous !== false) {
+                ini_set('serialize_precision', (string) $previous);
+            }
+        }
+    }
+
+    /**
      * Fenêtre de validité d'un bon de réduction (date_from / date_to), sûre quelle que soit la
      * différence de fuseau entre PHP et MySQL.
      *

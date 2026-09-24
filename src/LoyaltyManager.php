@@ -867,7 +867,7 @@ class LoyaltyManager
 
     public function saveTiers(array $tiers): void
     {
-        \Configuration::updateValue(self::CONFIG_TIERS, json_encode($tiers, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue(self::CONFIG_TIERS, \NeriaTools::jsonEncode($tiers, JSON_UNESCAPED_UNICODE));
     }
 
     // ============================================================

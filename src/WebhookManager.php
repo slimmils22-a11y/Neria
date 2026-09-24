@@ -203,7 +203,7 @@ class WebhookManager
         // clé 'event'/'shop_id'/'timestamp' dans $data écraserait
         // silencieusement l'événement/la boutique/l'horodatage réels du
         // payload envoyé au webhook externe.
-        $payload = json_encode(
+        $payload = \NeriaTools::jsonEncode(
             array_merge($data, [
                 'event'     => $event,
                 'shop_id'   => $this->idShop,
@@ -402,7 +402,7 @@ class WebhookManager
                     $decodedForSeq = [];
                 }
                 $decodedForSeq['sequence'] = $id;
-                $payloadWithSeq = json_encode($decodedForSeq, JSON_UNESCAPED_UNICODE);
+                $payloadWithSeq = \NeriaTools::jsonEncode($decodedForSeq, JSON_UNESCAPED_UNICODE);
                 $payload = ($payloadWithSeq !== false) ? $payloadWithSeq : $row['payload'];
 
                 // Round 241 : réservation atomique (attempts + statut
@@ -744,7 +744,7 @@ class WebhookManager
             return ['ok' => false, 'error' => AdminTranslator::t('msg.webhook_url_invalid')];
         }
 
-        $payload = json_encode([
+        $payload = \NeriaTools::jsonEncode([
             'event'     => 'test',
             'shop_id'   => $this->idShop,
             'message'   => AdminTranslator::t('msg.webhook_test_connection'),
