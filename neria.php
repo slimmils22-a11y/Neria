@@ -1835,6 +1835,7 @@ class Neria extends Module
             'waitlist_subscribe_url'   => $subscribeUrl,
             'waitlist_unsubscribe_url' => $unsubscribeUrl,
             'waitlist_back_url'        => $backUrl,
+            'waitlist_token'           => Tools::getToken(false),
         ]);
 
         $html = $this->display(__FILE__, 'views/templates/front/waitlist_button.tpl');

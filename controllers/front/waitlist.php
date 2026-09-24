@@ -65,6 +65,12 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             Tools::redirect($redirect);
         }
 
+        // Round 383 : jeton anti-CSRF (Tools::getToken(false), lié à la session du client). Un POST seul n'est
+        // pas une protection : une page tierce pouvait inscrire/désinscrire un client connecté à sa liste d'attente.
+        if (!hash_equals((string) Tools::getToken(false), (string) Tools::getValue('token'))) {
+            Tools::redirect($redirect);
+        }
+
         if (!class_exists('WaitlistManager')) {
             Tools::redirect($redirect);
         }
