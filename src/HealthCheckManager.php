@@ -4242,6 +4242,21 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 381 (2026-09-24) : les messages Watchdog portant l'e-mail d'un client doivent être au format
+        // ::i18n:: (variable « email ») — seule forme que l'effacement RGPD retrouve dans neria_log. Certificats
+        // et liste d'attente écrivaient l'adresse en texte libre : elle survivait à l'effacement du client.
+        $cerSrc381 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        $wlSrc381  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($cerSrc381 === '' || $wlSrc381 === ''
+            || strpos($cerSrc381, "'watchdog.certificate_issued'") === false
+            || strpos($cerSrc381, "'watchdog.certificate_issue_failed'") === false
+            || strpos($cerSrc381, "'watchdog.certificate_issued_email_failed'") === false
+            || strpos($cerSrc381, "client : ' . \$customerEmail") !== false
+            || strpos($wlSrc381, "'watchdog.waitlist_notified_unconfirmed'") === false
+            || strpos($wlSrc381, "Waitlist : email envoy") !== false) {
+            $offenders[] = "CertificateManager / WaitlistManager écrivent de nouveau l'e-mail du client en texte libre dans le journal Watchdog — régression du bug corrigé le 24/09/2026 (round 381) : l'adresse survivrait à l'effacement RGPD du client (droit à l'effacement) dans neria_log";
+        }
+
         // Round 380 (2026-09-24) : delivery_attempt_failed — l'état du colis est un champ saisi par l'opérateur
         // ({delivery_status}), le transporteur a sa propre ligne (clé delivery_attempt_carrier, 19 langues).
         $daHtml380 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/delivery_attempt_failed.html');
@@ -7264,7 +7279,7 @@ class HealthCheckManager
         if ($cmSrc167 === '' || strpos($cmSrc167, 'mb_strlen($artisanNote) > 280') === false) {
             $offenders[] = "CertificateManager ne borne plus la longueur de la note de l'artisan — régression du bug corrigé le 14/08/2026 (round 167) : une note très longue pourrait de nouveau chevaucher le pied de page du certificat PDF";
         }
-        if ($cmSrc167 === '' || strpos($cmSrc167, 'Certificat émis mais email non envoyé') === false) {
+        if ($cmSrc167 === '' || strpos($cmSrc167, 'watchdog.certificate_issued_email_failed') === false) {
             $offenders[] = "CertificateManager n'journalise plus l'échec d'envoi d'email de certificat — régression du bug corrigé le 14/08/2026 (round 167) : un certificat 'fantôme' redeviendrait indétectable dans le journal";
         }
 
