@@ -4176,6 +4176,18 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer ne substitue plus les variables de l'e-mail dans le sujet dérivé du titre — régression du bug corrigé le 24/09/2026 (round 373) : le sujet du palier de commandes repartirait avec « {milestone_count} » en clair";
         }
 
+        // Round 374 (2026-09-24) : les encodages JSON qui portent des flottants (payloads de webhooks envoyés à
+        // des systèmes externes, paliers de fidélité stockés) doivent passer par NeriaTools::jsonEncode() —
+        // avec serialize_precision=100 (O2switch) json_encode() écrit 19.12 sous la forme
+        // 19.120000000000000994759830064140260219573974609375.
+        $whSrc374 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        $loySrc374 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($whSrc374 === '' || $loySrc374 === ''
+            || substr_count($whSrc374, 'NeriaTools::jsonEncode(') < 3
+            || strpos($loySrc374, 'NeriaTools::jsonEncode($tiers') === false) {
+            $offenders[] = "WebhookManager (3 encodages) ou LoyaltyManager::saveTiers() n'utilise plus NeriaTools::jsonEncode() — régression du bug corrigé le 24/09/2026 (round 374) : sur un hébergement à serialize_precision élevé (O2switch), les payloads de webhooks et les paliers stockés porteraient de nouveau des chiffres parasites (19.12 → 19.1200000000000009947…)";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
