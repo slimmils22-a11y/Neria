@@ -2970,6 +2970,7 @@ class EmailRenderer
             '{customs_status}'     => 'En attente de dédouanement',
             '{customs_action}'     => 'Aucune action requise de votre part.',
             '{pickup_point_address}' => 'Tabac Presse — 5 rue de Rivoli, 75001 Paris',
+            '{delivery_status}'    => 'Colis en point relais, à retirer sous 10 jours',
             '{hold_reason}'        => 'Vérification de votre paiement en cours',
             '{new_shipping_date}'  => '15/06/2026',
             '{refund_amount}'      => '89,00 €',

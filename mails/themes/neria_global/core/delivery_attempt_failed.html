@@ -19,7 +19,10 @@
 <div class="neria-section-title">{neria_trad key='delivery_attempt_details'}</div>
 
 <div class="neria-info-box">
-  <p><strong>{neria_trad key='delivery_attempt_status'} :</strong> {carrier_name}</p>
+  <p><strong>{neria_trad key='delivery_attempt_status'} :</strong> {delivery_status}</p>
+{if carrier_name}
+  <p><strong>{neria_trad key='delivery_attempt_carrier'} :</strong> {carrier_name}</p>
+{/if}
   <p><strong>{neria_trad key='delivery_attempt_action'} :</strong> {pickup_point_address}</p>
 </div>
 

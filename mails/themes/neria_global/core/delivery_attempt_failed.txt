@@ -8,7 +8,10 @@
 
 {neria_trad key='delivery_attempt_details'}
 --------------------------------
-{neria_trad key='delivery_attempt_status'} : {carrier_name}
+{neria_trad key='delivery_attempt_status'} : {delivery_status}
+{if carrier_name}
+{neria_trad key='delivery_attempt_carrier'} : {carrier_name}
+{/if}
 
 {neria_trad key='delivery_attempt_action'} : {pickup_point_address}
 
