@@ -347,6 +347,20 @@ class DomainReputationManager
         'yahoo', 'hotmail', 'outlook', 'live', 'msn', 'gmx', 'yandex', 'rediffmail', 'zoho', 'ymail',
     ];
 
+    /** Liste intégrée (triée, sans doublon) — affichée en lecture seule dans l'onglet Statistiques. */
+    public static function getBuiltinFreemailDomains(): array
+    {
+        $domains = self::FREEMAIL_DOMAINS;
+        sort($domains);
+        return array_values(array_unique($domains));
+    }
+
+    /** Fournisseurs reconnus dans toutes leurs variantes par pays (yahoo.*, hotmail.*…). */
+    public static function getFreemailBaseLabels(): array
+    {
+        return self::FREEMAIL_BASE_LABELS;
+    }
+
     /**
      * Normalise une saisie marchand (virgules, espaces, retours à la ligne, « @domaine »,
      * « https://domaine/… ») en liste de domaines valides, uniques, en minuscules.

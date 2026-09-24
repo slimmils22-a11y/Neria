@@ -1026,11 +1026,22 @@ var _nhmLbl = {
     <div style="margin-top:8px;">
       <button type="submit" style="padding:6px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;">{neria_admin key='stats.freemail_extra_save'}</button>
     </div>
+    <details id="neria-freemail-builtin" style="margin-top:14px;">
+      <summary style="cursor:pointer;font-size:12px;font-weight:600;">{neria_admin key='stats.freemail_builtin_summary'} ({$freemail_builtin_domains|count})</summary>
+      <div style="margin-top:8px;font-family:monospace;font-size:12px;line-height:1.7;max-height:180px;overflow:auto;color:var(--neria-text-light);">{foreach $freemail_builtin_domains as $fd}{$fd|escape:'html'}{if !$fd@last}, {/if}{/foreach}</div>
+      <div style="margin-top:8px;font-size:12px;"><strong>{neria_admin key='stats.freemail_builtin_patterns'}</strong> <span style="font-family:monospace;">{foreach $freemail_base_labels as $bl}{$bl|escape:'html'}.*{if !$bl@last}, {/if}{/foreach}</span></div>
+    </details>
   </form>
 
   {if $domain_reputation}
     {assign var="dr" value=$domain_reputation}
     {assign var="dr_hits" value=$dr.blacklists.hits|default:[]}
+
+    {if $dr.grade == 'C' || $dr.grade == 'D' || $dr.grade == 'F'}
+    <div id="neria-freemail-hint" style="background:#f3f6fb;border:1px solid #cdd9ec;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:12px;line-height:1.6;">
+      {neria_admin key='stats.freemail_audit_hint'} <a href="#neria-freemail-extra">&uarr;</a>
+    </div>
+    {/if}
 
     {if !empty($dr.freemail)}
     <div style="background:#fff8e6;border:1px solid #f0d78c;border-radius:6px;padding:18px 22px;margin-bottom:20px;font-size:13px;line-height:1.6;">

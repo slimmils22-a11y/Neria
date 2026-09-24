@@ -7169,6 +7169,8 @@ class Neria extends Module
             'upsell_action_url'   => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name,
 
             'freemail_extra_domains' => (string) Configuration::get('NERIA_FREEMAIL_EXTRA_DOMAINS', null, null, (int) $this->context->shop->id),
+            'freemail_builtin_domains' => class_exists('DomainReputationManager') ? DomainReputationManager::getBuiltinFreemailDomains() : [],
+            'freemail_base_labels'     => class_exists('DomainReputationManager') ? DomainReputationManager::getFreemailBaseLabels() : [],
 
             // Réputation de domaine (onglet stats) — lecture du cache uniquement
             'domain_reputation' => class_exists('DomainReputationManager')
