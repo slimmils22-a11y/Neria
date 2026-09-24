@@ -4155,6 +4155,18 @@ class HealthCheckManager
             $offenders[] = "Le réglage marchand des domaines de messagerie gratuite (NERIA_FREEMAIL_EXTRA_DOMAINS / save_freemail_domains) n'est plus câblé — régression du correctif du 23/09/2026 (round 370) : un expéditeur chez un fournisseur régional absent de la liste intégrée retomberait sur l'audit trompeur du domaine du fournisseur";
         }
 
+        // Round 371 (2026-09-24) : la liste intégrée doit rester CONSULTABLE par le marchand
+        // (bloc repliable en lecture seule) et l'audit d'un domaine peu noté doit rappeler
+        // qu'un fournisseur non reconnu peut être ajouté — sinon il ne peut pas savoir si le
+        // sien est couvert ni qu'il peut le compléter.
+        $statsTpl371 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/stats.tpl');
+        if ($statsTpl371 === ''
+            || strpos($statsTpl371, 'id="neria-freemail-builtin"') === false
+            || strpos($statsTpl371, "key='stats.freemail_audit_hint'") === false
+            || strpos($mainSrc370, 'getBuiltinFreemailDomains()') === false) {
+            $offenders[] = "La liste des domaines de messagerie gratuite n'est plus consultable dans l'onglet Statistiques, ou le rappel « fournisseur non reconnu » a disparu — régression du correctif du 24/09/2026 (round 371) : le marchand ne saurait plus si son fournisseur est couvert ni qu'il peut l'ajouter";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
