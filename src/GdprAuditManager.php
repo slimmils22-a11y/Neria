@@ -961,6 +961,17 @@ class GdprAuditManager
                     $out['neria_bounces'] = $clean($rows);
                 }
             }
+            // Round 382 : suivi et file d'envoi sans compte client, retrouvés par l'adresse (droit d'accès)
+            $guestStat = $this->guestStatRows($email, 0);
+            if (!empty($guestStat)) {
+                $out['neria_stat'] = array_merge($out['neria_stat'] ?? [], $clean(array_values($guestStat)));
+            }
+            if ($tableExists('neria_queue')) {
+                $rows = $fetch("SELECT * FROM `" . _DB_PREFIX_ . "neria_queue` WHERE `id_customer` = 0 AND LOWER(`recipient_email`) = '" . $emailSql . "' ORDER BY 1");
+                if ($rows) {
+                    $out['neria_queue'] = array_merge($out['neria_queue'] ?? [], $clean($rows));
+                }
+            }
         }
 
         return $out;
@@ -1095,6 +1106,37 @@ class GdprAuditManager
                 if ($n > 0) {
                     $this->execOrFail("DELETE FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'", 'neria_bounces');
                     $total += $n;
+                }
+            }
+
+            // Round 382 : données d'envoi rattachées à l'adresse SANS compte client (id_customer = 0) — suivi
+            // (neria_stat, retrouvé par le contenu déchiffré) et file d'envoi (recipient_email). Sans ce bloc,
+            // l'effacement d'une personne sans compte laissait ses messages chiffrés (prénom, adresse…) en base.
+            $guestStat = $this->guestStatRows(strtolower($email), $idShop);
+            if (!empty($guestStat)) {
+                foreach (array_chunk(array_keys($guestStat), 500) as $chunkIds) {
+                    $this->execOrFail(
+                        'DELETE FROM `' . _DB_PREFIX_ . 'neria_stat` WHERE `id_customer` = 0 AND `id_stat` IN (' . implode(',', array_map('intval', $chunkIds)) . ')',
+                        'neria_stat'
+                    );
+                }
+                $total += count($guestStat);
+            }
+            $queueTable = _DB_PREFIX_ . 'neria_queue';
+            $queueExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($queueTable) . "'");
+            if (is_array($queueExists) && !empty($queueExists)) {
+                $nQueue = (int) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `{$queueTable}` WHERE `id_customer` = 0 AND LOWER(`recipient_email`) = '{$emailSql}'"
+                    . ($idShop > 0 ? " AND `id_shop` = {$idShop}" : ''),
+                    false
+                );
+                if ($nQueue > 0) {
+                    $this->execOrFail(
+                        "DELETE FROM `{$queueTable}` WHERE `id_customer` = 0 AND LOWER(`recipient_email`) = '{$emailSql}'"
+                        . ($idShop > 0 ? " AND `id_shop` = {$idShop}" : ''),
+                        'neria_queue'
+                    );
+                    $total += $nQueue;
                 }
             }
         }
@@ -1395,6 +1437,47 @@ class GdprAuditManager
      * puisse passer inaperçu et gonfler silencieusement le total renvoyé
      * comme "succès" au marchand.
      */
+    /**
+     * Round 382 : lignes de neria_stat SANS compte client (id_customer = 0) dont les variables du message
+     * (rendered_vars, chiffrées) contiennent exactement cette adresse. Ces lignes ne portent aucune colonne e-mail :
+     * seul le contenu déchiffré permet de les rattacher à une personne, d'où ce parcours par lots.
+     *
+     * @return array<int, array<string, mixed>> lignes complètes indexées par id_stat
+     */
+    private function guestStatRows(string $emailLower, int $idShop): array
+    {
+        $table = _DB_PREFIX_ . 'neria_stat';
+        $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($table) . "'");
+        if (!is_array($exists) || empty($exists) || $emailLower === '') {
+            return [];
+        }
+        $found  = [];
+        $lastId = 0;
+        do {
+            $rows = $this->db->executeS(
+                "SELECT * FROM `{$table}` WHERE `id_customer` = 0 AND `id_stat` > {$lastId}
+                 AND `rendered_vars` IS NOT NULL AND `rendered_vars` != ''"
+                . ($idShop > 0 ? " AND `id_shop` = {$idShop}" : '') . ' ORDER BY `id_stat` LIMIT 2000',
+                true,
+                false
+            );
+            $rows = is_array($rows) ? $rows : [];
+            foreach ($rows as $row) {
+                $lastId = (int) $row['id_stat'];
+                $raw = (string) $row['rendered_vars'];
+                if (class_exists('CryptoManager')) {
+                    $raw = \CryptoManager::decrypt($raw);
+                }
+                $vars = json_decode($raw, true);
+                if (is_array($vars) && in_array($emailLower, array_map('strtolower', array_filter($vars, 'is_string')), true)) {
+                    $found[$lastId] = $row;
+                }
+            }
+        } while (count($rows) === 2000);
+
+        return $found;
+    }
+
     private function execOrFail(string $sql, string $context): void
     {
         if (!$this->db->execute($sql)) {
