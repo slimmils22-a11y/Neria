@@ -4226,6 +4226,21 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer ne transmet plus la variante A/B à l'envoi réel (neria_variant posé pour StatsManager, tradValue() dans compileNeriaTemplate() et le sujet) — régression du bug corrigé le 24/09/2026 (round 376) : les statistiques A/B resteraient vides et le texte de la variante B ne partirait jamais dans un vrai courriel";
         }
 
+        // Round 377 (2026-09-24) : variables déclarées « automatiques » mais jamais alimentées à l'envoi manuel —
+        // {contact_url} (bouton de white_glove_apology, lien vide), {carrier_name} (delivery_attempt_failed, ligne
+        // vide) et tableau produits vide de corporate_order_confirm.
+        $erSrc377 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $msSrc377 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        $coSrc377 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/corporate_order_confirm.html');
+        if ($erSrc377 === '' || $msSrc377 === '' || $coSrc377 === ''
+            || strpos($erSrc377, '$psCommon[\'{contact_url}\'] = $psCommon[\'{contact_page_url}\'];') === false
+            || substr_count($msSrc377, '$vars[\'{carrier_name}\'] = (string) ($order[\'carrier_name\'] ?? \'\');') < 2
+            || strpos($msSrc377, 'c.`name` AS carrier_name') === false
+            || strpos($coSrc377, '{if products}') === false
+            || strpos($coSrc377, '{/if}') === false) {
+            $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
@@ -5636,7 +5651,7 @@ class HealthCheckManager
         } else {
             $posFo156 = strpos($msmSrc156, 'private function findOrder(string $ref, int $idShop): ?array');
             $foBody156 = $posFo156 !== false ? substr($msmSrc156, $posFo156, 450) : '';
-            if ($posFo156 === false || strpos($foBody156, "AND `id_shop` = ' . \$idShop . '") === false) {
+            if ($posFo156 === false || strpos($foBody156, "AND o.`id_shop` = ' . \$idShop . '") === false) {
                 $offenders[] = "ManualSendManager::findOrder() n'est plus scopé par le paramètre \$idShop explicite — régression du bug corrigé le 09/08/2026 (round 156) : un envoi manuel/planifié référençant une commande valide serait de nouveau bloqué à tort dès que l'opérateur n'est pas dans le même contexte boutique que le client destinataire";
             }
             if (strpos($msmSrc156, "\$this->findOrder(\$orderRef, \$idShop)") === false
