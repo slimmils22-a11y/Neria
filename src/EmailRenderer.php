@@ -437,6 +437,8 @@ class EmailRenderer
         // Si aucun sujet n'est fourni (ex. envoi manuel), on utilise le titre
         // principal du template (clé greeting_main) traduit dans la langue
         // détectée — réutilise les traductions existantes (19 langues).
+        $variant = $this->resolveABVariant($template, $params);
+        $params['neria_variant'] = $variant;
         if (trim((string) ($params['subject'] ?? '')) === '') {
             // Round 357 : resolveShopId($params) transmis — même correctif
             // que le multi-sender juste au-dessus (round 351) : sans lui,
@@ -444,7 +446,7 @@ class EmailRenderer
             // ({maison_name}/etc. éventuellement présentes dans greeting_main)
             // via le contexte AMBIANT (boutique de l'opérateur BO ou du
             // dernier cron actif), pas celle du destinataire réel de CET envoi.
-            $headline = $this->engine->get($template, 'greeting_main', $lang, $this->resolveShopId($params));
+            $headline = $this->tradValue($template, 'greeting_main', $lang, $this->resolveShopId($params), $variant);
             if ($headline !== '') {
                 $params['subject'] = trim(strip_tags($headline));
                 // Round 373 : les variables de l'e-mail ({milestone_count}, {firstname}…) sont aussi
@@ -470,7 +472,6 @@ class EmailRenderer
         }
 
         // â”€â”€ SÃ©lectionne la variante A/B si nÃ©cessaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        $variant = $this->resolveABVariant($template, $params);
 
         // â”€â”€ Enregistre {neria_trad} dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Round 357 : resolveShopId($params) transmis (boutique du
@@ -580,7 +581,7 @@ class EmailRenderer
         $outputName = $template . '__' . bin2hex(random_bytes(8));
         // silentIfCoreMissing=true : ce template peut être hors périmètre Neria
         // (module tiers) — cf. docblock de compileNeriaTemplate().
-        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? [], false, true, $outputName, $this->resolveShopId($params));
+        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? [], false, true, $outputName, $this->resolveShopId($params), $variant);
         if ($compiledPath !== null) {
             // ── Wrapping des liens pour le tracking de clics ─────────────
             if ($this->config->isStatsEnabled() && !empty($params['neria_token'])) {
@@ -2023,11 +2024,7 @@ class EmailRenderer
      */
     private function resolveABVariant(string $template, array $params): string
     {
-        if (!$this->config->isAbtestEnabled()) {
-            return '';
-        }
-
-        if (!class_exists('ABTestManager')) {
+        if (!class_exists('ABTestManager') || !ABTestManager::hasAnyActiveTest()) {
             return '';
         }
 
@@ -3080,6 +3077,25 @@ class EmailRenderer
     }
 
     /**
+     * Round 376 : texte d'une clé de traduction pour un envoi réel. Variante B
+     * d'un test A/B actif : le texte B s'il existe, sinon repli sur le texte
+     * standard. compileNeriaTemplate() résolvait {neria_trad} par
+     * TranslationEngine::get() seul : la fonction Smarty sensible à la
+     * variante n'est jamais utilisée pour l'envoi, si bien que la variante B
+     * n'était visible qu'en aperçu et jamais dans un vrai courriel.
+     */
+    private function tradValue(string $template, string $key, string $lang, ?int $idShop, string $variant): string
+    {
+        if ($variant === 'B' && class_exists('ABTestManager')) {
+            $abValue = (new ABTestManager($this->module))->getVariantBValue($template, $lang, $key);
+            if ($abValue !== null && $abValue !== '') {
+                return $abValue;
+            }
+        }
+        return $this->engine->get($template, $key, $lang, $idShop);
+    }
+
+    /**
      * Compile le template Neria en fichier HTML plat (sans heritage Smarty)
      * Fusionne layout.html + core/{template}.html
      */
@@ -3091,7 +3107,8 @@ class EmailRenderer
         bool $suppressResidualLog = false,
         bool $silentIfCoreMissing = false,
         ?string $outputName = null,
-        ?int $idShop = null
+        ?int $idShop = null,
+        string $variant = ''
     ): ?string {
         // Round 238 : $outputName distinct de $template — permet d'écrire le
         // fichier compilé sous un nom UNIQUE par envoi (voir applyNeriaRendering
@@ -3212,8 +3229,8 @@ class EmailRenderer
             $h = $nameHonorifics[$lang];
             $compiled = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
-                function ($mm) use ($engine, $template, $lang, $h, $idShop) {
-                    $g = self::sanitizeTranslationHtml($engine->get($template, $mm[1], $lang, $idShop));
+                function ($mm) use ($template, $lang, $h, $idShop, $variant) {
+                    $g = self::sanitizeTranslationHtml($this->tradValue($template, $mm[1], $lang, $idShop, $variant));
                     return '{firstname}' . $h['suffix'] . $h['sep'] . $g . $h['end'];
                 },
                 $compiled
@@ -3224,8 +3241,8 @@ class EmailRenderer
         $compiled = self::localizeLabelColons($compiled, $lang);
         $compiled = preg_replace_callback(
             '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
-            function ($m) use ($engine, $template, $lang, $idShop) {
-                $v = self::sanitizeTranslationHtml($engine->get($template, $m[1], $lang, $idShop));
+            function ($m) use ($template, $lang, $idShop, $variant) {
+                $v = self::sanitizeTranslationHtml($this->tradValue($template, $m[1], $lang, $idShop, $variant));
                 return $v !== '' ? $v : $m[0];
             },
             $compiled
@@ -3459,8 +3476,8 @@ class EmailRenderer
                 $h = $nameHonorifics[$lang];
                 $compiledTxt = preg_replace_callback(
                     '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
-                    function ($mm) use ($engine, $template, $lang, $h, $idShop) {
-                        $g = $engine->get($template, $mm[1], $lang, $idShop);
+                    function ($mm) use ($template, $lang, $h, $idShop, $variant) {
+                        $g = $this->tradValue($template, $mm[1], $lang, $idShop, $variant);
                         return '{firstname}' . $h['suffix'] . $h['sep'] . $g . $h['end'];
                     },
                     $compiledTxt
@@ -3482,8 +3499,8 @@ class EmailRenderer
             $compiledTxt = self::localizeLabelColons($compiledTxt, $lang);
             $compiledTxt = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
-                function ($m) use ($engine, $template, $lang, $idShop) {
-                    $v = $engine->get($template, $m[1], $lang, $idShop);
+                function ($m) use ($template, $lang, $idShop, $variant) {
+                    $v = $this->tradValue($template, $m[1], $lang, $idShop, $variant);
                     return $v !== '' ? NeriaTools::sanitizeText($v) : $m[0];
                 },
                 $compiledTxt

@@ -62,6 +62,7 @@ class ABTestManager
 
     private array $activeTestsCache = [];
     private bool  $cacheLoaded      = false;
+    private static ?bool $anyActiveCache = null;
     private ?WatchdogManager $wdm   = null;
 
     private function wd(): WatchdogManager
@@ -336,6 +337,7 @@ class ABTestManager
         // Invalide le cache
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
+        $this->syncEnabledFlag();
 
         if ($result !== false) {
             $this->wd()->info(
@@ -374,6 +376,7 @@ class ABTestManager
         // Invalide le cache
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
+        $this->syncEnabledFlag();
 
         if ($result !== false) {
             $this->wd()->info(
@@ -453,6 +456,7 @@ class ABTestManager
 
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
+        $this->syncEnabledFlag();
 
         if (!$ok) {
             $this->wd()->error(
@@ -1021,6 +1025,36 @@ class ABTestManager
     // ============================================================
     // UTILITAIRES PUBLICS
     // ============================================================
+
+    /**
+     * Round 376 : indique si AU MOINS un test A/B est actif (toutes boutiques).
+     * Remplace le réglage NERIA_ABTEST_ENABLED comme condition d'attribution
+     * d'une variante par EmailRenderer : ce réglage valait 0 à l'installation
+     * et aucun écran ni aucun code ne le passait jamais à 1, donc aucun test
+     * n'attribuait la moindre variante. Résultat mémorisé pour le process
+     * (une seule requête par envoi groupé), remis à zéro par syncEnabledFlag().
+     */
+    public static function hasAnyActiveTest(): bool
+    {
+        if (self::$anyActiveCache === null) {
+            self::$anyActiveCache = (int) \Db::getInstance()->getValue(
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . self::TABLE . '` WHERE `is_active` = 1',
+                false
+            ) > 0;
+        }
+        return self::$anyActiveCache;
+    }
+
+    /**
+     * Round 376 : aligne NERIA_ABTEST_ENABLED (lu par le Centre de contrôle)
+     * sur l'existence réelle d'un test actif — l'interrupteur affiché reflète
+     * ainsi l'état vrai, sans réglage séparé à penser à activer.
+     */
+    private function syncEnabledFlag(): void
+    {
+        self::$anyActiveCache = null;
+        \Configuration::updateGlobalValue(\ConfigManager::KEY_ABTEST_ENABLED, self::hasAnyActiveTest() ? 1 : 0);
+    }
 
     /**
      * Indique si un test est actif pour un template donne
