@@ -69,7 +69,7 @@ function run_test(): array
     neria_assert(is_array($order) && !empty($order['reference']), "Jeu de test invalide : aucune commande avec transporteur nommé");
     $email = 'regtest851-' . uniqid() . '@example.com';
     $mgr = new ManualSendManager($module);
-    $res = $mgr->scheduleManual('delivery_attempt_failed', $email, (string) $order['reference'], '', ['pickup_point_address' => 'Point relais test'], date('Y-m-d H:i:s', strtotime('+1 day')));
+    $res = $mgr->scheduleManual('delivery_attempt_failed', $email, (string) $order['reference'], '', ['pickup_point_address' => 'Point relais test', 'delivery_status' => 'Colis en point relais'], date('Y-m-d H:i:s', strtotime('+1 day')));
     try {
         neria_assert(($res['ok'] ?? false) === true, "scheduleManual() refuse un delivery_attempt_failed valide : " . json_encode($res, JSON_UNESCAPED_UNICODE));
         $json = (string) $db->getValue("SELECT vars_json FROM {$prefix}neria_queue WHERE recipient_email = '" . pSQL($email) . "'", false);
