@@ -4187,6 +4187,14 @@ class HealthCheckManager
             || strpos($loySrc374, 'NeriaTools::jsonEncode($tiers') === false) {
             $offenders[] = "WebhookManager (3 encodages) ou LoyaltyManager::saveTiers() n'utilise plus NeriaTools::jsonEncode() — régression du bug corrigé le 24/09/2026 (round 374) : sur un hébergement à serialize_precision élevé (O2switch), les payloads de webhooks et les paliers stockés porteraient de nouveau des chiffres parasites (19.12 → 19.1200000000000009947…)";
         }
+        // Suite du round 374 : caches de résultats portant des taux/scores décimaux (PageSpeed, Search Console,
+        // Postmaster, SEO, heure d'or, statistiques, réputation de domaine).
+        foreach (['GoldenHourManager', 'PageSpeedManager', 'PostmasterManager', 'SearchConsoleManager', 'SeoApiManager', 'StatsManager', 'DomainReputationManager'] as $jsonFile374) {
+            $jsonSrc374 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/' . $jsonFile374 . '.php');
+            if ($jsonSrc374 === '' || strpos($jsonSrc374, 'NeriaTools::jsonEncode(') === false) {
+                $offenders[] = "{$jsonFile374} n'encode plus ses résultats décimaux via NeriaTools::jsonEncode() — régression du correctif du 24/09/2026 (round 374) : chiffres parasites (0.05 → 0.05000000000000000277…) stockés en cache sur un hébergement à serialize_precision élevé";
+            }
+        }
 
         // Round 375 (2026-09-24) : les e-mails comportementaux LIÉS À UNE DATE (anniversaire, anniversaire de
         // relation) ne doivent pas être reportés au lendemain par la fenêtre d'achat individuelle quand l'heure
@@ -9435,7 +9443,7 @@ class HealthCheckManager
         if ($drmSrc248Raw === '' || strpos($drmSrc248, "if (!mb_check_encoding(\$hostname, 'UTF-8')) {") === false) {
             $offenders[] = "DomainReputationManager::checkPtr() ne valide plus l'encodage UTF-8 du hostname PTR — régression du bug corrigé le 30/08/2026 (round 248) : un hostname PTR (donnée exogène, publiée par le propriétaire du bloc IP inverse) contenant une séquence UTF-8 invalide referait échouer silencieusement json_encode(\$report), vidant le cache de réputation domaine à chaque visite front";
         }
-        if ($drmSrc248Raw === '' || strpos($drmSrc248, '$encodedReport = json_encode($report);') === false || strpos($drmSrc248, 'if ($encodedReport === false) {') === false) {
+        if ($drmSrc248Raw === '' || strpos($drmSrc248, '$encodedReport = \NeriaTools::jsonEncode($report);') === false || strpos($drmSrc248, 'if ($encodedReport === false) {') === false) {
             $offenders[] = "DomainReputationManager::runFullCheck() ne vérifie plus le retour de json_encode() avant l'écriture en cache — régression du bug corrigé le 30/08/2026 (round 248) : un échec d'encodage stockerait de nouveau une chaîne vide en cache tout en mettant à jour CONFIG_LAST_CHECK, empêchant toute mise en cache future pendant 24h";
         }
 
