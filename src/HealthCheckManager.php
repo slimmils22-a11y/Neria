@@ -4167,6 +4167,15 @@ class HealthCheckManager
             $offenders[] = "La liste des domaines de messagerie gratuite n'est plus consultable dans l'onglet Statistiques, ou le rappel « fournisseur non reconnu » a disparu — régression du correctif du 24/09/2026 (round 371) : le marchand ne saurait plus si son fournisseur est couvert ni qu'il peut l'ajouter";
         }
 
+        // Round 373 (2026-09-24) : le sujet dérivé du titre (greeting_main) doit recevoir les variables
+        // de l'e-mail — sinon « {milestone_count} » partait en clair dans le sujet du palier de commandes.
+        $erSrc373 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc373 === ''
+            || strpos($erSrc373, '$subjectVars') === false
+            || strpos($erSrc373, 'strtr($params[\'subject\'], $subjectVars)') === false) {
+            $offenders[] = "EmailRenderer ne substitue plus les variables de l'e-mail dans le sujet dérivé du titre — régression du bug corrigé le 24/09/2026 (round 373) : le sujet du palier de commandes repartirait avec « {milestone_count} » en clair";
+        }
+
         // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
         // $this->idShop en 4e argument à Configuration::get() — même piège
         // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
