@@ -23,6 +23,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 function run_test(): array
 {
+    neria_test_module(); // charge l'autoload du module (NeriaTools…) comme en production
     require_once _PS_MODULE_DIR_ . 'neria/src/GoldenHourManager.php';
 
     $mgr = new GoldenHourManager();

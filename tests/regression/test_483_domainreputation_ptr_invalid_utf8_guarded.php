@@ -72,7 +72,7 @@ function run_test(): array
     );
 
     neria_assert(
-        strpos($src, '$encodedReport = json_encode($report);') !== false
+        strpos($src, '$encodedReport = \NeriaTools::jsonEncode($report);') !== false
             && strpos($src, 'if ($encodedReport === false) {') !== false
             && strpos($src, 'Configuration::updateValue(self::CONFIG_CACHE, $encodedReport, false, null, $this->idShop);') !== false,
         "DomainReputationManager::runFullCheck() ne vérifie plus le retour de json_encode() avant l'écriture en cache — régression du bug corrigé le 30/08/2026 (round 248) : un échec d'encodage stockerait de nouveau une chaîne vide en cache tout en mettant à jour CONFIG_LAST_CHECK"

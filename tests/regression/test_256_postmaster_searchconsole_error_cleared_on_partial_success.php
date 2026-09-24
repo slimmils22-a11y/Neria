@@ -36,7 +36,7 @@ function run_test(): array
         substr_count($pm, 'Configuration::deleteByName(self::CONFIG_LAST_ERROR)') >= 2,
         "PostmasterManager::fetchAndCache() n'efface plus CONFIG_LAST_ERROR une 2e fois avant l'écriture du cache final — régression du bug corrigé le 09/08/2026 (round 157) : une erreur ponctuelle sur un domaine resterait affichée en BO même après un succès global"
     );
-    $posCacheWrite = strpos($pm, "\Configuration::updateValue(\$this->cacheKey(self::CONFIG_CACHE),      json_encode(\$results, JSON_UNESCAPED_UNICODE));");
+    $posCacheWrite = strpos($pm, "\Configuration::updateValue(\$this->cacheKey(self::CONFIG_CACHE),      \NeriaTools::jsonEncode(\$results, JSON_UNESCAPED_UNICODE));");
     neria_assert($posCacheWrite !== false, 'Écriture du cache Postmaster introuvable — jeu de test invalide');
     $beforeCacheWrite = substr($pm, max(0, $posCacheWrite - 1400), 1400);
     neria_assert(
@@ -50,7 +50,7 @@ function run_test(): array
         substr_count($gsc, 'Configuration::deleteByName(self::CONFIG_LAST_ERROR)') >= 2,
         "SearchConsoleManager::fetchAndCache() n'efface plus CONFIG_LAST_ERROR une 2e fois avant l'écriture du cache final — régression du bug corrigé le 09/08/2026 (round 157)"
     );
-    $posCacheWriteGsc = strpos($gsc, "\Configuration::updateValue(\$this->cacheKey(self::CONFIG_CACHE),      json_encode(\$result, JSON_UNESCAPED_UNICODE));");
+    $posCacheWriteGsc = strpos($gsc, "\Configuration::updateValue(\$this->cacheKey(self::CONFIG_CACHE),      \NeriaTools::jsonEncode(\$result, JSON_UNESCAPED_UNICODE));");
     neria_assert($posCacheWriteGsc !== false, 'Écriture du cache SearchConsole introuvable — jeu de test invalide');
     $afterCacheWriteGsc = substr($gsc, $posCacheWriteGsc, 2300);
     neria_assert(

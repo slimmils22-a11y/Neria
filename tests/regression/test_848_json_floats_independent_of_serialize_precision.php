@@ -56,6 +56,13 @@ function run_test(): array
         if ($origTiers === false || $origTiers === null || $origTiers === '') { Configuration::deleteByName(LoyaltyManager::CONFIG_TIERS); } else { Configuration::updateValue(LoyaltyManager::CONFIG_TIERS, $origTiers); }
     }
 
+    // Caches de résultats décimaux : chaque manager doit passer par l'helper (structurel, comme le reste du fichier
+    // l'exige : ces caches dépendent d'API externes et ne sont pas rejouables ici).
+    foreach (['GoldenHourManager', 'PageSpeedManager', 'PostmasterManager', 'SearchConsoleManager', 'SeoApiManager', 'StatsManager', 'DomainReputationManager'] as $file) {
+        $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/' . $file . '.php');
+        neria_assert(strpos((string) $src, 'NeriaTools::jsonEncode(') !== false, "{$file} n'utilise plus NeriaTools::jsonEncode() pour ses résultats décimaux — régression du 24/09/2026");
+    }
+
     return [
         'pass'    => true,
         'message' => "Avec serialize_precision=100 (O2switch), les payloads de webhooks (revenue 19.12, confidence 0.95) et les paliers de fidélité (0.01) sont encodés sans chiffres parasites, et le réglage PHP est restauré — bug corrigé le 24/09/2026",
