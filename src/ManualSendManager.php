@@ -839,6 +839,8 @@ class ManualSendManager
         if ($order) {
             $vars['{order_name}'] = $order['reference'];
             $vars['{id_order}']   = (int) $order['id_order'];
+            // Round 377 : {carrier_name} (delivery_attempt_failed) — déclaré « automatique » mais jamais alimenté.
+            $vars['{carrier_name}'] = (string) ($order['carrier_name'] ?? '');
             // $idShop explicite (6e argument), comme {shop_url}/{history_url}
             // ci-dessus — sans lui, ce lien retombe sur le contexte BO de
             // l'employé qui déclenche l'envoi, pas la boutique du client
@@ -1129,16 +1131,17 @@ class ManualSendManager
      *
      * @param string $ref
      * @param int    $idShop
-     * @return array|null [id_order, reference]
+     * @return array|null [id_order, reference, carrier_name]
      */
     private function findOrder(string $ref, int $idShop): ?array
     {
         $row = $this->db->getRow(
-            'SELECT `id_order`, `reference`
-             FROM `' . _DB_PREFIX_ . 'orders`
-             WHERE `reference` = \'' . pSQL($ref) . '\'
-               AND `id_shop` = ' . $idShop . '
-             ORDER BY `id_order` DESC'
+            'SELECT o.`id_order`, o.`reference`, c.`name` AS carrier_name
+             FROM `' . _DB_PREFIX_ . 'orders` o
+             LEFT JOIN `' . _DB_PREFIX_ . 'carrier` c ON c.`id_carrier` = o.`id_carrier`
+             WHERE o.`reference` = \'' . pSQL($ref) . '\'
+               AND o.`id_shop` = ' . $idShop . '
+             ORDER BY o.`id_order` DESC'
         );
 
         return (is_array($row) && !empty($row['id_order'])) ? $row : null;
@@ -1642,6 +1645,7 @@ class ManualSendManager
         if ($order) {
             $vars['{order_name}'] = $order['reference'];
             $vars['{id_order}']   = (int) $order['id_order'];
+            $vars['{carrier_name}'] = (string) ($order['carrier_name'] ?? '');
             $vars['{order_url}']  = \Context::getContext()->link->getPageLink(
                 'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']], false, $idShopManual
             );

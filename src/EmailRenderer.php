@@ -3320,6 +3320,11 @@ class EmailRenderer
             '{contact_page_url}'   => $this->context->link->getPageLink('contact', true, $urlIdLang),
             '{terms_url}'          => $this->resolveTermsUrl($urlIdLang),
         ];
+        // Round 377 : {contact_url} (bouton de white_glove_apology) n'était fourni par aucun envoi réel —
+        // le lien partait vide. Même page que {contact_page_url}, sauf valeur explicite de l'appelant.
+        if (!isset($templateVars['{contact_url}'])) {
+            $psCommon['{contact_url}'] = $psCommon['{contact_page_url}'];
+        }
         $compiled = strtr($compiled, $psCommon);
 
         // ── Résoudre les variables PS-style {var} restantes ──────────────────
