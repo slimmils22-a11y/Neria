@@ -28916,6 +28916,27 @@
         "nl": "{skipped} van de {total} klanten hebben dit type communicatie uitgeschakeld en ontvangen deze verzending niet.",
         "gb": "{skipped} of {total} customers have opted out of this type of communication and will not receive this send."
     },
+    "msg.segment_some_bounced": {
+        "fr": "{skipped} adresse(s) sur {total} sont marquées invalides (rebond) et ne recevront pas cet envoi.",
+        "en": "{skipped} of {total} addresses are flagged as invalid (bounced) and will not receive this send.",
+        "de": "{skipped} von {total} Adressen sind als ungültig (Rückläufer) markiert und erhalten diesen Versand nicht.",
+        "it": "{skipped} indirizzi su {total} sono contrassegnati come non validi (rimbalzo) e non riceveranno questo invio.",
+        "es": "{skipped} de {total} direcciones están marcadas como no válidas (rebote) y no recibirán este envío.",
+        "pt": "{skipped} de {total} endereços estão marcados como inválidos (devolvidos) e não receberão este envio.",
+        "br": "{skipped} de {total} endereços estão marcados como inválidos (devolvidos) e não receberão este envio.",
+        "ar": "{skipped} من أصل {total} عنوان مُعلَّم كغير صالح (ارتداد) ولن يتلقى هذا الإرسال.",
+        "ja": "{total}件中{skipped}件のアドレスが無効(バウンス)と判定されており、今回の送信を受信しません。",
+        "ko": "{total}개 중 {skipped}개의 주소가 유효하지 않음(반송)으로 표시되어 이번 발송을 받지 않습니다.",
+        "zh": "{total} 个地址中有 {skipped} 个被标记为无效(退信),将不会收到本次发送。",
+        "tw": "{total} 個地址中有 {skipped} 個被標記為無效(退信),將不會收到本次寄送。",
+        "ru": "{skipped} из {total} адресов помечены как недействительные (возврат) и не получат это письмо.",
+        "tr": "{total} adresten {skipped} tanesi geçersiz (geri dönen) olarak işaretlendi ve bu gönderimi almayacak.",
+        "sv": "{skipped} av {total} adresser är markerade som ogiltiga (studsade) och kommer inte att få detta utskick.",
+        "no": "{skipped} av {total} adresser er merket som ugyldige (returnert) og vil ikke motta denne utsendelsen.",
+        "da": "{skipped} ud af {total} adresser er markeret som ugyldige (afvist) og vil ikke modtage denne udsendelse.",
+        "nl": "{skipped} van de {total} adressen zijn als ongeldig (bounce) gemarkeerd en ontvangen deze verzending niet.",
+        "gb": "{skipped} of {total} addresses are flagged as invalid (bounced) and will not receive this send."
+    },
     "msg.segment_send_cancelled": {
         "fr": "Envoi annulé avant déclenchement (contrôle à blanc) : {issues}",
         "en": "Send cancelled before triggering (dry run): {issues}",

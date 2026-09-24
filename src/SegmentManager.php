@@ -571,6 +571,7 @@ class SegmentManager
         // isAllowed() par client (jusqu'à 500 requêtes SQL individuelles
         // pour un segment plein).
         $allowedCount = $recipientCount;
+        $allowedMap   = [];
         if ($recipientCount > 0 && class_exists('PreferencesManager')) {
             $preferences = new \PreferencesManager($this->module);
             $allowedMap = $preferences->isAllowedBatch(
@@ -587,6 +588,24 @@ class SegmentManager
                 // informe simplement le marchand du nombre réel attendu.
                 $issues[] = \AdminTranslator::tVars('msg.segment_some_unsubscribed', [
                     'skipped' => $recipientCount - $allowedCount,
+                    'total'   => $recipientCount,
+                ]);
+            }
+        }
+
+        // Round 379 : adresses en rebond — sendToSegment() les ignore (explicitSendBlockReason()) mais le
+        // contrôle à blanc annonçait un nombre de destinataires trop optimiste. Non bloquant.
+        if ($recipientCount > 0 && class_exists('BounceManager')) {
+            $bouncedCount = 0;
+            foreach ($customers as $bouncedCandidate) {
+                if (($allowedMap[(int) $bouncedCandidate['id_customer']] ?? true)
+                    && \BounceManager::isBounced((string) $bouncedCandidate['email'])) {
+                    $bouncedCount++;
+                }
+            }
+            if ($bouncedCount > 0) {
+                $issues[] = \AdminTranslator::tVars('msg.segment_some_bounced', [
+                    'skipped' => $bouncedCount,
                     'total'   => $recipientCount,
                 ]);
             }
