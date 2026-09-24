@@ -6,9 +6,11 @@
 
 {neria_trad key='order_reference_label'} : {order_name}
 
+{if products_txt}
 {neria_trad key='corporate_confirm_details'}
 --------------------------------
 {products_txt}
+{/if}
 
 {neria_trad key='corporate_confirm_btn'} : {history_url}
 
