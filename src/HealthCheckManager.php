@@ -4242,6 +4242,20 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 380 (2026-09-24) : delivery_attempt_failed — l'état du colis est un champ saisi par l'opérateur
+        // ({delivery_status}), le transporteur a sa propre ligne (clé delivery_attempt_carrier, 19 langues).
+        $daHtml380 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/delivery_attempt_failed.html');
+        $daTxt380  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/delivery_attempt_failed.txt');
+        $daJson380 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($daHtml380 === '' || $daTxt380 === '' || $daJson380 === ''
+            || strpos($daHtml380, ':</strong> {delivery_status}') === false
+            || strpos($daHtml380, "{neria_trad key='delivery_attempt_carrier'}") === false
+            || strpos($daTxt380, ': {delivery_status}') === false
+            || strpos($daTxt380, "{neria_trad key='delivery_attempt_carrier'}") === false
+            || substr_count($daJson380, '"delivery_attempt_carrier"') < 19) {
+            $offenders[] = "delivery_attempt_failed n'a plus son champ « état du colis » saisi par l'opérateur ({delivery_status}) et/ou sa ligne transporteur traduite en 19 langues — régression de la décision du 24/09/2026 (round 380) : le courriel afficherait de nouveau le nom du transporteur sous le libellé « État du colis »";
+        }
+
         // Round 379 (2026-09-24) : le contrôle à blanc d'une campagne segment doit compter les adresses en
         // rebond (l'envoi réel les ignore) — il annonçait un nombre de destinataires trop optimiste.
         $sgSrc379 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
