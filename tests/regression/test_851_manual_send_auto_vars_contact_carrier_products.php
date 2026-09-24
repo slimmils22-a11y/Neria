@@ -27,7 +27,8 @@ function run_test(): array
     $iso = (string) Language::getIsoById($idLang);
     $renderer = new EmailRenderer($module);
 
-    $render = static function (string $template, array $vars) use ($renderer, $idLang, $iso): string {
+    $renderTxt = '';
+    $render = static function (string $template, array $vars) use ($renderer, $idLang, $iso, &$renderTxt): string {
         $params = [
             'template' => $template, 'idLang' => $idLang, 'subject' => '',
             'to' => 'regtest851@example.com', 'toName' => 'Regtest',
@@ -36,6 +37,7 @@ function run_test(): array
         $renderer->processEmailParams($params);
         $file = _PS_MODULE_DIR_ . 'neria/mails/' . $iso . '/' . $params['template'] . '.html';
         $html = (string) @file_get_contents($file);
+        $renderTxt = (string) @file_get_contents(preg_replace('/\.html$/', '.txt', $file));
         @unlink($file);
         @unlink(preg_replace('/\.html$/', '.txt', $file));
         return $html;
@@ -57,6 +59,7 @@ function run_test(): array
     // 2. corporate_order_confirm : pas de tableau vide sans produits, tableau conservé avec produits
     $noProducts = $render('corporate_order_confirm', []);
     neria_assert($noProducts !== '' && strpos($noProducts, '<table class="neria-products-table"') === false, "corporate_order_confirm affiche un tableau produits vide sans aucun produit — régression du bug corrigé le 24/09/2026");
+    neria_assert($renderTxt !== '' && strpos($renderTxt, '--------------------------------') === false, "La version texte de corporate_order_confirm affiche un titre de tableau sans produit");
     $row = '<tr><td style="border-bottom:1px solid #ddd"><table><tr><td>REF-1</td></tr></table></td><td style="border-bottom:1px solid #ddd"><table><tr><td>Produit</td></tr></table></td><td style="border-bottom:1px solid #ddd"><table><tr><td>10,00 €</td></tr></table></td><td style="border-bottom:1px solid #ddd"><table><tr><td>1</td></tr></table></td><td style="border-bottom:1px solid #ddd"><table><tr><td>10,00 €</td></tr></table></td></tr>';
     $withProducts = $render('corporate_order_confirm', ['{products}' => $row]);
     neria_assert(strpos($withProducts, '<table class="neria-products-table"') !== false, "corporate_order_confirm ne rend plus son tableau quand des produits sont fournis");
