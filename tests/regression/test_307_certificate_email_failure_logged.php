@@ -25,7 +25,7 @@ function run_test(): array
     $body = substr($src, $posErr, 900);
 
     neria_assert(
-        strpos($body, "Certificat émis mais email non envoyé") !== false,
+        strpos($body, 'watchdog.certificate_issued_email_failed') !== false,
         "Le log Watchdog dédié à l'échec d'envoi email a disparu — régression du bug corrigé le 14/08/2026 (round 167) : un certificat 'fantôme' (créé en DB mais jamais reçu par le client) redeviendrait indétectable dans le journal"
     );
 
