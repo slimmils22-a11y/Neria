@@ -566,7 +566,7 @@ class SearchConsoleManager
             'checked_at' => \NeriaTools::formatDate('now', \AdminTranslator::currentLang(), true),
         ];
 
-        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode($result, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      \NeriaTools::jsonEncode($result, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
 
         // Round 157 : CONFIG_LAST_ERROR n'était effacé qu'une seule fois,

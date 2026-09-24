@@ -902,7 +902,7 @@ class StatsManager
         // entre boutiques.
         \Configuration::updateValue(
             'NERIA_STATS_CACHE',
-            json_encode($reports, JSON_UNESCAPED_UNICODE),
+            \NeriaTools::jsonEncode($reports, JSON_UNESCAPED_UNICODE),
             false, null, $this->idShop
         );
     }

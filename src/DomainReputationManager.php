@@ -532,7 +532,7 @@ class DomainReputationManager
      */
     private function cacheReport(array $report): void
     {
-        $encoded = json_encode($report);
+        $encoded = \NeriaTools::jsonEncode($report);
         if ($encoded === false) {
             return;
         }
@@ -635,7 +635,7 @@ class DomainReputationManager
         // getCachedReport() de retenter runFullCheck() dès le prochain
         // appel plutôt que de rester bloqué sur un cache vide jusqu'à
         // l'expiration du TTL de 24h.
-        $encodedReport = json_encode($report);
+        $encodedReport = \NeriaTools::jsonEncode($report);
         if ($encodedReport === false) {
             $this->watchdog()->error(
                 \WatchdogManager::i18nMsg('watchdog.domain_reputation_encode_failed', ['domain' => $domain ?: '?']),

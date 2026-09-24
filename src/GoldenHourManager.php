@@ -88,7 +88,7 @@ class GoldenHourManager
 
         $result = $this->computeRecommendations($days);
 
-        \Configuration::updateValue($cacheKey, json_encode($result, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($cacheKey, \NeriaTools::jsonEncode($result, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue($cacheTimeKey, time());
 
         return $result;

@@ -562,7 +562,7 @@ class PostmasterManager
         // JAMAIS exploité : chaque chargement du BO Postmaster Tools, sur
         // n'importe quelle boutique, redéclenchait un appel réel à l'API
         // Gmail Postmaster (sensible aux quotas), quel que soit le TTL.
-        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode($results, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      \NeriaTools::jsonEncode($results, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
         \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_HOST), $shopHost);
 
