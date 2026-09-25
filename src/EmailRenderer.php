@@ -617,6 +617,15 @@ class EmailRenderer
             // sur l'email de secours. Un template hors périmètre Neria (pas de
             // fichier core) est au contraire laissé tel quel à PrestaShop.
             throw new \RuntimeException(WatchdogManager::i18nMsg('watchdog.block_missing', ['template' => $template]));
+        } else {
+            // Round 395 : e-mail (natif PrestaShop nouveau, module tiers) sans modèle Neria — il part tel quel, sans
+            // traduction du corps ni du sujet. Avertissement (pas d'alerte immédiate : un module tiers ne doit pas
+            // spammer le marchand) ; les occurrences identiques sont consolidées par le Watchdog.
+            $this->watchdog()->warning(
+                WatchdogManager::i18nMsg('watchdog.template_not_covered', ['template' => $template]),
+                $template,
+                'EmailRenderer'
+            );
         }
 
         // â”€â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

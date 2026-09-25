@@ -51176,6 +51176,27 @@
         "nl": "Bestand core/{template}.html niet gevonden — de template bestaat niet in het Neria-thema.",
         "gb": "File core/{template}.html not found — the template does not exist in the Neria theme."
     },
+    "watchdog.template_not_covered": {
+        "fr": "L'e-mail « {template} » n'est pas couvert par Neria : il est parti avec le texte, le sujet et la mise en forme d'origine, sans traduction ni design Neria. Ajoutez un modèle Neria pour ce message ou contactez le support.",
+        "en": "The \"{template}\" e-mail is not covered by Neria: it was sent with its original text, subject and layout, without Neria translation or design. Add a Neria template for this message or contact support.",
+        "de": "Die E-Mail „{template}“ wird von Neria nicht abgedeckt: Sie wurde mit ursprünglichem Text, Betreff und Layout gesendet, ohne Neria-Übersetzung oder -Design. Fügen Sie eine Neria-Vorlage für diese Nachricht hinzu oder wenden Sie sich an den Support.",
+        "it": "L'e-mail «{template}» non è coperta da Neria: è stata inviata con testo, oggetto e layout originali, senza traduzione né design Neria. Aggiunga un modello Neria per questo messaggio o contatti il supporto.",
+        "es": "El correo «{template}» no está cubierto por Neria: se envió con su texto, asunto y formato originales, sin traducción ni diseño de Neria. Añada una plantilla de Neria para este mensaje o contacte con el soporte.",
+        "pt": "O e-mail «{template}» não está coberto pelo Neria: foi enviado com o texto, o assunto e o formato originais, sem tradução nem design Neria. Adicione um modelo Neria para esta mensagem ou contacte o suporte.",
+        "br": "O e-mail «{template}» não está coberto pelo Neria: foi enviado com o texto, o assunto e o formato originais, sem tradução nem design Neria. Adicione um modelo Neria para esta mensagem ou entre em contato com o suporte.",
+        "ar": "البريد الإلكتروني «{template}» غير مشمول بـ Neria: أُرسل بنصه وموضوعه وتنسيقه الأصلي دون ترجمة أو تصميم من Neria. أضيفوا نموذج Neria لهذه الرسالة أو تواصلوا مع الدعم.",
+        "ja": "メール「{template}」は Neria の対象外です。元の文面・件名・レイアウトのまま送信され、Neria の翻訳とデザインは適用されていません。このメッセージ用の Neria テンプレートを追加するか、サポートにお問い合わせください。",
+        "ko": "이메일 '{template}'은(는) Neria가 지원하지 않습니다. 원래의 문구, 제목, 레이아웃 그대로 발송되었으며 Neria의 번역과 디자인이 적용되지 않았습니다. 이 메시지용 Neria 템플릿을 추가하거나 지원팀에 문의해 주십시오.",
+        "zh": "电子邮件“{template}”不在 Neria 的覆盖范围内：它以原有的文字、主题和版式发送，未应用 Neria 的翻译和设计。请为该邮件添加 Neria 模板，或联系技术支持。",
+        "tw": "電子郵件「{template}」不在 Neria 的涵蓋範圍內：它以原有的文字、主旨和版面寄出，未套用 Neria 的翻譯與設計。請為此郵件新增 Neria 範本，或聯絡技術支援。",
+        "ru": "Письмо «{template}» не охвачено Neria: оно отправлено с исходным текстом, темой и оформлением, без перевода и дизайна Neria. Добавьте шаблон Neria для этого сообщения или обратитесь в поддержку.",
+        "tr": "«{template}» e-postası Neria kapsamında değil: özgün metni, konusu ve düzeniyle, Neria çevirisi ve tasarımı uygulanmadan gönderildi. Bu ileti için bir Neria şablonu ekleyin veya destekle iletişime geçin.",
+        "sv": "E-postmeddelandet ”{template}” täcks inte av Neria: det skickades med ursprunglig text, ämnesrad och layout, utan Neria-översättning eller -design. Lägg till en Neria-mall för meddelandet eller kontakta supporten.",
+        "no": "E-posten «{template}» dekkes ikke av Neria: den ble sendt med opprinnelig tekst, emnefelt og oppsett, uten Neria-oversettelse eller -design. Legg til en Neria-mal for denne meldingen eller kontakt kundestøtten.",
+        "da": "E-mailen »{template}« er ikke dækket af Neria: den blev sendt med den oprindelige tekst, emnelinje og layout uden Neria-oversættelse eller -design. Tilføj en Neria-skabelon til denne besked, eller kontakt supporten.",
+        "nl": "De e-mail ‘{template}’ wordt niet door Neria gedekt: hij is verzonden met de oorspronkelijke tekst, het onderwerp en de opmaak, zonder Neria-vertaling of -ontwerp. Voeg een Neria-sjabloon voor dit bericht toe of neem contact op met de support.",
+        "gb": "The \"{template}\" e-mail is not covered by Neria: it was sent with its original text, subject and layout, without Neria translation or design. Add a Neria template for this message or contact support."
+    },
     "watchdog.residual_vars_stripped": {
         "fr": "Variable(s) manquante(s) dans le template {template} : {vars} — supprimée(s) silencieusement de l'email envoyé pour éviter un affichage cassé.",
         "en": "Missing variable(s) in template {template}: {vars} — silently removed from the sent email to avoid a broken display.",
