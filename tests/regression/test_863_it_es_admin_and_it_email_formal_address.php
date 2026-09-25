@@ -25,7 +25,7 @@ function run_test(): array
         return (string) preg_replace('/\{[^}]*\}|<[^>]+>/u', ' ', $s);
     };
 
-    $itPron = '/\b(tu|tuo|tua|tuoi|tue|hai|puoi|vuoi|devi|sai|ricevi|riceverai|potrai|avrai|dovrai|vedrai|troverai|ricordati|riconnettiti)\b/iu';
+    $itPron = '/\b(tu|tuo|tua|tuoi|tue|hai|puoi|vuoi|devi|sai|ricevi|riceverai|potrai|avrai|dovrai|vedrai|troverai|sarai|farai|andrai|verrai|saprai|vorrai|scoprirai|ricordati|riconnettiti)\b/iu';
     $esPron = '/\b(tú|contigo|tu|tus|tuyo|tuya|tuyos|tuyas|eres|tienes|puedes|quieres|debes|sabes|estás|podrás|tendrás)\b/iu';
     $itTu = 'verifica controlla reinstalla configura consulta contatta clicca aggiungi elimina completa correggi imposta attiva disattiva inserisci '
         . 'apri usa utilizza scegli seleziona ricalcola aggiorna riprova monitora aumenta rigenera ripristina rimuovi sostituisci risalva salva cerca '
