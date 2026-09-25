@@ -41,6 +41,21 @@ function run_test(): array
         }
         return null;
     };
+    // Interface italienne : registre « Lei » uniforme — aucune forme « Voi » (pluriel) dans le texte courant. Exceptions :
+    // pages destinées aux clients (front.*, trace.*, unsub.*) et texte d'e-mail cité tel quel.
+    $itVoiWords = '/\b(voi|vostr[oaie]|potete|avete|siete|dovete|volete|sapete|ricevete|scegliete|incollate|usate|riducete|aggiungete|arricchite|alleggerite|puntate|sostituite|offrite|forzate)\b/iu';
+    $itVoiStart = '/(?:^|[.!?;:→—]\s+)(verificate|controllate|aumentate|contattate|inserite|salvate|configurate|attivate|impostate|assegnate|modificate|consultate|riattivate|esportate|importate|copiate|visualizzate|disattivate|programmate)\b/iu';
+    // Exceptions : texte d'e-mail cité (Voi) et participe passé « verificate » (liste vérifiée, pas un impératif)
+    $voiExempt = ['stats.anniversary_desc', 'stats.blacklist_hit_suffix'];
+    foreach ($admin as $key => $byLang) {
+        if (preg_match('/^(front|trace|unsub)\./', (string) $key) === 1 || in_array($key, $voiExempt, true)) {
+            continue;
+        }
+        $text = $plain((string) ($byLang['it'] ?? ''));
+        if (preg_match($itVoiWords, $text, $m) === 1 || preg_match($itVoiStart, $text, $m) === 1) {
+            $problems[] = "admin it {$key} : forme « Voi » « {$m[0]} » (interface au Lei)";
+        }
+    }
     $itTuSet = explode(' ', $itTu);
     $esTuSet = explode(' ', $esTu);
 
