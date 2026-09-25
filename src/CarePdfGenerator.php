@@ -64,7 +64,7 @@ class CarePdfGenerator
             $logoPath = $psLogo;
         }
 
-        [$fontSans, $fontSerif, $isRtl] = CertificateManager::pdfFontsForLang($lang);
+        [$fontSans, $fontSerif, $isRtl] = CertificateManager::pdfFontsForLang($lang, [$productName, $materials, $careInstructions, $shopName]);
 
         try {
             $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);

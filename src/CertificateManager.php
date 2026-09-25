@@ -416,7 +416,7 @@ class CertificateManager
      *
      * @return array{0: string, 1: string, 2: bool} [$fontSans, $fontSerif, $isRtl]
      */
-    public static function pdfFontsForLang(string $lang): array
+    public static function pdfFontsForLang(string $lang, array $texts = []): array
     {
         switch ($lang) {
             case 'ar':
@@ -434,9 +434,35 @@ class CertificateManager
             case 'ru':
                 // Cyrillique : dejavusans (styles complets) + freeserif
                 return ['dejavusans', 'freeserif', false];
+            case 'tr':
+                // Turquie : ğ Ğ ş Ş İ ı n'existent pas dans l'encodage WinAnsi des polices core (rendus « ? »).
+                return ['dejavusans', 'freeserif', false];
             default:
+                // Nom de client, produit ou note hors WinAnsi (polonais, tchèque, grec…) : police Unicode.
+                if (self::needsUnicodeFont($texts)) {
+                    return ['dejavusans', 'freeserif', false];
+                }
                 return ['helvetica', 'times', false];
         }
+    }
+
+    /**
+     * Round 385 : vrai si l'un des textes contient un caractère absent de l'encodage WinAnsi (Windows-1252) des
+     * polices core TCPDF — ces caractères s'y impriment « ? ».
+     *
+     * @param string[] $texts
+     */
+    public static function needsUnicodeFont(array $texts): bool
+    {
+        $winAnsi = '/[^\x{0000}-\x{007F}\x{00A0}-\x{00FF}\x{0152}\x{0153}\x{0160}\x{0161}\x{0178}\x{017D}\x{017E}'
+            . '\x{0192}\x{02C6}\x{02DC}\x{2013}\x{2014}\x{2018}-\x{201A}\x{201C}-\x{201E}\x{2020}-\x{2022}'
+            . '\x{2026}\x{2030}\x{2039}\x{203A}\x{20AC}\x{2122}]/u';
+        foreach ($texts as $text) {
+            if (is_string($text) && preg_match($winAnsi, $text) === 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -640,7 +666,7 @@ class CertificateManager
         // l'encodage WinAnsi : arabe, CJK et cyrillique s'affichent en
         // rectangles vides avec elles. Les polices ci-dessous sont fournies
         // avec TCPDF (aucune dépendance externe) et couvrent ces scripts.
-        [$fontSans, $fontSerif, $isRtl] = $this->pdfFontsForLang($lang);
+        [$fontSans, $fontSerif, $isRtl] = $this->pdfFontsForLang($lang, [$customerName, $productName, $artisanNote, $shopName]);
 
         // ── PDF ───────────────────────────────────────────────────
         try {
