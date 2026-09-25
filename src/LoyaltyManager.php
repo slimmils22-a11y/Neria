@@ -1159,7 +1159,7 @@ class LoyaltyManager
         // le réglage. Chaque boutique a donc son propre throttle et son
         // propre périmètre client/points — même schéma que checkAndReward().
         $sent = 0;
-        $shops = \Shop::getShops(true, null, true) ?: [(int) \Context::getContext()->shop->id];
+        $shops = \NeriaTools::activeShopIds() ?: [(int) \Context::getContext()->shop->id];
         foreach ($shops as $idShop) {
             $idShop = (int) $idShop;
             $lastSentKey   = self::CONFIG_RECAP_LAST_SENT . '_' . $idShop;

@@ -379,9 +379,13 @@ class QueueManager
                    AND send_at <= DATE_SUB(NOW(), INTERVAL 10 MINUTE)'
             );
 
+            // Round 391 : lignes des seules boutiques où le module est activé (les autres restent en attente).
+            $enabledShops391 = \NeriaTools::activeShopIds();
+            $shopFilter391 = !empty($enabledShops391) ? ' AND id_shop IN (' . implode(',', array_map('intval', $enabledShops391)) . ')' : '';
+
             $rows = $this->db->executeS(
                 'SELECT * FROM `' . $this->prefix . 'neria_queue`
-                 WHERE status = \'pending\'
+                 WHERE status = \'pending\'' . $shopFilter391 . '
                    AND send_at <= NOW()
                    AND attempts < ' . self::MAX_ATTEMPTS . '
                  ORDER BY send_at ASC, id_neria_queue ASC

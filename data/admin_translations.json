@@ -28727,6 +28727,27 @@
         "nl": "Succesvol opgeslagen",
         "gb": "Saved successfully"
     },
+    "msg.select_single_shop": {
+        "fr": "Modification refusée : sélectionnez une boutique précise (sélecteur de boutique en haut de page) avant d'enregistrer. Dans le contexte « Toutes les boutiques » ou « Groupe », le réglage ne serait appliqué qu'à une seule boutique.",
+        "en": "Change refused: select a specific shop (shop selector at the top of the page) before saving. In the \"All shops\" or \"Group\" context, the setting would only be applied to a single shop.",
+        "de": "Änderung abgelehnt: Wählen Sie vor dem Speichern einen bestimmten Shop aus (Shop-Auswahl oben auf der Seite). Im Kontext „Alle Shops“ oder „Gruppe“ würde die Einstellung nur auf einen einzigen Shop angewendet.",
+        "it": "Modifica rifiutata: selezioni un negozio specifico (selettore dei negozi in alto nella pagina) prima di salvare. Nel contesto «Tutti i negozi» o «Gruppo», l'impostazione verrebbe applicata a un solo negozio.",
+        "es": "Cambio rechazado: seleccione una tienda concreta (selector de tiendas en la parte superior de la página) antes de guardar. En el contexto «Todas las tiendas» o «Grupo», el ajuste solo se aplicaría a una tienda.",
+        "pt": "Alteração recusada: selecione uma loja específica (seletor de lojas no topo da página) antes de guardar. No contexto «Todas as lojas» ou «Grupo», a definição só seria aplicada a uma loja.",
+        "br": "Alteração recusada: selecione uma loja específica (seletor de lojas no topo da página) antes de salvar. No contexto «Todas as lojas» ou «Grupo», a configuração só seria aplicada a uma loja.",
+        "ar": "تم رفض التعديل: يُرجى اختيار متجر محدد (محدد المتاجر في أعلى الصفحة) قبل الحفظ. في سياق «كل المتاجر» أو «المجموعة»، سيُطبَّق الإعداد على متجر واحد فقط.",
+        "ja": "変更は受け付けられませんでした。保存する前に、特定のショップを選択してください（ページ上部のショップ切り替え）。「全ショップ」または「グループ」の状態では、設定は1つのショップにしか適用されません。",
+        "ko": "변경이 거부되었습니다. 저장하기 전에 특정 상점을 선택해 주십시오(페이지 상단의 상점 선택기). '모든 상점' 또는 '그룹' 상태에서는 설정이 한 상점에만 적용됩니다.",
+        "zh": "修改被拒绝：请在保存前选择具体的店铺（页面顶部的店铺选择器）。在“所有店铺”或“店铺组”环境下，该设置只会应用于一个店铺。",
+        "tw": "修改被拒絕：請在儲存前選擇特定的商店（頁面頂部的商店選擇器）。在「所有商店」或「商店群組」環境下，此設定只會套用到一間商店。",
+        "ru": "Изменение отклонено: перед сохранением выберите конкретный магазин (переключатель магазинов вверху страницы). В контексте «Все магазины» или «Группа» настройка применилась бы только к одному магазину.",
+        "tr": "Değişiklik reddedildi: Kaydetmeden önce belirli bir mağaza seçin (sayfanın üstündeki mağaza seçici). «Tüm mağazalar» veya «Grup» bağlamında ayar yalnızca tek bir mağazaya uygulanırdı.",
+        "sv": "Ändringen nekades: välj en specifik butik (butiksväljaren högst upp på sidan) innan du sparar. I sammanhanget ”Alla butiker” eller ”Grupp” skulle inställningen bara gälla en enda butik.",
+        "no": "Endringen ble avvist: velg en bestemt butikk (butikkvelgeren øverst på siden) før du lagrer. I konteksten «Alle butikker» eller «Gruppe» ville innstillingen bare blitt brukt på én butikk.",
+        "da": "Ændringen blev afvist: vælg en bestemt butik (butiksvælgeren øverst på siden), før du gemmer. I konteksten »Alle butikker« eller »Gruppe« ville indstillingen kun blive anvendt på én butik.",
+        "nl": "Wijziging geweigerd: selecteer een specifieke winkel (winkelselector bovenaan de pagina) voordat u opslaat. In de context ‘Alle winkels’ of ‘Groep’ zou de instelling slechts op één winkel worden toegepast.",
+        "gb": "Change refused: select a specific shop (shop selector at the top of the page) before saving. In the \"All shops\" or \"Group\" context, the setting would only be applied to a single shop."
+    },
     "msg.scheduled_success": {
         "fr": "Email planifié pour le {date}.",
         "en": "Email scheduled for {date}.",

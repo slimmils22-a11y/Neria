@@ -2188,7 +2188,7 @@ class Neria extends Module
                             // TOUTES les boutiques en un seul appel, sans
                             // filtre id_shop sur sa sélection).
                             $originalShopWebhook = \Context::getContext()->shop;
-                            $shopsWebhook = \Shop::getShops(true, null, true) ?: [(int) $originalShopWebhook->id];
+                            $shopsWebhook = \NeriaTools::activeShopIds() ?: [(int) $originalShopWebhook->id];
                             // Hors round (14/09/2026) : compte les échecs
                             // PAR boutique — jusqu'ici le heartbeat plus bas
                             // était posté 'ok' inconditionnellement même si
@@ -2245,7 +2245,7 @@ class Neria extends Module
             // recevant JAMAIS, aucun jour, faute d'être un jour traitées
             // avec leur propre id_shop.
             $originalShopCalendar = \Context::getContext()->shop;
-            $shopsCalendar = \Shop::getShops(true, null, true) ?: [(int) $originalShopCalendar->id];
+            $shopsCalendar = \NeriaTools::activeShopIds() ?: [(int) $originalShopCalendar->id];
             // Hors round (14/09/2026) : compte les échecs PAR boutique —
             // jusqu'ici le heartbeat plus bas était posté 'ok' dès qu'UNE
             // SEULE boutique réussissait, masquant les échecs des autres —
@@ -2299,7 +2299,7 @@ class Neria extends Module
             // être alertées d'une dégradation réelle (perte SPF,
             // blacklisting).
             $originalShopDR = \Context::getContext()->shop;
-            $shopsDR = \Shop::getShops(true, null, true) ?: [(int) $originalShopDR->id];
+            $shopsDR = \NeriaTools::activeShopIds() ?: [(int) $originalShopDR->id];
             // Hors round (14/09/2026) : aucun cronHeartbeat() n'était posté
             // pour ce job — même manque déjà identifié pour queue/webhook/
             // calendar (round 352 pour behavioral), le marchand n'avait
@@ -2398,7 +2398,7 @@ class Neria extends Module
                                 // au-dessus boucle déjà correctement en INTERNE,
                                 // pas d'appel en boucle nécessaire ici pour elle).
                                 $originalShopSeasonal = \Context::getContext()->shop;
-                                $shopsSeasonal = \Shop::getShops(true, null, true) ?: [(int) $originalShopSeasonal->id];
+                                $shopsSeasonal = \NeriaTools::activeShopIds() ?: [(int) $originalShopSeasonal->id];
                                 // Hors round (14/09/2026) : même pattern
                                 // "toujours ok" corrigé ci-dessus pour
                                 // calendar/domain_reputation — le heartbeat
@@ -2446,7 +2446,7 @@ class Neria extends Module
             // marchand en soit informé par email, silencieusement et
             // indéfiniment.
             $originalShopDigest = \Context::getContext()->shop;
-            $shopsDigest = \Shop::getShops(true, null, true) ?: [(int) $originalShopDigest->id];
+            $shopsDigest = \NeriaTools::activeShopIds() ?: [(int) $originalShopDigest->id];
             // Hors round (14/09/2026) : aucun cronHeartbeat() n'était posté
             // pour ce job — même manque que domain_reputation ci-dessus.
             $digestFailCount = 0;
@@ -2517,6 +2517,21 @@ class Neria extends Module
         // Enregistre le helper Smarty {neria_admin key='...'} sur l'instance
         // courante. La langue affichée = celle de l'employé connecté.
         AdminTranslator::register($this->context->smarty);
+
+        // ── Round 392 : aucun enregistrement hors contexte « une boutique » ─────
+        // Les réglages sont écrits avec l'id de la boutique du contexte : en contexte « Toutes les boutiques » ou
+        // « Groupe », ils n'étaient appliqués qu'à la boutique par défaut, sans que le marchand le sache.
+        if (\Shop::isFeatureActive()
+            && \Shop::getContext() !== \Shop::CONTEXT_SHOP
+            && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST'
+            && (string) Tools::getValue('neria_action') !== '') {
+            $_POST = [];
+            $_REQUEST = array_diff_key($_REQUEST, ['neria_action' => 1]);
+            $_GET = array_diff_key($_GET, ['neria_action' => 1]);
+            $_SERVER['REQUEST_METHOD'] = 'GET';
+            Tools::resetStaticCache();
+            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.select_single_shop'));
+        }
 
         // ── Migrations runtime (installations existantes) ─────────
         // hookDisplayBackOfficeHeader s'exécute APRÈS getContent() ;

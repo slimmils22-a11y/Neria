@@ -104,7 +104,7 @@ class MonthlyReportManager
             // dépendant de $this->idShop opérait silencieusement sur la
             // DERNIÈRE boutique itérée plutôt que la boutique voulue.
             $originalIdShop = $this->idShop;
-            $shops = \Shop::getShops(true, null, true) ?: [(int) $originalShop->id];
+            $shops = \NeriaTools::activeShopIds() ?: [(int) $originalShop->id];
 
             // Round 239 : try/finally dédié autour de la boucle — la
             // restauration de Context->shop/$this->idShop se faisait

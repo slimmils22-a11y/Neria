@@ -1222,6 +1222,29 @@ class NeriaTools
     }
 
     /**
+     * Round 391 : identifiants des boutiques actives OÙ LE MODULE EST ACTIVÉ (table module_shop). Un module désactivé
+     * pour une boutique seulement continuait sinon d'y envoyer (file d'envoi et crons bouclent sur toutes les
+     * boutiques actives). Mono-boutique : liste inchangée.
+     *
+     * @return int[]
+     */
+    public static function activeShopIds(?int $idShopGroup = null): array
+    {
+        $ids = array_values(array_map('intval', (array) \Shop::getShops(true, $idShopGroup, true)));
+        if (!\Shop::isFeatureActive() || empty($ids)) {
+            return $ids;
+        }
+        $enabled = \Db::getInstance()->executeS(
+            'SELECT ms.`id_shop` FROM `' . _DB_PREFIX_ . 'module_shop` ms
+             INNER JOIN `' . _DB_PREFIX_ . 'module` m ON m.`id_module` = ms.`id_module`
+             WHERE m.`name` = \'neria\''
+        );
+        $enabledIds = array_map('intval', array_column(is_array($enabled) ? $enabled : [], 'id_shop'));
+
+        return array_values(array_intersect($ids, $enabledIds));
+    }
+
+    /**
      * Round 378 : convertit une date/heure saisie à l'horloge de la boutique (PHP) vers l'horloge de la base
      * (MySQL) — et inversement avec un décalage négatif. neria_queue.send_at est comparé à NOW() de MySQL ;
      * une heure saisie par le marchand à l'horloge PHP partait donc avec l'écart de fuseau entre les deux

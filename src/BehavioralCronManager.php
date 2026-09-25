@@ -171,7 +171,7 @@ class BehavioralCronManager
             || (new \LicenseManager($this->module))->isEmailSendingAllowed();
 
         $originalShop = \Context::getContext()->shop;
-        $shops = \Shop::getShops(true, null, true) ?: [(int) $originalShop->id];
+        $shops = \NeriaTools::activeShopIds() ?: [(int) $originalShop->id];
 
         if ($emailSendingAllowed) {
             foreach ($shops as $idShop) {
