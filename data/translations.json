@@ -565,7 +565,7 @@
             "account_security_3": "Potete cancellare il Vostro account in qualsiasi momento su semplice richiesta.",
             "account_security_4": "Per qualsiasi domanda, il nostro servizio è a Vostra disposizione.",
             "account_ready": "Il Vostro spazio personale è ora attivo. Vi invitiamo a varcare la soglia.",
-            "account_btn": "Accedi al Vostro account",
+            "account_btn": "Accedete al Vostro account",
             "signature_thanks": "La casa è felice di annoverarVi tra i suoi,"
         },
         "es": {
@@ -859,7 +859,7 @@
             "backoffice_order_intro": "Una modifica è stata apportata al Vostro ordine dal nostro team. Vi invitiamo a consultare le informazioni di pagamento aggiornate qui di seguito.",
             "backoffice_order_payment_title": "Informazioni di pagamento aggiornate",
             "backoffice_order_payment_text": "L'importo o le modalità di pagamento sono stati modificati. Vi preghiamo di procedere alla regolarizzazione cliccando sul pulsante sottostante.",
-            "backoffice_order_btn": "Procedi al pagamento"
+            "backoffice_order_btn": "Procedete al pagamento"
         },
         "es": {
             "greeting_main": "Actualización de su pedido",
@@ -1070,7 +1070,7 @@
             "bankwire_details_label": "Dettagli del conto",
             "bankwire_address_label": "Indirizzo bancario",
             "bankwire_reference_note": "Vi preghiamo di citare la referenza",
-            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizza la cronologia del Vostro ordine</a>",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizzate la cronologia del Vostro ordine</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Tracciamento ospite</a>",
             "signature_thanks": "In attesa del Vostro bonifico, con tutta la nostra pazienza,"
         },
@@ -1851,7 +1851,7 @@
             "cheque_payable_label": "Beneficiario",
             "cheque_address_label": "Indirizzo di invio",
             "cheque_reference_note": "Vi preghiamo di citare la referenza",
-            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizza la cronologia del Vostro ordine</a>",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizzate la cronologia del Vostro ordine</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Tracciamento ospite</a>",
             "signature_thanks": "In attesa del Vostro assegno, con tutta la nostra fiducia,"
         },
@@ -2364,7 +2364,7 @@
             "order_reference_label": "Riferimento ordine",
             "contact_attachment_label": "File allegato",
             "contact_message_title": "Il Vostro messaggio",
-            "contact_btn_reply": "Rispondi via email",
+            "contact_btn_reply": "Rispondete via email",
             "dear_customer": "Gentile Cliente,"
         },
         "es": {
@@ -3218,7 +3218,7 @@
             "customer_qty_intro": "Avete manifestato interesse per un prodotto attualmente molto richiesto. Siamo lieti di informarVi che una quantità limitata è di nuovo disponibile.",
             "customer_qty_product_title": "Prodotto interessato",
             "customer_qty_back": "Di nuovo disponibile in quantità limitata:",
-            "customer_qty_btn": "Vedi prodotto",
+            "customer_qty_btn": "Vedete il prodotto",
             "customer_qty_limited": "Questa offerta è strettamente limitata alle scorte disponibili. Vi invitiamo a non indugiare.",
             "dear_customer": "Gentile Cliente,"
         },
@@ -3422,7 +3422,7 @@
             "download_title": "Download",
             "download_available": "Voi avete",
             "download_items": "prodotto/i disponibile/i per il download",
-            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizza la cronologia del Vostro ordine</a>",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizzate la cronologia del Vostro ordine</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Tracciamento ordine ospite</a>",
             "signature_thanks": "Buona scoperta del Vostro acquisto,"
         },
@@ -3659,7 +3659,7 @@
             "dear_customer": "Gentile {firstname} {lastname},",
             "eid_intro": "In occasione dell'Eid, desideriamo inviarVi i nostri più sinceri auguri.",
             "eid_message": "Che questa festa sacra Vi colmi di gioia, salute e momenti preziosi in famiglia.",
-            "eid_btn": "Scopri la nostra selezione",
+            "eid_btn": "Scoprite la nostra selezione",
             "eid_note": "Un'attenzione speciale è riservata per Voi fino alla fine della settimana.",
             "eid_signature": "Tutto il team Vi augura una bellissima celebrazione."
         },
@@ -4271,7 +4271,7 @@
             "gift_detail_3": "Consegna sicura e discreta",
             "gift_detail_4": "Possibilità di cambio o reso entro il:",
             "gift_message": "Ogni dettaglio è pensato per offrire un'esperienza unica alla persona che riceverà questo dono.",
-            "gift_btn": "Traccia il mio ordine",
+            "gift_btn": "Tracciate il Vostro ordine",
             "gift_note": "Per qualsiasi domanda sul Vostro ordine regalo, il nostro team è a Vostra disposizione."
         },
         "es": {
@@ -4524,15 +4524,15 @@
         },
         "it": {
             "greeting_main": "Il Vostro spazio personale Vi attende",
-            "greeting_subtitle": "Unisciti al nostro circolo in un solo passo",
+            "greeting_subtitle": "Unitevi al nostro circolo in un solo passo",
             "dear_customer": "Gentile {firstname} {lastname},",
             "guest_to_customer_intro": "Avete recentemente effettuato un ordine come ospite. Vi invitiamo a convertire il Vostro account ospite in un account cliente permanente per godere di numerosi vantaggi.",
             "account_info_title": "Informazioni del Vostro account",
             "account_email_label": "Indirizzo email",
             "guest_to_customer_password": "Impostate la Vostra password per attivare il Vostro account e accedere al Vostro spazio personale.",
-            "guest_to_customer_btn": "Attiva il mio spazio personale",
+            "guest_to_customer_btn": "Attivate il Vostro spazio personale",
             "guest_to_customer_benefits": "Il Vostro spazio personale vi permetterà di ritrovare i Vostri privilegi in qualsiasi momento: seguire le Vostre creazioni in transito, consultare la storia delle Vostre scelte e preparare le Vostre future visite nelle migliori condizioni.",
-            "guest_to_customer_account_link": "Accedi al mio account"
+            "guest_to_customer_account_link": "Accedete al Vostro account"
         },
         "es": {
             "greeting_main": "Su espacio personal le espera",
@@ -5144,9 +5144,9 @@
             "order_details_title": "Ordine",
             "in_transit_confirmation": "Ordine",
             "in_transit_wait": "Attualmente è in transito e Vi giungerà nei tempi previsti.",
-            "in_transit_btn": "Traccia il mio ordine",
+            "in_transit_btn": "Tracciate il Vostro ordine",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Consultare lo storico del Vostro ordine nel Vostro account cliente</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>"
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>"
         },
         "es": {
             "greeting_main": "Su selección viaja hacia usted",
@@ -6239,12 +6239,12 @@
         },
         "it": {
             "greeting_main": "Notizie dalla casa",
-            "greeting_subtitle": "Scopri le nostre ultime novità",
+            "greeting_subtitle": "Scoprite le nostre ultime novità",
             "dear_customer": "Gentile Cliente,",
-            "newsletter_intro": "Siamo lieti di condividere con voi le nostre ultime novità. Scopri di seguito le informazioni più recenti della nostra casa.",
+            "newsletter_intro": "Siamo lieti di condividere con Voi le nostre ultime novità. Scoprite di seguito le informazioni più recenti della nostra casa.",
             "newsletter_content": "Contenuto della newsletter",
-            "newsletter_update": "Per non perdere nessuna delle nostre future novità, rimani connesso.",
-            "newsletter_btn": "Scopri la maison"
+            "newsletter_update": "Per non perdere nessuna delle nostre future novità, rimanete connessi.",
+            "newsletter_btn": "Scoprite la maison"
         },
         "es": {
             "greeting_main": "Noticias de la casa",
@@ -6424,7 +6424,7 @@
             "newsletter_conf_text": "D'ora in poi riceverete per primi le nostre nuove collezioni, gli inviti privati e i momenti salienti della nostra casa — condivisi con coloro che stimiamo.",
             "newsletter_conf_promise": "La Vostra fiducia è sacra. La proteggiamo come proteggiamo la nostra reputazione: con rigore e discrezione.",
             "newsletter_conf_manage": "Potete gestire le Vostre preferenze e disiscrivervi in qualsiasi momento dal Vostro account cliente.",
-            "newsletter_conf_btn": "Accedi al mio spazio",
+            "newsletter_conf_btn": "Accedete al Vostro spazio",
             "dear_customer": "Gentile Cliente,"
         },
         "es": {
@@ -6630,7 +6630,7 @@
             "newsletter_verif_intro": "Per attivare la Vostra iscrizione alla nostra newsletter, confermate il Vostro indirizzo email cliccando sul link sottostante.",
             "newsletter_verif_title": "Verifica",
             "newsletter_verif_text": "Questo link sicuro conferma la Vostra iscrizione e Vi dà accesso a tutte le nostre notizie.",
-            "newsletter_verif_btn": "Conferma la mia iscrizione",
+            "newsletter_verif_btn": "Confermate la Vostra iscrizione",
             "newsletter_verif_ignore": "Se non avete richiesto questa iscrizione, potete ignorare questo messaggio.",
             "dear_customer": "Gentile Cliente,"
         },
@@ -6825,7 +6825,7 @@
             "newsletter_voucher_intro": "Vi ringraziamo per esservi iscritti alla nostra newsletter. Come gesto di benvenuto, ecco un codice esclusivo che Vi offre {discount} di sconto sul Vostro prossimo ordine.",
             "newsletter_voucher_code_title": "Il Vostro codice d'invito",
             "newsletter_voucher_usage": "Questo codice è valido {validity_days} giorni in tutta la nostra maison. Non può essere cumulato con altre attenzioni.",
-            "newsletter_voucher_btn": "Scopri le nostre creazioni",
+            "newsletter_voucher_btn": "Scoprite le nostre creazioni",
             "newsletter_voucher_next": "Vi auguriamo una meravigliosa scoperta dei nostri pezzi unici.",
             "voucher_code": "Codice esclusivo",
             "dear_customer": "Gentile Cliente,"
@@ -7048,8 +7048,8 @@
             "canceled_confirmation": "L'ordine",
             "canceled_info": "Questo ordine è stato annullato secondo la Vostra richiesta. Nessun importo Vi verrà addebitato.",
             "canceled_account": "Può visualizzare i dettagli di questo ordine dal Vostro account cliente.",
-            "canceled_history_link": "Visualizza lo storico dei miei ordini",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, trova il tracciamento del Vostro ordine tramite il link dedicato</a>",
+            "canceled_history_link": "Visualizzate lo storico dei Vostri ordini",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, trovate il tracciamento del Vostro ordine tramite il link dedicato</a>",
             "canceled_hope": "Speriamo di accogliervi di nuovo tra le nostre mura — nel momento che Vi sarà più congeniale.",
             "signature_regret": "Con i nostri più sinceri dispiaceri e tutta la nostra stima,"
         },
@@ -7313,8 +7313,8 @@
             "changed_confirmation": "L'ordine",
             "changed_info": "Questo ordine è stato aggiornato in base alle informazioni che ha fornito.",
             "changed_account": "Può visualizzare i dettagli di questo ordine dal Vostro account cliente.",
-            "changed_history_link": "Visualizza lo storico dei miei ordini",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, trova il tracciamento del Vostro ordine tramite il link dedicato</a>",
+            "changed_history_link": "Visualizzate lo storico dei Vostri ordini",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, trovate il tracciamento del Vostro ordine tramite il link dedicato</a>",
             "changed_thanks": "Con tutta la nostra gratitudine e il nostro orgoglio,"
         },
         "es": {
@@ -7634,8 +7634,8 @@
             "delivery_address_title": "Indirizzo di consegna",
             "invoice_address_title": "Indirizzo di fatturazione",
             "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Può seguire l'avanzamento del Vostro pacco dal Vostro account cliente</a>",
-            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizza lo storico del Vostro ordine nel Vostro account cliente</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizzate lo storico del Vostro ordine nel Vostro account cliente</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>",
             "signature_thanks": "Con tutta la nostra gratitudine e il nostro orgoglio,"
         },
         "es": {
@@ -8339,7 +8339,7 @@
             "merchant_comment_new": "È stato aggiunto un nuovo messaggio all'ordine",
             "merchant_comment_message": "Messaggio dal nostro team",
             "merchant_comment_account": "Può visualizzare lo storico del Vostro ordine dal Vostro account cliente:",
-            "merchant_comment_link": "Accedi al mio account cliente"
+            "merchant_comment_link": "Accedete al Vostro account cliente"
         },
         "es": {
             "greeting_main": "Mensaje del comerciante",
@@ -8764,7 +8764,7 @@
             "outofstock_info": "Uno dei pezzi del Vostro ordine ci sfugge momentaneamente — una situazione rarissima, che prendiamo molto seriamente.",
             "outofstock_apologies": "Ci scusiamo per questo contrattempo che non rispecchia i nostri standard. Il nostro team Vi contatterà a breve per concordare insieme la migliore soluzione.",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Può visualizzare i dettagli del Vostro ordine dal Vostro account cliente</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>",
             "outofstock_thanks": "ChiedendoVi perdono per questo contrattempo rarissimo,"
         },
         "es": {
@@ -8990,7 +8990,7 @@
             "password_update_title": "Aggiornamento password",
             "password_confirmation": "La Vostra password è stata aggiornata con successo. Ora potete accedere con le Vostre nuove credenziali.",
             "password_account_link": "Potete accedere al Vostro account cliente cliccando sul link seguente:",
-            "password_my_account": "Accedi al mio account",
+            "password_my_account": "Accedete al Vostro account",
             "password_security_note": "Se non ha effettuato questa modifica, contatti immediatamente il nostro servizio clienti."
         },
         "es": {
@@ -9199,9 +9199,9 @@
             "dear_customer": "Gentile Cliente,",
             "password_query_intro": "Abbiamo ricevuto la Vostra richiesta di reimpostazione della password.",
             "password_query_notice": "Per motivi di sicurezza, questo link è valido solo per un periodo limitato.",
-            "password_query_action": "Reimposta la mia password",
+            "password_query_action": "Reimpostate la Vostra password",
             "password_query_instructions": "Clicchi il pulsante qui sotto per impostare una nuova password.",
-            "password_query_btn": "Reimposta la mia password",
+            "password_query_btn": "Reimpostate la Vostra password",
             "password_query_ignore": "Se non ha fatto questa richiesta, può ignorare questo messaggio."
         },
         "es": {
@@ -9415,7 +9415,7 @@
             "order_details_title": "Ordine",
             "payment_confirmation": "Pagamento per l'ordine",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Può visualizzare lo storico del Vostro ordine dal Vostro account cliente</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>",
             "payment_next_steps": "I nostri artigiani si metteranno all'opera con il rispetto e la cura che ogni pezzo della nostra casa ispira.",
             "signature_thanks": "Con la nostra più profonda gratitudine,"
         },
@@ -9646,7 +9646,7 @@
             "payment_error_issue": "Pagamento per l'ordine",
             "payment_error_apologies": "Il Vostro ordine è conservato e rimane prioritario. Potete regolarizzare il Vostro pagamento quando desiderate — Vi aspettiamo.",
             "payment_error_help": "Se questo contrattempo dovesse persistere, Vi invitiamo a consultare i dettagli del Vostro ordine dal Vostro spazio personale.",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>",
             "payment_error_thanks": "Vi ringraziamo per la Vostra comprensione,"
         },
         "es": {
@@ -10116,7 +10116,7 @@
             "dear_customer": "Gentile Cliente,",
             "review_intro": "Speriamo che il Vostro pezzo abbia trovato, nella Vostra casa, il posto che merita.",
             "review_message": "Il Vostro sguardo su questa esperienza ci è infinitamente prezioso. Non per obbligo statistico, ma perché il parere di chi si fida di noi guida la nostra esigenza.",
-            "review_btn": "Condividi la mia esperienza",
+            "review_btn": "Condividete la Vostra esperienza",
             "review_note": "La Vostra opinione è preziosa per noi. Ci aiuta a capire meglio le Vostre aspettative.",
             "signature_thanks": "Il Vostro sguardo è il nostro miglior specchio,"
         },
@@ -10317,7 +10317,7 @@
             "preparation_status": "L'ordine",
             "preparation_promise": "Un know-how pazientemente coltivato, interamente al servizio di ciò che Vi aspettate — e di ciò che meritate.",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Può seguire l'evoluzione del Vostro ordine dal Vostro account cliente</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>",
             "signature_thanks": "Nell'attesa del piacere di soddisfarVi,"
         },
         "es": {
@@ -10543,7 +10543,7 @@
             "invitation_message": "In una cornice d'eccezione, lontano dal commercio ordinario, scoprirete in anteprima ciò che la nostra casa sta preparando per coloro che sanno guardare.",
             "invitation_details_title": "Dettagli dell'evento",
             "invitation_closing": "La Vostra presenza sarebbe un onore per noi. L'attendiamo.",
-            "invitation_btn": "Conferma la mia presenza",
+            "invitation_btn": "Confermate la Vostra presenza",
             "invitation_note": "Questo invito è strettamente personale e non trasferibile."
         },
         "es": {
@@ -10746,7 +10746,7 @@
             "dear_customer": "Gentile Cliente,",
             "private_sale_intro": "Abbiamo il privilegio di invitarvi alla nostra vendita privata, riservata ai nostri ospiti più preziosi.",
             "private_sale_message": "Godetevi una selezione unica di pezzi rari a condizioni privilegiate.",
-            "private_sale_btn": "Accedi alla vendita privata",
+            "private_sale_btn": "Accedete alla vendita privata",
             "private_sale_note": "Questa offerta è strettamente personale e limitata nel tempo."
         },
         "es": {
@@ -11363,7 +11363,7 @@
             "dear_customer": "Gentile Cliente,",
             "ramadan_intro": "In questo benedetto mese di Ramadan, Vi inviamo i nostri più calorosi auguri.",
             "ramadan_message": "Che questo mese benedetto Vi porti serenità interiore, la gioia della condivisione e la grazia che accompagna chi digiuna con fede.",
-            "ramadan_btn": "Scopri le nostre creazioni",
+            "ramadan_btn": "Scoprite le nostre creazioni",
             "ramadan_note": "Un'attenzione speciale è riservata per Voi durante tutto il mese sacro.",
             "ramadan_signature": "Tutto il team Vi augura un Ramadan benedetto."
         },
@@ -11563,7 +11563,7 @@
             "order_details_title": "Ordine",
             "refund_confirmation": "Rimborso per l'ordine",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Può visualizzare lo storico del Vostro ordine dal Vostro account cliente</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>",
             "refund_thanks": "Con la nostra più profonda gratitudine,",
             "order_reference_label": "Riferimento ordine"
         },
@@ -11779,7 +11779,7 @@
             "dear_customer": "Gentile Cliente,",
             "reply_msg_message": "Risposta del nostro team",
             "reply_msg_noreply": "Si prega di non rispondere a questa email automatica.",
-            "reply_msg_contact": "Per qualsiasi domanda, contattaci tramite il nostro sito."
+            "reply_msg_contact": "Per qualsiasi domanda, contattateci tramite il nostro sito."
         },
         "es": {
             "greeting_main": "Nuestro equipo le responde",
@@ -12276,7 +12276,7 @@
             "shipped_confirmation": "L'ordine",
             "shipped_wait": "È ora nelle mani del nostro corriere e Vi giungerà nei tempi previsti.",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Può visualizzare lo storico del Vostro ordine dal Vostro account cliente</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se avete ordinato come ospite, tracciate il Vostro ordine tramite il link dedicato</a>",
             "shipped_wish": "Vi auguriamo una ricezione all'altezza dell'emozione che questo pezzo porta con sé.",
             "signature_thanks": "Con tutto il nostro orgoglio e la nostra dedizione,"
         },
@@ -12682,11 +12682,11 @@
         },
         "it": {
             "greeting_main": "San Valentino",
-            "greeting_subtitle": "Celebra l'amore con un pezzo unico",
+            "greeting_subtitle": "Celebrate l'amore con un pezzo unico",
             "dear_customer": "Gentile Cliente,",
             "valentine_intro": "L'amore merita di essere celebrato con parole rare e pezzi d'eccezione. Noi ne facciamo la nostra vocazione.",
             "valentine_message": "Ogni creazione della nostra casa è nata per questo: diventare il messaggero silenzioso di un sentimento che le sole parole non bastano a esprimere.",
-            "valentine_btn": "Scopri le nostre creazioni",
+            "valentine_btn": "Scoprite le nostre creazioni",
             "valentine_note": "Un'attenzione speciale è riservata per Voi fino al 14 febbraio.",
             "valentine_signature": "Tutto il team Vi augura una meravigliosa San Valentino."
         },
@@ -12878,7 +12878,7 @@
             "dear_customer": "Gentile Cliente,",
             "vip_intro": "La Vostra eccezionale fedeltà ci tocca profondamente. È con sincera gratitudine che Vi accogliamo nel nostro circolo più esclusivo — quello che riserviamo a chi ci onora della propria fiducia duratura.",
             "vip_privileges": "Il Vostro status VIP Vi apre porte che teniamo chiuse per il resto del mondo: anteprime delle nostre nuove creazioni, inviti privati ai nostri eventi, offerte su misura e assistenza personalizzata.",
-            "vip_btn": "Scopri i miei privilegi",
+            "vip_btn": "Scoprite i Vostri privilegi",
             "vip_note": "Questo status è il riflesso della Vostra fiducia. Lo portiamo con la stessa cura che Voi ci dimostrate.",
             "signature_thanks": "Con tutta la nostra gratitudine e ammirazione,"
         },
@@ -13561,7 +13561,7 @@
             "order_reference_label": "Riferimento",
             "apology_responsibility": "Questo contrattempo non riflette in alcun modo gli standard che ci imponiamo. Ne siamo i primi ad essere colpiti, e determinati a rimanga un'eccezione assoluta.",
             "apology_solution": "Un membro del nostro team Vi contatterà personalmente entro 24 ore per concordare la soluzione più appropriata — una che, speriamo, ripristinerà la Vostra fiducia.",
-            "apology_btn": "Contatta il nostro servizio",
+            "apology_btn": "Contattate il nostro servizio",
             "apology_note": "La Vostra pazienza e gentilezza ci toccano. Ora dobbiamo meritarVela.",
             "apology_signature": "Con la nostra più sincera contrizione e il nostro impegno assoluto,"
         },
@@ -13813,7 +13813,7 @@
             "order_on_hold_reason": "Motivo dell'attesa",
             "order_on_hold_status": "Stato attuale",
             "order_on_hold_action": "Cosa potete fare?",
-            "order_on_hold_btn": "Traccia il mio ordine",
+            "order_on_hold_btn": "Tracciate il Vostro ordine",
             "order_on_hold_note": "Il nostro team rimane a Vostra disposizione per ogni domanda.",
             "order_on_hold_signature": "Con tutta la nostra attenzione,",
             "order_reference_label": "Riferimento ordine"
@@ -14077,7 +14077,7 @@
             "customs_alert_details": "Dettagli dell'alert doganale",
             "customs_alert_status": "Stato attuale",
             "customs_alert_action": "Azione raccomandata",
-            "customs_alert_btn": "Traccia il mio pacco",
+            "customs_alert_btn": "Tracciate il Vostro pacco",
             "customs_alert_note": "Il nostro team può assisterVi nelle procedure se necessario.",
             "customs_alert_signature": "Al Vostro servizio per superare questo passo,",
             "order_reference_label": "Riferimento ordine"
@@ -14330,7 +14330,7 @@
             "delivery_attempt_status": "Stato del pacco",
             "delivery_attempt_carrier": "Corriere",
             "delivery_attempt_action": "Cosa fare ora?",
-            "delivery_attempt_btn": "Visualizza le opzioni di ritiro",
+            "delivery_attempt_btn": "Visualizzate le opzioni di ritiro",
             "delivery_attempt_note": "Il pacco è conservato presso un punto di ritiro a Vostra disposizione.",
             "delivery_attempt_signature": "In attesa di servirVi,",
             "order_reference_label": "Riferimento ordine"
@@ -14844,7 +14844,7 @@
             "care_certificate_product": "Prodotto interessato",
             "care_certificate_materials": "Materiali",
             "care_certificate_instructions": "Istruzioni per la cura",
-            "care_certificate_btn": "Scarica il certificato",
+            "care_certificate_btn": "Scaricate il certificato",
             "care_certificate_note": "Il Vostro certificato è allegato a questa email in formato PDF. Vi preghiamo di conservarlo per riferimento futuro.",
             "care_certificate_signature": "Orgogliosi della qualità della nostra maestria,"
         },
@@ -15311,7 +15311,7 @@
             "dear_customer": "Gentile Cliente,",
             "exclusive_preview_intro": "Siamo lieti di offrirVi un accesso anticipato alla nostra prossima collezione. In esclusiva, prima ancora che venga rivelata al mondo.",
             "exclusive_preview_title": "Anteprima riservata",
-            "exclusive_preview_btn": "Scopri la collezione",
+            "exclusive_preview_btn": "Scoprite la collezione",
             "exclusive_preview_note": "Questo invito è personale e valido per un periodo limitato.",
             "exclusive_preview_signature": "Vi ringraziamo per la Vostra fedeltà,"
         },
@@ -15503,7 +15503,7 @@
             "dear_customer": "Gentile Cliente,",
             "concierge_followup_intro": "Il nostro servizio concierge desidera assicurarsi che la Vostra esperienza con la nostra casa sia all'altezza delle Vostre aspettative.",
             "concierge_followup_title": "Bisogno di un'attenzione speciale?",
-            "concierge_followup_btn": "Contatta il mio consulente",
+            "concierge_followup_btn": "Contattate il Vostro consulente",
             "concierge_followup_note": "Siamo a disposizione per accompagnarVi in ogni dettaglio del Vostro percorso.",
             "concierge_followup_signature": "Al Vostro servizio, in ogni circostanza,"
         },
@@ -16271,7 +16271,7 @@
             "dear_customer": "Gentile Cliente,",
             "new_year_intro": "All'inizio di questo anno, desideriamo accompagnarVi con i nostri più sinceri auguri.",
             "new_year_message": "Che questo nuovo anno sia per Voi un sentiero di dolcezza, successo e belle scoperte.",
-            "new_year_btn": "Scopri le nostre creazioni",
+            "new_year_btn": "Scoprite le nostre creazioni",
             "new_year_note": "Un'attenzione speciale è riservata per Voi fino alla fine del mese.",
             "new_year_signature": "Tutto il team Vi augura un eccellente anno."
         },
@@ -17044,7 +17044,7 @@
             "end_of_year_message": "Questo gesto riflette la preziosa relazione che abbiamo con Voi.",
             "end_of_year_voucher_value": "Il Vostro codice sconto",
             "end_of_year_usage": "Valido {validity_days} giorni in tutta la nostra boutique. Non cumulabile con altre offerte.",
-            "end_of_year_btn": "Scopri la mia selezione",
+            "end_of_year_btn": "Scoprite la Vostra selezione",
             "end_of_year_signature": "Con tutta la nostra gratitudine,"
         },
         "es": {
@@ -17250,7 +17250,7 @@
             "dear_customer": "Gentile Cliente,",
             "wishlist_intro": "Uno dei pezzi che avete distinto nella Vostra lista dei desideri è nuovamente disponibile.",
             "wishlist_details": "Dettagli del pezzo",
-            "wishlist_btn": "Vedi il pezzo",
+            "wishlist_btn": "Vedete il pezzo",
             "wishlist_note": "La disponibilità è limitata. Vi invitiamo a non indugiare.",
             "wishlist_signature": "Al Vostro servizio,"
         },
@@ -17442,7 +17442,7 @@
             "dear_customer": "Gentile Cliente,",
             "early_access_intro": "In riconoscenza della Vostra fedeltà, Vi apriamo l'accesso alla nostra nuova collezione prima della sua uscita ufficiale.",
             "early_access_details": "Collezione in anteprima",
-            "early_access_btn": "Accedi alla collezione",
+            "early_access_btn": "Accedete alla collezione",
             "early_access_note": "Questo accesso anticipato è strettamente personale e limitato nel tempo.",
             "early_access_signature": "Siamo lieti di condividere questo momento con Voi,"
         },
@@ -17849,7 +17849,7 @@
             "loyalty_expiry_intro": "La ricompensa che avete ottenuto attraverso il nostro programma fedeltà scadrà presto.",
             "loyalty_expiry_details": "Dettagli della ricompensa",
             "loyalty_expiry_date_label": "Data di scadenza",
-            "loyalty_expiry_btn": "Usa la mia ricompensa",
+            "loyalty_expiry_btn": "Usate la Vostra ricompensa",
             "loyalty_expiry_note": "Questa ricompensa è valida fino alla data indicata. Dopodiché non potrà più essere utilizzata.",
             "loyalty_expiry_signature": "Speriamo di farVi piacere,"
         },
@@ -18059,7 +18059,7 @@
             "dear_customer": "Gentile Cliente,",
             "repair_request_intro": "Abbiamo ricevuto la Vostra richiesta di riparazione o modifica del Vostro pezzo.",
             "repair_request_details": "Dettagli della richiesta",
-            "repair_request_btn": "Traccia la mia richiesta",
+            "repair_request_btn": "Tracciate la Vostra richiesta",
             "repair_request_note": "Il nostro team Vi contatterà per confermare le modalità del servizio.",
             "repair_request_signature": "Al Vostro servizio,",
             "order_reference_label": "Riferimento ordine"
@@ -18485,7 +18485,7 @@
             "alteration_update_intro": "Vi informiamo sull'avanzamento della modifica su misura del Vostro pezzo. Ecco le ultime notizie.",
             "alteration_update_details": "Dettagli del progresso",
             "alteration_update_status": "Stato attuale",
-            "alteration_update_btn": "Segui il progresso",
+            "alteration_update_btn": "Seguite il progresso",
             "alteration_update_note": "Il nostro team rimane a Vostra disposizione per ogni domanda.",
             "alteration_update_signature": "Al Vostro servizio,",
             "order_reference_label": "Riferimento ordine"
@@ -18717,7 +18717,7 @@
             "dear_customer": "Gentile Cliente,",
             "extended_warranty_intro": "Siamo lieti di informarVi che la Vostra garanzia estesa è ora attiva per il pezzo in questione.",
             "extended_warranty_details": "Dettagli della garanzia",
-            "extended_warranty_btn": "Visualizza i termini",
+            "extended_warranty_btn": "Visualizzate i termini",
             "extended_warranty_period_label": "Durata della garanzia",
             "extended_warranty_end_label": "Valida fino al",
             "extended_warranty_note": "Vi preghiamo di conservare questa conferma come prova della Vostra garanzia estesa.",
@@ -19217,7 +19217,7 @@
             "quote_ref_label": "Riferimento preventivo:",
             "quote_total_label": "Importo:",
             "quote_expiry_label": "Scade il:",
-            "quote_expiry_48h_btn": "Conferma il mio ordine",
+            "quote_expiry_48h_btn": "Confermate il Vostro ordine",
             "quote_expiry_48h_help": "Il nostro team è a Vostra completa disposizione per qualsiasi domanda o adeguamento prima della conferma.",
             "quote_expiry_48h_note": "Questo preventivo scadrà il {expiry_date}. Dopo tale data, le condizioni di prezzo concordate potrebbero non essere più garantite.",
             "quote_expiry_48h_signature": "Con la nostra distinta considerazione,"
@@ -19466,7 +19466,7 @@
             "quote_ref_label": "Riferimento preventivo:",
             "quote_total_label": "Importo:",
             "quote_expiry_label": "Scade il:",
-            "quote_expiry_day_btn": "Convalida il mio preventivo ora",
+            "quote_expiry_day_btn": "Convalidate il Vostro preventivo ora",
             "quote_expiry_day_help": "Per qualsiasi domanda urgente, il nostro team è disponibile e pronto ad assisterVi.",
             "quote_expiry_day_note": "Questo preventivo scade oggi. Una volta scaduto, le condizioni di prezzo concordate potranno essere soggette a modifiche.",
             "quote_expiry_day_signature": "Con la nostra distinta considerazione,"
@@ -20182,7 +20182,7 @@
             "dear_customer": "Gentile Cliente,",
             "corporate_confirm_intro": "Confermiamo la ricezione del Vostro ordine per conto della Vostra azienda. Sarà elaborato con tutta l'attenzione che un tale impegno merita.",
             "corporate_confirm_details": "Dettagli dell'ordine aziendale",
-            "corporate_confirm_btn": "Traccia il mio ordine",
+            "corporate_confirm_btn": "Tracciate il Vostro ordine",
             "corporate_confirm_note": "Il nostro team dedicato alle relazioni aziendali è a Vostra disposizione.",
             "corporate_confirm_signature": "Al Vostro servizio per questa partnership,",
             "order_reference_label": "Riferimento ordine",
@@ -20473,7 +20473,7 @@
             "dear_customer": "Gentile Cliente,",
             "gift_message_confirm_intro": "Confermiamo che il messaggio che avete allegato al Vostro ordine regalo è stato registrato con successo.",
             "gift_message_confirm_details": "Contenuto del messaggio",
-            "gift_message_confirm_btn": "Visualizza il mio ordine",
+            "gift_message_confirm_btn": "Visualizzate il Vostro ordine",
             "gift_message_confirm_note": "Il destinatario riceverà questo messaggio con il suo pacco.",
             "gift_message_confirm_signature": "Con tutta la nostra attenzione,",
             "order_reference_label": "Riferimento ordine"
@@ -20688,7 +20688,7 @@
             "shipped_delay_intro": "Vi informiamo che la spedizione del Vostro ordine sta subendo un ritardo imprevisto. Stiamo facendo tutto il possibile per risolverlo al più presto.",
             "shipped_delay_details": "Dettagli del ritardo",
             "shipped_delay_new_date": "Ritardo aggiuntivo stimato fino al",
-            "shipped_delay_btn": "Traccia il mio ordine",
+            "shipped_delay_btn": "Tracciate il Vostro ordine",
             "shipped_delay_note": "Vi terremo aggiornati su eventuali sviluppi. Ci scusiamo per il disagio.",
             "shipped_delay_signature": "Con tutta la nostra considerazione,",
             "order_reference_label": "Riferimento ordine"
@@ -20914,7 +20914,7 @@
             "dear_customer": "Gentile Cliente,",
             "partial_shipped_intro": "Il Vostro ordine è stato suddiviso in più pacchi per facilitare la spedizione. Una parte di esso è già in viaggio verso di Voi.",
             "partial_shipped_details": "Dettagli dei pacchi spediti",
-            "partial_shipped_btn": "Traccia i miei pacchi",
+            "partial_shipped_btn": "Tracciate i Vostri pacchi",
             "partial_shipped_note": "Vi terremo aggiornati sulla spedizione dei pacchi rimanenti.",
             "partial_shipped_signature": "Con tutta la nostra attenzione,",
             "order_reference_label": "Riferimento ordine"
@@ -21125,7 +21125,7 @@
             "dear_customer": "Gentile Cliente,",
             "return_received_intro": "Confermiamo che il pacco contenente il Vostro reso è giunto al nostro team. Sarà gestito con tutta la dovuta attenzione.",
             "return_received_details": "Dettagli del reso",
-            "return_received_btn": "Traccia il mio reso",
+            "return_received_btn": "Tracciate il Vostro reso",
             "return_received_note": "Vi terremo aggiornati sull'avanzamento della lavorazione.",
             "return_received_signature": "Al Vostro servizio,",
             "order_reference_label": "Riferimento ordine"
@@ -21339,7 +21339,7 @@
             "dear_customer": "Gentile Cliente,",
             "refund_processed_intro": "Confermiamo che la procedura di rimborso per il Vostro ordine è stata finalizzata con successo.",
             "refund_processed_details": "Dettagli del rimborso",
-            "refund_processed_btn": "Visualizza il mio ordine",
+            "refund_processed_btn": "Visualizzate il Vostro ordine",
             "refund_processed_note": "L'importo verrà accreditato sul Vostro conto secondo i tempi abituali della Vostra banca.",
             "refund_processed_signature": "Al Vostro servizio,",
             "order_reference_label": "Riferimento ordine",
@@ -21579,7 +21579,7 @@
             "loyalty_tier_points_label": "Totale punti",
             "loyalty_voucher_intro": "Il Vostro buono sconto esclusivo",
             "loyalty_voucher_value": "Valore",
-            "loyalty_tier_btn": "Scopri i miei nuovi privilegi",
+            "loyalty_tier_btn": "Scoprite i Vostri nuovi privilegi",
             "loyalty_tier_note": "Questo status Vi apre porte che riserviamo ai più fedeli.",
             "loyalty_tier_signature": "Con tutta la nostra riconoscenza,"
         },
@@ -21851,7 +21851,7 @@
             "loyalty_recap_next_tier": "Livello successivo",
             "loyalty_recap_points_left": "pt rimanenti",
             "loyalty_recap_max_tier": "Congratulazioni — avete raggiunto il nostro livello più alto.",
-            "loyalty_recap_btn": "Scopri le nostre novità",
+            "loyalty_recap_btn": "Scoprite le nostre novità",
             "loyalty_recap_note": "I Vostri punti vengono accreditati automaticamente ad ogni interazione con le nostre email.",
             "loyalty_recap_signature": "Con tutta la nostra riconoscenza,"
         },
@@ -22118,7 +22118,7 @@
             "dear_customer": "Gentile Cliente,",
             "win_back_intro": "Abbiamo pensato a Voi e speriamo che stiate bene. Le nostre creazioni continuano ad evolversi e vorremmo farvele riscoprire.",
             "win_back_message": "Abbiamo preparato una selezione che potrebbe piacervi. Un'attenzione delicata, senza impegno.",
-            "win_back_btn": "Scopri la nostra selezione",
+            "win_back_btn": "Scoprite la nostra selezione",
             "win_back_note": "Saremmo lieti di accogliervi di nuovo.",
             "win_back_signature": "Nell'attesa di rivedervi,"
         },
@@ -22505,7 +22505,7 @@
             "dear_customer": "Gentile Cliente,",
             "bespoke_ready_intro": "Siamo lieti di annunciare che il Vostro ordine su misura è ora pronto. I nostri artigiani hanno dato vita alla Vostra visione.",
             "bespoke_ready_details": "Dettagli del Vostro pezzo",
-            "bespoke_ready_btn": "Segui la consegna",
+            "bespoke_ready_btn": "Seguite la consegna",
             "bespoke_ready_note": "Vi ringraziamo per la Vostra pazienza. Questo pezzo unico è finalmente pronto per raggiungervi.",
             "bespoke_ready_signature": "Orgogliosi di averVi accompagnato in questa creazione,",
             "order_reference_label": "Riferimento ordine"
@@ -22716,7 +22716,7 @@
             "dear_customer": "Gentile Cliente,",
             "shopper_intro": "Siamo lieti di presentarVi il Vostro consulente personale, dedicato a guidarVi nelle Vostre scelte e a soddisfare i Vostri desideri.",
             "shopper_details": "Il Vostro consulente dedicato",
-            "shopper_btn": "Contatta il mio consulente",
+            "shopper_btn": "Contattate il Vostro consulente",
             "shopper_note": "Conosce i Vostri gusti e può guidarVi verso pezzi che Vi somigliano.",
             "shopper_signature": "Al Vostro servizio, con attenzione,",
             "shopper_name_label": "Il Vostro consulente"
@@ -22928,7 +22928,7 @@
             "packaging_choice_intro": "Prima della spedizione, Vi invitiamo a scegliere l'imballaggio che accompagnerà il Vostro pezzo. Un modo per prolungare l'esperienza.",
             "packaging_choice_options": "Opzioni di imballaggio disponibili",
             "packaging_choice_options_desc": "Diversi astucci, pochette e cofanetti sono disponibili per impreziosire il Vostro pezzo.",
-            "packaging_choice_btn": "Scegli il mio imballaggio",
+            "packaging_choice_btn": "Scegliete il Vostro imballaggio",
             "packaging_choice_note": "Presteremo particolare attenzione alla Vostra scelta.",
             "packaging_choice_signature": "Al Vostro servizio,"
         },
@@ -23135,7 +23135,7 @@
             "dear_customer": "Gentile Cliente,",
             "reorder_reminder_intro": "Abbiamo pensato a un pezzo che potrebbe completare la Vostra collezione o suscitare un nuovo interesse nella nostra maison.",
             "reorder_reminder_details": "Pezzo suggerito",
-            "reorder_reminder_btn": "Vedi il pezzo",
+            "reorder_reminder_btn": "Vedete il pezzo",
             "reorder_reminder_note": "Speriamo che questo suggerimento Vi ispiri.",
             "reorder_reminder_signature": "Al Vostro servizio,"
         },
@@ -23325,13 +23325,13 @@
             "carbon_method": "Methodik"
         },
         "it": {
-            "footer_visit": "Visita la nostra casa",
+            "footer_visit": "Visitate la nostra casa",
             "footer_order_history": "Storico ordini",
             "footer_guest_tracking": "Tracciamento ospite",
             "footer_legal": "Note legali",
-            "footer_unsubscribe": "Annulla iscrizione",
+            "footer_unsubscribe": "Annullate l'iscrizione",
             "order_reference_label": "Riferimento ordine",
-            "footer_preferences": "Gestisci le mie preferenze",
+            "footer_preferences": "Gestite le Vostre preferenze",
             "carbon_label": "Impronta stimata di questa email",
             "carbon_method": "metodologia"
         },
@@ -23549,7 +23549,7 @@
             "order_details_title": "Ordine",
             "delivered_confirmation": "Il Vostro ordine",
             "delivered_hope": "Speriamo che questo pezzo Vi porti tanta gioia quanto ne ha portata ai nostri artigiani crearlo.",
-            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizza la cronologia del Vostro ordine</a>",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizzate la cronologia del Vostro ordine</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Tracciamento ospite</a>",
             "delivered_note": "Per qualsiasi domanda sul Vostro ordine, il nostro servizio clienti è a Vostra disposizione.",
             "signature_thanks": "Con tutta la nostra gratitudine e il nostro orgoglio,"
@@ -23926,7 +23926,7 @@
             "checkout_abandonment_intro": "Abbiamo notato che stavate per completare il Vostro ordine. A volte un problema tecnico si presenta all'ultimo momento — un errore 3DS, un timeout di connessione o un'ultima esitazione.",
             "checkout_abandonment_reassure": "Il Vostro carrello è salvato e la Vostra selezione Vi aspetta esattamente dove l'avete lasciata.",
             "checkout_abandonment_help": "Se avete incontrato un problema di pagamento, il nostro team è disponibile per aiutarVi a completare l'ordine in tutta tranquillità.",
-            "checkout_abandonment_btn": "Completa il mio ordine",
+            "checkout_abandonment_btn": "Completate il Vostro ordine",
             "checkout_abandonment_note": "Non è richiesta alcuna azione da parte Vostra — il Vostro carrello è preservato.",
             "checkout_abandonment_signature": "Con tutta la nostra attenzione,"
         },
@@ -24133,7 +24133,7 @@
             "dear_customer": "Gentile Cliente,",
             "lifespan_intro": "Ha acquistato {product_name} {estimated_days} giorni fa. Secondo la nostra stima, il Suo prodotto potrebbe stare per esaurirsi.",
             "lifespan_message": "Se desidera rinnovare la Sua esperienza, questo è il momento ideale — prima che finisca.",
-            "lifespan_btn": "Rinnova il mio acquisto",
+            "lifespan_btn": "Rinnovate il Vostro acquisto",
             "lifespan_note": "Nessun obbligo naturalmente — è semplicemente un promemoria amichevole da parte nostra.",
             "lifespan_signature": "Con tutta la nostra attenzione,"
         },
@@ -24325,7 +24325,7 @@
             "dear_customer": "Gentile Cliente,",
             "reconciliation_1_intro": "Desideriamo confermarVi personalmente che il Vostro rimborso è attualmente in fase di elaborazione.",
             "reconciliation_1_message": "La Vostra richiesta è stata ricevuta e ci assicuriamo che venga trattata con tutta l'attenzione che merita.",
-            "reconciliation_1_btn": "Consulta i miei ordini",
+            "reconciliation_1_btn": "Consultate i Vostri ordini",
             "reconciliation_1_note": "Per qualsiasi domanda, il nostro team rimane a Vostra disposizione.",
             "reconciliation_1_signature": "Con tutta la nostra considerazione,"
         },
@@ -24517,7 +24517,7 @@
             "dear_customer": "Gentile Cliente,",
             "reconciliation_2_intro": "Abbiamo pensato a Voi in questi giorni e desideriamo ringraziarVi per la Vostra pazienza.",
             "reconciliation_2_message": "In segno della nostra stima, abbiamo preparato un'attenzione esclusiva per Voi — senza condizioni, senza pressioni.",
-            "reconciliation_2_btn": "Scopri il nostro invito",
+            "reconciliation_2_btn": "Scoprite il nostro invito",
             "reconciliation_2_note": "Questa attenzione è riservata a Voi. Il nostro team rimane a Vostra disposizione per qualsiasi necessità.",
             "reconciliation_2_signature": "Con la nostra sincera gratitudine,"
         },
@@ -24901,7 +24901,7 @@
             "dear_customer": "Gentile Cliente,",
             "relationship_anniversary_intro": "Sono passati {years_label} da quando ci ha accordato la sua fiducia per la prima volta. Non lo abbiamo dimenticato.",
             "relationship_anniversary_message": "La sua fedeltà è la nostra più grande ricompensa. Siamo felici di averla tra i nostri clienti più preziosi.",
-            "relationship_anniversary_btn": "Vedi i miei acquisti",
+            "relationship_anniversary_btn": "Vedete i Vostri acquisti",
             "relationship_anniversary_note": "Grazie di far parte della storia della nostra casa.",
             "relationship_anniversary_signature": "Con tutta la nostra gratitudine,"
         },
@@ -25332,7 +25332,7 @@
             "collection_completion_pieces_bought": "Pezzi già acquisiti ({bought_count}/{total_count})",
             "collection_completion_one_left": "ne manca uno solo",
             "collection_completion_missing_label": "Il pezzo mancante",
-            "collection_completion_cta": "Completa la mia collezione",
+            "collection_completion_cta": "Completate la Vostra collezione",
             "collection_completion_note": "Questo suggerimento è basato sui Vostri acquisti precedenti all'interno di questa collezione."
         },
         "es": {
@@ -25546,7 +25546,7 @@
             "complete_your_look_greeting": "Buongiorno",
             "complete_your_look_title": "Completate il Vostro look",
             "complete_your_look_intro": "Il Vostro ordine è appena arrivato — speriamo che Vi piaccia. Ecco alcuni pezzi che si abbinano perfettamente al Vostro acquisto.",
-            "complete_your_look_cta": "Scopri",
+            "complete_your_look_cta": "Scoprite",
             "complete_your_look_note": "Questa selezione è stata composta appositamente per Voi, in armonia con il Vostro acquisto recente."
         },
         "es": {
@@ -25708,7 +25708,7 @@
             "waitlist_title": "Avete aspettato {days_waited} giorno/i. Non l'abbiamo dimenticato.",
             "waitlist_intro": "Questo articolo è di nuovo disponibile — e poiché eravate qui prima di tutti gli altri, Vi concediamo un accesso prioritario esclusivo.",
             "waitlist_reservation": "Vi consigliamo di completare l'acquisto entro {reservation_hours} ora/e da questa notifica — trascorso questo termine, la disponibilità non è più garantita.",
-            "waitlist_cta": "Vedi il prodotto",
+            "waitlist_cta": "Vedete il prodotto",
             "waitlist_note": "Ricevete questa notifica perché avete chiesto di essere avvisati quando questo prodotto tornasse disponibile."
         },
         "es": {
@@ -25900,7 +25900,7 @@
             "ghost_cart_title": "Questo articolo ha catturato la Vostra attenzione",
             "ghost_cart_intro": "Abbiamo notato che avete aggiunto questo articolo al carrello più volte. Se qualcosa Vi trattiene — una domanda su taglie, materiali, tempi di consegna o altro — il nostro team è a Vostra disposizione.",
             "ghost_cart_product_label": "L'articolo che Vi interessa:",
-            "ghost_cart_cta": "Vedi il prodotto",
+            "ghost_cart_cta": "Vedete il prodotto",
             "ghost_cart_note": "Nessuna pressione — siamo semplicemente qui se avete domande."
         },
         "es": {
@@ -26136,7 +26136,7 @@
             "certificate_pdf_label_certified_date": "Certificato il",
             "certificate_pdf_label_owner": "Proprietario",
             "certificate_pdf_label_order": "Ordine",
-            "certificate_pdf_qr_hint": "Scansiona questo codice QR per verificare l'autenticità di questo certificato",
+            "certificate_pdf_qr_hint": "Scansionate questo codice QR per verificare l'autenticità di questo certificato",
             "certificate_pdf_signature": "{shop_name} — Firma ufficiale",
             "certificate_pdf_footer": "Questo documento è un certificato ufficiale emesso da {shop_name}.",
             "certificate_pdf_default_title": "Certificato di Autenticità",
