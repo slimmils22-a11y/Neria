@@ -1001,7 +1001,7 @@
         "fr": {
             "greeting_main": "Votre commande est entre de bonnes mains",
             "greeting_subtitle": "En attente de votre virement",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "bankwire_intro": "Votre commande a été enregistrée avec succès. Elle sera traitée dès réception de votre virement bancaire.",
             "order_details_title": "Commande",
             "bankwire_status": "En attente de virement",
@@ -1364,7 +1364,7 @@
         "fr": {
             "greeting_main": "Ce jour vous appartient",
             "greeting_subtitle": "Toute la maison vous célèbre",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "birthday_intro": "En ce jour singulier, toute notre équipe pense à vous. L'anniversaire d'une personne d'exception mérite d'être célébré avec l'éclat qu'il mérite.",
             "birthday_message": "Nous avons le bonheur de vous offrir ce geste, en témoignage de l'estime que nous vous portons — et du plaisir que nous avons à vous compter parmi nous.",
             "birthday_voucher_value": "Votre code d'attention",
@@ -1575,7 +1575,7 @@
         "fr": {
             "greeting_main": "L'authenticité de votre pièce",
             "greeting_subtitle": "Un savoir-faire rare, une histoire unique",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "certificate_intro": "Chaque pièce que nous proposons est accompagnée d'un certificat de provenance garantissant son authenticité et son origine.",
             "certificate_origin_title": "Origine",
             "certificate_materials_title": "Matériaux & techniques",
@@ -1786,7 +1786,7 @@
         "fr": {
             "greeting_main": "Votre commande est entre de bonnes mains",
             "greeting_subtitle": "En attente de votre chèque",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "cheque_intro": "Votre commande a été enregistrée avec succès. Elle sera traitée dès réception de votre chèque.",
             "order_details_title": "Commande",
             "cheque_status": "En attente de chèque",
@@ -2130,7 +2130,7 @@
         "fr": {
             "greeting_main": "Joyeuses fêtes",
             "greeting_subtitle": "Que cette saison soit douce et lumineuse",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "christmas_intro": "En cette saison où la lumière triomphe du froid, notre maison pense à vous avec une chaleur toute particulière.",
             "christmas_message": "Que ces fêtes vous offrent ce que le quotidien donne trop rarement : du temps, de la douceur, et la compagnie de ceux qui comptent.",
             "christmas_btn": "Découvrir nos créations",
@@ -2552,7 +2552,7 @@
         "fr": {
             "greeting_main": "Votre demande a bien été transmise",
             "greeting_subtitle": "Nous vous répondrons dans les meilleurs délais",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "contact_form_intro": "Nous avons bien reçu votre message concernant votre commande. Voici un récapitulatif des informations que vous nous avez communiquées :",
             "contact_form_summary": "Récapitulatif de votre demande",
             "order_reference_label": "Référence commande",
@@ -2801,7 +2801,7 @@
         "fr": {
             "greeting_main": "Votre création s'épanouit",
             "greeting_subtitle": "Dans les ateliers, elle prend vie",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "craftsmanship_intro": "Nous sommes heureux de vous informer que votre commande évolue dans notre atelier.",
             "craftsmanship_status_title": "Étape actuelle",
             "craftsmanship_message": "Notre artisan met tout son soin à donner vie à votre pièce unique. Nous vous tiendrons informé à chaque étape.",
@@ -2974,7 +2974,7 @@
         "fr": {
             "greeting_main": "Un geste de bonne foi",
             "greeting_subtitle": "Nous honorons notre engagement envers vous",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "order_details_title": "Commande",
             "credit_slip_title": "Avoir",
             "credit_slip_confirmation": "Un avoir a été créé pour votre commande",
@@ -3377,7 +3377,7 @@
         "fr": {
             "greeting_main": "Votre acquisition numérique vous attend",
             "greeting_subtitle": "Votre création numérique est prête",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "download_intro": "Nous vous remercions pour votre commande. Les produits numériques suivants sont désormais disponibles au téléchargement.",
             "order_details_title": "Commande",
             "download_title": "Téléchargements",
@@ -3626,7 +3626,7 @@
         "fr": {
             "greeting_main": "Joyeuse fête de l'Aïd",
             "greeting_subtitle": "Que cette journée vous apporte paix et sérénité",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "eid_intro": "À l'occasion de l'Aïd, nous tenions à vous adresser nos vœux les plus sincères.",
             "eid_message": "Que cette fête sacrée vous comble de bonheur, de santé et de moments précieux partagés en famille.",
             "eid_btn": "Découvrir notre sélection",
@@ -4221,7 +4221,7 @@
         "fr": {
             "greeting_main": "Votre cadeau est prêt",
             "greeting_subtitle": "Une attention particulière pour vos proches",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "gift_intro": "Nous sommes heureux de vous confirmer que votre commande cadeau est en cours de préparation avec le plus grand soin.",
             "gift_details_title": "Ce que nous garantissons",
             "gift_detail_1": "Emballage cadeau luxueux et soigné",
@@ -4489,7 +4489,7 @@
         "fr": {
             "greeting_main": "Votre espace personnel vous attend",
             "greeting_subtitle": "Rejoignez notre cercle en une seule étape",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "guest_to_customer_intro": "Vous avez récemment passé commande en tant qu'invité. Nous vous invitons à transformer votre compte invité en espace personnel permanent pour profiter de nombreux privilèges.",
             "account_info_title": "Informations de votre compte",
             "account_email_label": "Adresse email",
@@ -4719,7 +4719,7 @@
         "fr": {
             "greeting_main": "Halloween, nuit d'exception",
             "greeting_subtitle": "Laissez-vous envoûter par notre sélection",
-            "dear_customer": "Madame, Monsieur {lastname},",
+            "dear_customer": "Madame, Monsieur,",
             "halloween_intro": "À l'occasion d'Halloween, nous avons préparé pour vous une atmosphère unique, mêlant mystère et élégance.",
             "halloween_message": "Plongez dans un univers où chaque détail compte. Découvrez nos créations d'exception pour une soirée inoubliable.",
             "halloween_btn": "Découvrir nos créations",
@@ -11969,7 +11969,7 @@
             "return_slip_date_label": "Data dell'ordine",
             "return_slip_message_title": "Messaggio del cliente",
             "return_slip_delivery_title": "Indirizzo di consegna",
-            "return_slip_admin_note": "Ricevi questa email perché il tuo indirizzo è registrato per le notifiche di reso (modulo Avvisi email di PrestaShop)."
+            "return_slip_admin_note": "Ricevete questa email perché il Vostro indirizzo è registrato per le notifiche di reso (modulo Avvisi email di PrestaShop)."
         },
         "es": {
             "return_slip_order_label": "Pedido",
@@ -15791,7 +15791,7 @@
         },
         "tr": {
             "greeting_main": "Babalar günü",
-            "greeting_subtitle": "Sana çok şey veren kişiyi kutlayın",
+            "greeting_subtitle": "Size çok şey veren kişiyi kutlayın",
             "dear_customer": "Sayın Değerli Misafirimiz,",
             "fathers_day_intro": "Babaları onurlandıran bu günde, köklerinizi, tutkularınızı, sessizliklerinizi şekillendiren kişiyi düşünüyoruz.",
             "fathers_day_message": "Ona en nadir olanı sunun: kelimesiz, minnettarlığınızı anlatan bir parça.",
