@@ -482,8 +482,17 @@ class Neria extends Module
         }
     }
 
+    /**
+     * Boutique du dernier envoi en cours (voir hookActionMailAlterMessageBeforeSend).
+     * Propriété non typée : neria.php doit rester analysable sous PHP 7.2 (message d'erreur d'installation).
+     *
+     * @var int
+     */
+    private static $currentSendShopId = 0;
+
     private function hookActionEmailSendBeforeImpl(array &$params): bool
     {
+        self::$currentSendShopId = (int) ($params['idShop'] ?? 0);
         // ── Témoin silencieux : copie BCC de CHAQUE email envoyé ──────
         // Volontairement avant tout autre traitement (y compris le check
         // bounce/cooldown) : si l'un de ces contrôles bloque l'envoi plus
@@ -719,8 +728,12 @@ class Neria extends Module
                 return;
             }
 
-            $shopEmail = (string) Configuration::get('PS_SHOP_EMAIL');
-            $httpsUrl  = $this->getUnsubscribeUrl($email);
+            // Round 389 : boutique RÉELLE du message en cours d'envoi (posée par
+            // hookActionEmailSendBefore, appelé juste avant dans Mail::Send()) —
+            // sans elle, le lien pointait vers la boutique ambiante.
+            $idShopMsg = self::$currentSendShopId;
+            $shopEmail = (string) Configuration::get('PS_SHOP_EMAIL', null, null, $idShopMsg > 0 ? $idShopMsg : null);
+            $httpsUrl  = $this->getUnsubscribeUrl($email, '', $idShopMsg);
 
             $values = [];
             if ($shopEmail !== '' && Validate::isEmail($shopEmail)) {
@@ -751,7 +764,7 @@ class Neria extends Module
      * @param string $email
      * @return string URL absolue, ou '' si email invalide
      */
-    public function getUnsubscribeUrl(string $email, string $lang = ''): string
+    public function getUnsubscribeUrl(string $email, string $lang = '', int $idShop = 0): string
     {
         $email = Tools::strtolower(trim($email));
         if ($email === '' || !Validate::isEmail($email)) {
@@ -790,7 +803,8 @@ class Neria extends Module
             'unsubscribe',
             $params,
             true,
-            $idLang ?: null
+            $idLang ?: null,
+            $idShop > 0 ? $idShop : null
         );
     }
 

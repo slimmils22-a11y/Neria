@@ -529,7 +529,7 @@ class EmailRenderer
             if (is_array($unsubTo)) {
                 $unsubTo = reset($unsubTo);
             }
-            $params['templateVars']['{unsubscribe_url}'] = $this->module->getUnsubscribeUrl((string) $unsubTo, $lang);
+            $params['templateVars']['{unsubscribe_url}'] = $this->module->getUnsubscribeUrl((string) $unsubTo, $lang, $this->resolveShopId($params));
 
             // Lien du centre de préférences (pied de page du layout global) —
             // même destinataire, résolu au client si connu (cf. resolveCustomerId).
@@ -585,7 +585,7 @@ class EmailRenderer
         if ($compiledPath !== null) {
             // ── Wrapping des liens pour le tracking de clics ─────────────
             if ($this->config->isStatsEnabled() && !empty($params['neria_token'])) {
-                $this->wrapLinksInFile($compiledPath, (string) $params['neria_token'], (int) ($params['idLang'] ?? 0));
+                $this->wrapLinksInFile($compiledPath, (string) $params['neria_token'], (int) ($params['idLang'] ?? 0), $this->resolveShopId($params));
             }
 
             if (isset($params['templatePath'])) {
@@ -896,7 +896,7 @@ class EmailRenderer
                 '{custom_message}'     => '',
                 '{custom_message_txt}' => '',
                 '{subject}'            => $subject,
-                '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl($to, $lang),
+                '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl($to, $lang, $idShopFallback),
                 // {preferences_url} manquait ici — layout.html (partagé avec
                 // le flux normal) rend alors un lien "Gérer mes préférences"
                 // cassé (href="") dans CHAQUE email de secours, exactement
@@ -1721,7 +1721,17 @@ class EmailRenderer
             // NeriaTools::displayPrice($idLang) — pas Tools::getContextLocale($ctx)
             // en premier recours : ce dernier lit $ctx->getCurrentLocale(),
             // figé indépendamment de la langue du destinataire (round 99).
-            return \NeriaTools::displayPrice((float) $rule->reduction_amount, $ctx->currency, $idLang);
+            // Round 389 : devise DU BON (reduction_currency), pas celle du contexte ambiant — un bon de 20 € de la
+            // boutique 2 s'affichait « 20,00 $ » quand le processus tournait sous la boutique 1 (et déclenchait un
+            // TypeError fatal quand le contexte n'avait aucune devise). Repli : devise du contexte, puis devise par
+            // défaut de la boutique.
+            $ruleCurrency = (int) $rule->reduction_currency > 0 ? new \Currency((int) $rule->reduction_currency) : null;
+            if ($ruleCurrency === null || !\Validate::isLoadedObject($ruleCurrency)) {
+                $ruleCurrency = $ctx->currency instanceof \Currency
+                    ? $ctx->currency
+                    : new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop));
+            }
+            return \NeriaTools::displayPrice((float) $rule->reduction_amount, $ruleCurrency, $idLang);
         }
 
         return '';
@@ -1850,7 +1860,8 @@ class EmailRenderer
             'track',
             ['t' => $token, 'e' => 'open'],
             true, // HTTPS forcÃ©
-            $trackIdLang
+            $trackIdLang,
+            $this->resolveShopId($params)
         );
 
         // Pixel HTML 1Ã—1 invisible â€” compatible tous clients email
@@ -1914,7 +1925,7 @@ class EmailRenderer
      * Permet de compter les clics et d'identifier le visiteur pour l'attribution.
      * Liens ignorés : mailto, tel, #, javascript, déjà trackés, désabonnement.
      */
-    private function wrapLinksInFile(string $filePath, string $token, int $idLang = 0): void
+    private function wrapLinksInFile(string $filePath, string $token, int $idLang = 0, int $idShop = 0): void
     {
         if (!file_exists($filePath) || !is_readable($filePath)) {
             return;
@@ -1928,14 +1939,15 @@ class EmailRenderer
         // haut : sans lui, ces liens de clic restent préfixés par la langue
         // du contexte admin/cron plutôt que celle réelle de l'email.
         $wrapIdLang = $idLang > 0 ? $idLang : null;
+        $wrapIdShop = $idShop > 0 ? $idShop : null;
 
         // Matche uniquement les balises <a …> pour ne pas wrapper les <link>
         $wrapped = preg_replace_callback(
             '/<a(\s[^>]*)>/i',
-            function ($m) use ($token, $wrapIdLang) {
+            function ($m) use ($token, $wrapIdLang, $wrapIdShop) {
                 $attrs = preg_replace_callback(
                     '/\bhref=(["\'])(https?:\/\/[^"\'>\s]+)\1/i',
-                    function ($am) use ($token, $wrapIdLang) {
+                    function ($am) use ($token, $wrapIdLang, $wrapIdShop) {
                         $quote = $am[1];
                         // html_entity_decode() : $am[2] est capturé dans le HTML
                         // DÉJÀ compilé (attribut href déjà échappé) — une URL de
@@ -1972,7 +1984,8 @@ class EmailRenderer
                                 's'   => NeriaTools::signTrackingUrl($token, $url),
                             ],
                             true,
-                            $wrapIdLang
+                            $wrapIdLang,
+                            $wrapIdShop
                         );
                         return 'href=' . $quote . $trackUrl . $quote;
                     },

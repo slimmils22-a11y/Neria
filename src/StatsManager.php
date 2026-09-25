@@ -58,12 +58,20 @@ class StatsManager
         return $this->watchdog;
     }
 
-    private function webhook(): \WebhookManager
+    /**
+     * Round 389 : gestionnaire de webhooks de la boutique de l'événement (et non de la boutique ambiante) —
+     * l'envoi d'un client de la boutique 2 déclenchait sinon le webhook de la boutique 1.
+     */
+    private function webhook(int $idShop = 0): \WebhookManager
     {
-        if ($this->webhookMgr === null) {
-            $this->webhookMgr = new \WebhookManager($this->module);
+        if ($idShop <= 0 || $idShop === $this->idShop) {
+            if ($this->webhookMgr === null) {
+                $this->webhookMgr = new \WebhookManager($this->module);
+            }
+            return $this->webhookMgr;
         }
-        return $this->webhookMgr;
+
+        return new \WebhookManager($this->module, $idShop);
     }
 
     // ============================================================
@@ -78,8 +86,18 @@ class StatsManager
         // déclenchés par un client connecté : id_customer arrive à 0 même si
         // un compte existe avec cette adresse. On le retrouve par email pour
         // que l'historique (fiche client) reste fiable.
+        // Round 389 : boutique RÉELLE de l'envoi (Mail::Send() la transmet
+        // toujours dans $params['idShop']). La file d'attente traite en un
+        // seul passage les lignes de toutes les boutiques sous le contexte
+        // ambiant de la première : la ligne « envoyé » d'un client de la
+        // boutique 2 était enregistrée id_shop = 1 et id_customer = 0
+        // (Customer::customerExists() cherche dans la boutique ambiante).
+        $idShopSend = (int) ($params['idShop'] ?? 0);
+        if ($idShopSend <= 0) {
+            $idShopSend = $this->idShop;
+        }
         if ($idCustomer === 0) {
-            $idCustomer = $this->resolveCustomerIdByEmail($params['to'] ?? '');
+            $idCustomer = $this->resolveCustomerIdByEmail($params['to'] ?? '', $idShopSend);
         }
 
         $this->record(
@@ -88,6 +106,7 @@ class StatsManager
             $params['neria_token']    ?? '',
             self::EVENT_SENT,
             [
+                'id_shop'       => $idShopSend,
                 'id_customer'   => $idCustomer,
                 // Round 184 : $params['idOrder'] n'existe nulle part dans le
                 // module (clé jamais définie par aucun appelant) — chaque
@@ -110,7 +129,7 @@ class StatsManager
             ]
         );
 
-        $this->webhook()->trigger('email_sent', [
+        $this->webhook($idShopSend)->trigger('email_sent', [
             'template'       => $params['neria_template'] ?? '',
             'lang'           => $params['neria_lang']     ?? '',
             'customer_id'    => $idCustomer,
@@ -122,7 +141,7 @@ class StatsManager
      * Retrouve l'id_customer correspondant à une adresse email, pour les
      * envois qui n'ont pas de client connecté en contexte (ex. newsletter).
      */
-    private function resolveCustomerIdByEmail($to): int
+    private function resolveCustomerIdByEmail($to, int $idShop = 0): int
     {
         if (is_array($to)) {
             $to = reset($to) ?: '';
@@ -130,6 +149,15 @@ class StatsManager
         $to = trim((string) $to);
         if ($to === '' || !\Validate::isEmail($to)) {
             return 0;
+        }
+
+        if ($idShop > 0) {
+            $id = (int) $this->db->getValue(
+                'SELECT `id_customer` FROM `' . _DB_PREFIX_ . 'customer`
+                 WHERE `email` = \'' . pSQL($to) . '\' AND `id_shop` = ' . $idShop . '
+                   AND `is_guest` = 0 AND `deleted` = 0'
+            );
+            return $id > 0 ? $id : 0;
         }
 
         $id = (int) \Customer::customerExists($to, true);
@@ -224,6 +252,7 @@ class StatsManager
                 $token,
                 self::EVENT_OPEN,
                 [
+                    'id_shop'      => (int) $sent['id_shop'],
                     'id_customer'  => (int) $sent['id_customer'],
                     'id_order'     => (int) $sent['id_order'],
                     'country_code' => $sent['country_code'],
@@ -233,7 +262,7 @@ class StatsManager
             );
 
             if (!$isMpp) {
-                $this->webhook()->trigger('email_opened', [
+                $this->webhook((int) $sent['id_shop'])->trigger('email_opened', [
                     'template'       => $sent['template'],
                     'lang'           => $sent['lang'],
                     'customer_id'    => (int) $sent['id_customer'],
@@ -305,6 +334,7 @@ class StatsManager
                 $token,
                 self::EVENT_CLICK,
                 [
+                    'id_shop'      => (int) $sent['id_shop'],
                     'id_customer'  => (int) $sent['id_customer'],
                     'id_order'     => (int) $sent['id_order'],
                     'country_code' => $sent['country_code'],
@@ -360,7 +390,7 @@ class StatsManager
                  `revenue`, `ip_address`, `user_agent`, `date_add`)
              VALUES (%d, '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', %s, %s, '%s', '%s', NOW())",
             $table,
-            $this->idShop,
+            (int) ($extra['id_shop'] ?? $this->idShop),
             pSQL($template),
             pSQL($lang),
             pSQL($extra['country_code'] ?? $this->resolveCountryCode()),
@@ -1036,7 +1066,7 @@ class StatsManager
             $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
         }
 
-        $this->webhook()->trigger('conversion', [
+        $this->webhook((int) $sent['id_shop'])->trigger('conversion', [
             'template'       => $sent['template'],
             'lang'           => $sent['lang'],
             'customer_id'    => (int) $sent['id_customer'],

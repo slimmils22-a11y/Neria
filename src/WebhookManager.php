@@ -57,11 +57,11 @@ class WebhookManager
     private int $idShop;
     private ?WatchdogManager $watchdog = null;
 
-    public function __construct(Neria $module)
+    public function __construct(Neria $module, ?int $idShop = null)
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
-        $this->idShop = (int) \Context::getContext()->shop->id;
+        $this->idShop = $idShop !== null && $idShop > 0 ? $idShop : (int) \Context::getContext()->shop->id;
     }
 
     private function watchdog(): WatchdogManager
