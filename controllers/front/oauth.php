@@ -57,11 +57,11 @@ class NeriaOauthModuleFrontController extends ModuleFrontController
 
         if ($error !== '') {
             $msg = urlencode(\AdminTranslator::tVars('msg.oauth_cancelled', ['error' => $error]));
-            \Tools::redirectAdmin($returnUrl . '&neria_error=' . $msg);
+            $this->redirectBack($returnUrl . '&neria_error=' . $msg);
         }
 
         if ($code === '' || $state === '') {
-            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.oauth_missing_params')));
+            $this->redirectBack($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.oauth_missing_params')));
         }
 
         try {
@@ -80,9 +80,23 @@ class NeriaOauthModuleFrontController extends ModuleFrontController
         }
 
         if ($ok) {
-            \Tools::redirectAdmin($returnUrl . '&neria_success=' . urlencode(\AdminTranslator::t('msg.postmaster_oauth_connected')));
+            $this->redirectBack($returnUrl . '&neria_success=' . urlencode(\AdminTranslator::t('msg.postmaster_oauth_connected')));
         } else {
-            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.postmaster_oauth_exchange_failed')));
+            $this->redirectBack($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.postmaster_oauth_exchange_failed')));
         }
+    }
+
+    /**
+     * Round 393 : Tools::redirectAdmin lève une erreur fatale depuis un contrôleur front sur PrestaShop 9
+     * (constante _PS_ADMIN_DIR_ absente) — le retour OAuth répondait toujours HTTP 500. Redirection directe vers
+     * l'URL de retour enregistrée avec le state ; sans URL valide, retour à l'accueil de la boutique.
+     */
+    private function redirectBack(string $url): void
+    {
+        if (preg_match('#^https?://#i', $url) === 1 && filter_var((string) strtok($url, '#'), FILTER_VALIDATE_URL) !== false) {
+            header('Location: ' . $url);
+            exit;
+        }
+        \Tools::redirect($this->context->link->getBaseLink());
     }
 }
