@@ -4262,6 +4262,20 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 394 (2026-09-25, décision utilisateur) : Neria traduit TOUS les sujets d'e-mails (clé « subject » du dictionnaire,
+        // appliquée à la place du sujet fourni par PrestaShop) — sinon sujets d'états de commande en anglais dans toutes les
+        // langues ajoutées après l'installation.
+        $erSrc394 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $trSrc394 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($erSrc394 === '' || $trSrc394 === ''
+            || strpos($erSrc394, '$dictSubject = $this->dictionarySubject($template, $lang, $params, $variant);') === false
+            || strpos($erSrc394, 'private function dictionarySubject(string $template, string $lang, array $params, string $variant): string') === false
+            || strpos($trSrc394, '"subject": "Paiement accepté"') === false
+            || strpos($trSrc394, '"subject": "お支払いを確認しました"') === false
+            || strpos($trSrc394, '"subject": "Nouvelle commande {order_name}"') === false) {
+            $offenders[] = "Le sujet des e-mails n'est plus traduit par Neria (dictionnaire « subject » ou EmailRenderer::dictionarySubject) — régression de la décision du 25/09/2026 (round 394) : les sujets natifs (états de commande, mot de passe, bons...) repartiraient dans la langue du pack PrestaShop, en anglais pour toute langue ajoutée après l'installation";
+        }
+
         // Round 393 (2026-09-25) : les callbacks OAuth front ne doivent pas appeler Tools::redirectAdmin() (fatal hors
         // back-office sur PrestaShop 9 : HTTP 500 permanent, connexion Postmaster/Search Console impossible).
         foreach (['oauth', 'oauthsc'] as $oauthCtl393) {
@@ -17379,6 +17393,7 @@ class HealthCheckManager
             '1.0.35' => ['type' => 'column', 'table' => 'neria_upsell', 'name' => 'id_shop'],
             '1.0.36' => ['type' => 'index',  'table' => 'neria_queue', 'name' => 'uq_customer_template_ref_shop'],
             '1.0.49' => ['type' => 'index_column', 'table' => 'neria_queue', 'index' => 'uq_customer_template_ref_shop', 'name' => 'recipient_email'],
+            '1.0.50' => ['type' => 'translation_key', 'template' => 'order_conf', 'name' => 'subject'],
         ];
 
         $failures = [];
@@ -17445,6 +17460,12 @@ class HealthCheckManager
                 return (bool) $this->db->getValue(
                     "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation`
                      WHERE `template` = '" . pSQL($rule['name']) . "'"
+                );
+
+            case 'translation_key':
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation`
+                     WHERE `template` = '" . pSQL($rule['template']) . "' AND `translation_key` = '" . pSQL($rule['name']) . "'"
                 );
 
             case 'translation_lang':
