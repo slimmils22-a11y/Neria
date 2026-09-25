@@ -4242,6 +4242,37 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 386 (2026-09-25) : l'import CSV des traductions (texte et variante B) doit retirer le préfixe
+        // anti-formule ajouté à l'export, sinon « -10 % » revient « '-10 % » en base (et dans les e-mails).
+        $mainSrc386 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($mainSrc386 === ''
+            || strpos($mainSrc386, 'private function csvFormulaRestore(string $value): string') === false
+            || substr_count($mainSrc386, '$this->csvFormulaRestore((string) $line[3])') < 2) {
+            $offenders[] = "L'import CSV des traductions ne retire plus le préfixe anti-formule de l'export (csvFormulaRestore) — régression du bug corrigé le 25/09/2026 (round 386) : un export puis un import ajouterait une apostrophe devant les textes commençant par - + = @";
+        }
+
+        // Round 385 bis (2026-09-25) : formule d'appel française « Madame, Monsieur {nom} » (agrammaticale, 13 modèles
+        // dont birthday) et tutoiements italien/turc des e-mails — corrigés dans data/translations.json.
+        $trData385 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($trData385 === ''
+            || strpos($trData385, '"dear_customer": "Madame, Monsieur {lastname},"') !== false
+            || strpos($trData385, 'il tuo indirizzo è registrato per le notifiche di reso') !== false
+            || strpos($trData385, '"Sana çok şey veren kişiyi kutlayın"') !== false) {
+            $offenders[] = "data/translations.json contient de nouveau « Madame, Monsieur {nom} » en français ou un tutoiement (italien return_slip, turc fathers_day) — régression du correctif du 25/09/2026 (round 385) : les clients français recevraient « Madame, Monsieur Durand, » et la règle de vouvoiement serait violée";
+        }
+
+        // Round 385 (2026-09-25) : les PDF (certificat, fiche d'entretien) doivent utiliser une police Unicode en turc
+        // et pour tout texte hors WinAnsi — les polices core TCPDF impriment « ? » pour ğ ş İ ı, Ł, ż…
+        $pdfCert385 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        $pdfCare385 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CarePdfGenerator.php');
+        if ($pdfCert385 === '' || $pdfCare385 === ''
+            || strpos($pdfCert385, "case 'tr':") === false
+            || strpos($pdfCert385, 'public static function needsUnicodeFont(array $texts): bool') === false
+            || strpos($pdfCert385, '$this->pdfFontsForLang($lang, [$customerName, $productName, $artisanNote, $shopName])') === false
+            || strpos($pdfCare385, 'pdfFontsForLang($lang, [$productName, $materials, $careInstructions, $shopName])') === false) {
+            $offenders[] = "Les PDF (certificat, fiche d'entretien) n'utilisent plus de police Unicode pour le turc et les textes hors WinAnsi — régression du bug corrigé le 25/09/2026 (round 385) : ğ, ş, İ, ı, Ł, ż… s'imprimeraient « ? » (nom du client compris)";
+        }
+
         // Round 384 (2026-09-24) : la clé unique de neria_queue doit porter recipient_email — sinon un envoi planifié
         // d'un modèle à une adresse SANS compte (id_customer = 0) bloque ce modèle pour toutes les autres adresses libres.
         $sqlSrc384 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/sql/install.sql');
