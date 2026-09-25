@@ -4251,6 +4251,7 @@ class HealthCheckManager
             || strpos($adminTr388, 'presso il tuo host') !== false
             || strpos($adminTr388, 'Contacta con soporte') !== false
             || strpos($adminTr388, 'Attivate la riga') !== false
+            || strpos($adminTr388, 'Sarai avvisato/a') !== false
             || strpos($adminTr388, 'Verificate che') !== false
             || strpos($adminTr388, 'incollate qui la Vostra') !== false
             || strpos($adminTr388, 'compruebe que la tarea cron esté activa en tu hosting') !== false
