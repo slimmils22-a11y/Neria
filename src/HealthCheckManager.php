@@ -4242,6 +4242,22 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 388 (2026-09-25) : plus de tutoiement dans l'interface d'administration italienne/espagnole ni dans les
+        // e-mails italiens (phrases sentinelles de l'ancien texte).
+        $adminTr388 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/admin_translations.json');
+        $mailTr388  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($adminTr388 === '' || $mailTr388 === ''
+            || strpos($adminTr388, 'Se gestisci più negozi') !== false
+            || strpos($adminTr388, 'presso il tuo host') !== false
+            || strpos($adminTr388, 'Contacta con soporte') !== false
+            || strpos($adminTr388, 'compruebe que la tarea cron esté activa en tu hosting') !== false
+            || strpos($adminTr388, 'comprueba que la tarea cron esté activa en tu hosting') !== false
+            || strpos($mailTr388, '"Scopri la nostra selezione"') !== false
+            || strpos($mailTr388, 'Se ha ordinato come ospite, trova il tracciamento') !== false
+            || strpos($mailTr388, '"Accedi al Vostro account"') !== false) {
+            $offenders[] = "Un tutoiement est réapparu dans l'interface d'administration italienne/espagnole ou dans les e-mails italiens (data/admin_translations.json, data/translations.json) — régression de la décision du 25/09/2026 (round 388) : vouvoiement obligatoire (Lei/usted dans l'interface, Voi/Vostro dans les e-mails)";
+        }
+
         // Round 387 (2026-09-25) : dates japonaises/coréennes/chinoises sans zéro devant le mois et le jour.
         $ntSrc387 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
         if ($ntSrc387 === ''
