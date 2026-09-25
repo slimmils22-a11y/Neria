@@ -4242,6 +4242,35 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 389 (2026-09-25, P10 multi-boutique réel) : boutique RÉELLE de l'envoi ($params['idShop'] de
+        // Mail::Send()) pour les statistiques, les webhooks, le lien de désabonnement, List-Unsubscribe, le pixel et les
+        // liens de clic. Sans elle, un client de la boutique 2 était compté dans la boutique 1 (id_customer = 0) et son
+        // lien « Se désabonner » le désabonnait dans la boutique 1 seulement (il continuait de recevoir du marketing).
+        $stSrc389 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        $erSrc389 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $mainSrc389 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $whSrc389 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        if ($stSrc389 === '' || $erSrc389 === '' || $mainSrc389 === '' || $whSrc389 === ''
+            || strpos($stSrc389, "'id_shop'       => \$idShopSend,") === false
+            || strpos($stSrc389, '$this->webhook($idShopSend)->trigger(\'email_sent\'') === false
+            || strpos($stSrc389, "'id_shop'      => (int) \$sent['id_shop'],") === false
+            || strpos($whSrc389, 'public function __construct(Neria $module, ?int $idShop = null)') === false
+            || strpos($erSrc389, 'getUnsubscribeUrl((string) $unsubTo, $lang, $this->resolveShopId($params))') === false
+            || strpos($erSrc389, '$wrapIdLang,' . "\n" . '                            $wrapIdShop') === false
+            || strpos($mainSrc389, 'public function getUnsubscribeUrl(string $email, string $lang = \'\', int $idShop = 0): string') === false
+            || strpos($mainSrc389, "\$this->getUnsubscribeUrl(\$email, '', \$idShopMsg)") === false) {
+            $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
+        }
+
+        // Round 390 (2026-09-25, P10) : montant d'un bon affiché dans la devise du BON (reduction_currency) et non celle du
+        // contexte ambiant (« 20,00 $ » pour un bon de 20 € d'une autre boutique ; TypeError si le contexte n'a pas de devise).
+        if ($erSrc389 === ''
+            || strpos($erSrc389, '$ruleCurrency = (int) $rule->reduction_currency > 0 ? new \Currency((int) $rule->reduction_currency) : null;') === false
+            || strpos($erSrc389, 'displayPrice((float) $rule->reduction_amount, $ruleCurrency, $idLang)') === false
+            || strpos($erSrc389, 'displayPrice((float) $rule->reduction_amount, $ctx->currency, $idLang)') !== false) {
+            $offenders[] = "EmailRenderer::voucherRateFromCode() affiche de nouveau le montant d'un bon avec la devise du contexte au lieu de celle du bon — régression du bug corrigé le 25/09/2026 (round 390, P10) : un bon de 20 € d'une boutique en euros s'afficherait « 20,00 $ » sous une autre boutique";
+        }
+
         // Round 388 (2026-09-25) : plus de tutoiement dans l'interface d'administration italienne/espagnole ni dans les
         // e-mails italiens (phrases sentinelles de l'ancien texte).
         $adminTr388 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/admin_translations.json');
