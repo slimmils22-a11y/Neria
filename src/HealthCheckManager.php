@@ -4262,6 +4262,16 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 395 (2026-09-25, décision utilisateur) : un e-mail sans modèle Neria (nouveau mail PrestaShop, module tiers) part
+        // sans traduction ni design — le marchand en est averti par le Watchdog (watchdog.template_not_covered, 19 langues).
+        $adminTr395 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/admin_translations.json');
+        $erSrc395 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc395 === '' || $adminTr395 === ''
+            || strpos($erSrc395, "WatchdogManager::i18nMsg('watchdog.template_not_covered', ['template' => \$template])") === false
+            || strpos($adminTr395, '"watchdog.template_not_covered"') === false) {
+            $offenders[] = "Un e-mail sans modèle Neria n'est plus signalé par le Watchdog (watchdog.template_not_covered) — régression de la décision du 25/09/2026 (round 395) : un nouveau mail PrestaShop partirait sans traduction ni design Neria sans que le marchand le sache";
+        }
+
         // Round 394 (2026-09-25, décision utilisateur) : Neria traduit TOUS les sujets d'e-mails (clé « subject » du dictionnaire,
         // appliquée à la place du sujet fourni par PrestaShop) — sinon sujets d'états de commande en anglais dans toutes les
         // langues ajoutées après l'installation.
