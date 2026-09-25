@@ -4242,6 +4242,16 @@ class HealthCheckManager
             $offenders[] = "{contact_url} / {carrier_name} / tableau produits de corporate_order_confirm ne sont plus alimentés à l'envoi — régression du bug corrigé le 24/09/2026 (round 377) : le bouton de white_glove_apology repartirait avec un lien vide, la ligne transporteur de delivery_attempt_failed serait vide et corporate_order_confirm afficherait un tableau sans produit";
         }
 
+        // Round 387 (2026-09-25) : dates japonaises/coréennes/chinoises sans zéro devant le mois et le jour.
+        $ntSrc387 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($ntSrc387 === ''
+            || strpos($ntSrc387, "'ja' => 'Y年n月j日'") === false
+            || strpos($ntSrc387, "'ko' => 'Y년 n월 j일'") === false
+            || strpos($ntSrc387, "'zh' => 'Y年n月j日'") === false
+            || strpos($ntSrc387, "'tw' => 'Y年n月j日'") === false) {
+            $offenders[] = "NeriaTools::formatDate() écrit de nouveau les dates ja/ko/zh/tw avec un zéro devant le mois et le jour — régression du correctif du 25/09/2026 (round 387) : « 2026年09月05日 » au lieu de « 2026年9月5日 » dans les e-mails";
+        }
+
         // Round 386 (2026-09-25) : l'import CSV des traductions (texte et variante B) doit retirer le préfixe
         // anti-formule ajouté à l'export, sinon « -10 % » revient « '-10 % » en base (et dans les e-mails).
         $mainSrc386 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
