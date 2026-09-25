@@ -35,7 +35,7 @@ function run_test(): array
     $block = substr($src, $pos, 2400);
 
     neria_assert(
-        strpos($block, '\Shop::getShops(true, null, true)') !== false,
+        strpos($block, '\NeriaTools::activeShopIds()') !== false,
         "runBackgroundJobs() ne boucle plus sur Shop::getShops() pour le digest Watchdog — régression du bug corrigé le 01/09/2026 (round 266) : seule la boutique du contexte courant recevrait de nouveau son digest quotidien"
     );
     neria_assert(

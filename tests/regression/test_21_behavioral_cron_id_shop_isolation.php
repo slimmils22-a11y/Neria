@@ -15,7 +15,7 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/BehavioralCronManager.php');
 
     neria_assert(
-        (bool) preg_match('/Shop::getShops\(/', $src),
+        (bool) preg_match('/(?:Shop::getShops|NeriaTools::activeShopIds)\(/', $src),
         "run() ne boucle plus sur Shop::getShops() — régression de l'isolation multi-boutique (chaque méthode ne traiterait plus qu'une seule boutique par jour)"
     );
 

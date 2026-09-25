@@ -30,7 +30,7 @@ function run_test(): array
     $block = substr($src, $pos, 3200);
 
     neria_assert(
-        strpos($block, '\Shop::getShops(true, null, true)') !== false,
+        strpos($block, '\NeriaTools::activeShopIds()') !== false,
         "runBackgroundJobs() ne boucle plus sur Shop::getShops() pour WebhookManager — régression du bug corrigé le 06/08/2026 (round 78) : seule la boutique du contexte courant verrait de nouveau sa file de webhooks traitée"
     );
     neria_assert(

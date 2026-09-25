@@ -31,7 +31,7 @@ function run_test(): array
     $block = substr($src, $pos, 2500);
 
     neria_assert(
-        strpos($block, '\Shop::getShops(true, null, true)') !== false,
+        strpos($block, '\NeriaTools::activeShopIds()') !== false,
         "runBackgroundJobs() ne boucle plus sur Shop::getShops() pour SeasonalCampaignManager — régression du bug corrigé le 06/08/2026 (round 77) : seule la boutique du premier visiteur front du jour recevrait de nouveau les campagnes saisonnières"
     );
     neria_assert(
