@@ -439,6 +439,17 @@ class EmailRenderer
         // détectée — réutilise les traductions existantes (19 langues).
         $variant = $this->resolveABVariant($template, $params);
         $params['neria_variant'] = $variant;
+
+        // Round 394 : le sujet est TRADUIT PAR NERIA, comme le corps, pour tout modèle qui possède une clé « subject »
+        // dans son dictionnaire (tous les e-mails natifs PrestaShop : commande, paiement, expédition, mot de passe...).
+        // Jusqu'ici le sujet fourni par PrestaShop était conservé tel quel : noms d'états de commande en anglais dans
+        // toutes les langues ajoutées après l'installation, sujets natifs non traduits en arabe/japonais/russe.
+        // Indépendant des packs de langue PrestaShop ; modifiable par le marchand (onglet Traductions).
+        $dictSubject = $this->dictionarySubject($template, $lang, $params, $variant);
+        if ($dictSubject !== '') {
+            $params['subject'] = $dictSubject;
+        }
+
         if (trim((string) ($params['subject'] ?? '')) === '') {
             // Round 357 : resolveShopId($params) transmis — même correctif
             // que le multi-sender juste au-dessus (round 351) : sans lui,
@@ -3098,6 +3109,35 @@ class EmailRenderer
      * variante n'est jamais utilisée pour l'envoi, si bien que la variante B
      * n'était visible qu'en aperçu et jamais dans un vrai courriel.
      */
+    /**
+     * Sujet traduit du dictionnaire Neria (clé « subject »), variables de l'e-mail substituées ({order_name}...).
+     * Retourne '' si le modèle n'a pas de clé « subject » (langue demandée ni anglais) : le sujet fourni est alors conservé.
+     * Les variables non résolues sont retirées pour ne jamais envoyer « {order_name} » en clair.
+     */
+    private function dictionarySubject(string $template, string $lang, array $params, string $variant): string
+    {
+        if ($template === '' || (
+            (string) ($this->engine->getAll($template, $lang)['subject'] ?? '') === ''
+            && (string) ($this->engine->getAll($template, 'en')['subject'] ?? '') === ''
+        )) {
+            return '';
+        }
+        $subject = trim(strip_tags($this->tradValue($template, 'subject', $lang, $this->resolveShopId($params), $variant)));
+        if ($subject === '') {
+            return '';
+        }
+        $subjectVars = [];
+        foreach ((array) ($params['templateVars'] ?? []) as $key => $val) {
+            if (is_scalar($val) && strpos((string) $key, '{') === 0 && (string) $val !== '') {
+                $subjectVars[(string) $key] = trim(strip_tags((string) $val));
+            }
+        }
+        $subject = strtr($subject, $subjectVars);
+        $subject = (string) preg_replace('/\s*\{[a-z_0-9]+\}/i', '', $subject);
+
+        return trim((string) preg_replace('/\s+/u', ' ', $subject));
+    }
+
     private function tradValue(string $template, string $key, string $lang, ?int $idShop, string $variant): string
     {
         if ($variant === 'B' && class_exists('ABTestManager')) {
