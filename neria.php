@@ -4621,7 +4621,7 @@ class Neria extends Module
                     $template = preg_replace('/[^a-z0-9_\-]/i', '', $line[0]);
                     $lang     = preg_replace('/[^a-z]/i', '', $line[1]);
                     $key      = preg_replace('/[^a-z0-9_\.\-]/i', '', $line[2]);
-                    $value    = $line[3];
+                    $value    = $this->csvFormulaRestore((string) $line[3]);
                     if ($template === '' || $lang === '' || $key === '') { continue; }
 
                     Db::getInstance()->execute(
@@ -4689,7 +4689,7 @@ class Neria extends Module
                 while (($line = fgetcsv($handle, 0, ';')) !== false) {
                     if (count($line) < 4) { continue; }
                     $key   = preg_replace('/[^a-z0-9_\.\-]/i', '', $line[2]);
-                    $value = $line[3];
+                    $value = $this->csvFormulaRestore((string) $line[3]);
                     if ($key === '') { continue; }
                     Db::getInstance()->execute(
                         "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
@@ -8429,8 +8429,23 @@ class Neria extends Module
      */
     private function csvFormulaSafe(string $value): string
     {
-        if ($value !== '' && strpbrk($value[0], "=+-@\t\r") !== false) {
+        // Aussi les valeurs déjà préfixées d'apostrophes avant un caractère de formule (« '=x ») : sans cela,
+        // csvFormulaRestore() ne pourrait pas distinguer une valeur d'origine « '=x » d'une valeur protégée « =x ».
+        if ($value !== '' && (strpbrk($value[0], "=+-@\t\r") !== false || preg_match("/^'+[=+\\-@\t\r]/", $value) === 1)) {
             return "'" . $value;
+        }
+        return $value;
+    }
+
+    /**
+     * Round 386 : opération inverse de csvFormulaSafe(), appliquée à l'import. L'export préfixe d'une apostrophe
+     * toute valeur commençant par = + - @ (tab, CR) ; sans ce retrait, un texte comme « -10 % pour vous » revenait
+     * en base sous la forme « '-10 % pour vous » (apostrophe visible dans l'e-mail) après un export puis un import.
+     */
+    private function csvFormulaRestore(string $value): string
+    {
+        if (preg_match("/^'+[=+\\-@\t\r]/", $value) === 1) {
+            return substr($value, 1);
         }
         return $value;
     }
