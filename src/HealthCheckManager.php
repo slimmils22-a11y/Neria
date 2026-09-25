@@ -1245,7 +1245,7 @@ class HealthCheckManager
         $reportSrc = $this->readModuleSrc($reportFile);
         if ($reportSrc === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable';
-        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,3600}?Shop::getShops/', $reportSrc)
+        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,3600}?(?:Shop::getShops|NeriaTools::activeShopIds)/', $reportSrc)
                || !preg_match('/CONFIG_LAST_SENT\s*\.\s*.\_.\s*\.\s*\$idShop/', $reportSrc)) {
             $offenders[] = 'MonthlyReportManager : checkAndSend() n\'itère plus sur chaque boutique avec un throttle dédié (une boutique pourrait de nouveau bloquer le rapport mensuel de toutes les autres)';
         }
@@ -4260,6 +4260,21 @@ class HealthCheckManager
             || strpos($mainSrc389, 'public function getUnsubscribeUrl(string $email, string $lang = \'\', int $idShop = 0): string') === false
             || strpos($mainSrc389, "\$this->getUnsubscribeUrl(\$email, '', \$idShopMsg)") === false) {
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
+        }
+
+        // Rounds 391-392 (2026-09-25, P10) : module désactivé pour une boutique = plus aucun envoi pour elle (file et crons
+        // via NeriaTools::activeShopIds()) ; aucun enregistrement du back-office hors contexte « une boutique ».
+        $qmSrc391 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        $ntSrc391 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($qmSrc391 === '' || $ntSrc391 === '' || $mainSrc389 === ''
+            || strpos($qmSrc391, '$shopFilter391') === false
+            || strpos($ntSrc391, 'public static function activeShopIds(?int $idShopGroup = null): array') === false
+            || substr_count($mainSrc389, '\NeriaTools::activeShopIds() ?:') < 5) {
+            $offenders[] = "La file d'envoi ou les crons n'ignorent plus les boutiques où le module est désactivé — régression du bug corrigé le 25/09/2026 (round 391, P10) : Neria continuerait d'envoyer pour une boutique où le marchand l'a désactivé";
+        }
+        if ($mainSrc389 === '' || strpos($mainSrc389, "AdminTranslator::t('msg.select_single_shop')") === false
+            || strpos($mainSrc389, '\Shop::getContext() !== \Shop::CONTEXT_SHOP') === false) {
+            $offenders[] = "Le back-office accepte de nouveau un enregistrement en contexte « Toutes les boutiques »/« Groupe » — régression du bug corrigé le 25/09/2026 (round 392, P10) : le réglage ne serait appliqué qu'à la boutique par défaut, sans avertissement";
         }
 
         // Round 390 (2026-09-25, P10) : montant d'un bon affiché dans la devise du BON (reduction_currency) et non celle du
