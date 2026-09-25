@@ -4262,6 +4262,15 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 393 (2026-09-25) : les callbacks OAuth front ne doivent pas appeler Tools::redirectAdmin() (fatal hors
+        // back-office sur PrestaShop 9 : HTTP 500 permanent, connexion Postmaster/Search Console impossible).
+        foreach (['oauth', 'oauthsc'] as $oauthCtl393) {
+            $oauthSrc393 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/' . $oauthCtl393 . '.php');
+            if ($oauthSrc393 === '' || strpos($oauthSrc393, 'redirectAdmin(') !== false || strpos($oauthSrc393, 'private function redirectBack(string $url): void') === false) {
+                $offenders[] = "controllers/front/{$oauthCtl393}.php appelle de nouveau Tools::redirectAdmin() — régression du bug corrigé le 25/09/2026 (round 393) : le retour OAuth répondrait HTTP 500 sur PrestaShop 9 et la connexion Postmaster/Search Console ne pourrait jamais aboutir";
+            }
+        }
+
         // Rounds 391-392 (2026-09-25, P10) : module désactivé pour une boutique = plus aucun envoi pour elle (file et crons
         // via NeriaTools::activeShopIds()) ; aucun enregistrement du back-office hors contexte « une boutique ».
         $qmSrc391 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
