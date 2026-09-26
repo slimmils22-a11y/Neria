@@ -410,6 +410,22 @@ class MultiClientPreviewManager
         return $this->addBanner($html, 'jp_carrier');
     }
 
+    /**
+     * Round 403 : description du comportement du client, dans la langue du back-office (19 langues) ; le texte français
+     * de CLIENTS reste le repli si la clé manque.
+     */
+    public static function supportLabel(string $client, string $fallback): string
+    {
+        // Le gestionnaire peut être appelé hors back-office (tests, scripts) : sans traducteur chargé, texte français d'origine.
+        if (!class_exists('AdminTranslator')) {
+            return $fallback;
+        }
+        $key = 'multipreview.support_' . $client;
+        $txt = AdminTranslator::t($key);
+
+        return ($txt !== '' && $txt !== $key) ? $txt : $fallback;
+    }
+
     private function addBanner(string $html, string $client): string
     {
         $info   = self::CLIENTS[$client];
@@ -419,7 +435,7 @@ class MultiClientPreviewManager
             . '<strong>%s</strong> — %s</div>',
             htmlspecialchars($info['color']),
             htmlspecialchars($info['name']),
-            htmlspecialchars($info['support'])
+            htmlspecialchars(self::supportLabel($client, (string) $info['support']))
         );
 
         // Insère le bandeau juste après <body> si présent, sinon en tête.

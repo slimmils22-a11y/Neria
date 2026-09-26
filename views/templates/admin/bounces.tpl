@@ -472,14 +472,20 @@
     </form>
 
     {* Recherche *}
-    <form method="get" action="{$smarty.server.REQUEST_URI|escape:'html'}">
-      <input type="hidden" name="configure" value="AdminModules">
-      <input type="hidden" name="module_name" value="neria">
+    {* Round 405 : un formulaire GET n'envoie QUE ses champs (la chaîne de requête de « action » est ignorée) : sans le jeton
+       CSRF de l'URL, PrestaShop 9 répondait « Invalid token » au clic sur Filtrer. Tous les paramètres courants sont donc
+       repris en champs cachés (comme customer_history.tpl), sauf le filtre lui-même. *}
+    <form method="get" action="">
+      {foreach from=$smarty.get key=k item=v}
+        {if $k !== 'nb_filter' && $k !== 'neria_tab' && !is_array($v)}
+          <input type="hidden" name="{$k|escape:'html'}" value="{$v|escape:'html'}">
+        {/if}
+      {/foreach}
       <input type="hidden" name="neria_tab" value="bounces">
       <div class="nb-search">
         <input type="text" name="nb_filter" value="{$bounce_filter|escape:'html'}" placeholder="{neria_admin key='bounces.filter_placeholder'}">
         <button type="submit" class="nb-btn nb-btn--primary nb-btn--sm">{neria_admin key='bounces.filter_btn'}</button>
-        {if $bounce_filter}<a href="?configure=AdminModules&module_name=neria&neria_tab=bounces" class="nb-btn nb-btn--sm" style="background:#999;color:#fff;text-decoration:none;">× {neria_admin key='bounces.clear_filter_btn'}</a>{/if}
+        {if $bounce_filter}<a href="{$smarty.server.REQUEST_URI|regex_replace:'/&nb_filter=[^&]*/':''|escape:'html'}" class="nb-btn nb-btn--sm" style="background:#999;color:#fff;text-decoration:none;">× {neria_admin key='bounces.clear_filter_btn'}</a>{/if}
       </div>
     </form>
 
@@ -540,7 +546,7 @@
       {if $bounce_total_pages > 1}
       <div style="margin-top:14px;display:flex;gap:6px;align-items:center;font-size:12px;">
         {for $p=1 to $bounce_total_pages}
-          <a href="?configure=AdminModules&module_name=neria&neria_tab=bounces&nb_page={$p}&nb_filter={$bounce_filter|urlencode}"
+          <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&nb_page=[^&]*/':''|regex_replace:'/&nb_filter=[^&]*/':''|escape:'html'}&nb_page={$p}&nb_filter={$bounce_filter|urlencode}"
              style="padding:4px 10px;border-radius:4px;text-decoration:none;
                     background:{if $p == $bounce_page}var(--neria-accent){else}#eee{/if};
                     color:{if $p == $bounce_page}#fff{else}#333{/if};">{$p}</a>

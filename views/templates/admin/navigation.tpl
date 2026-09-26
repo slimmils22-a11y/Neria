@@ -526,7 +526,14 @@
       var url  = new URL(link.href, window.location.href);
       var form = document.createElement('form');
       form.method = 'post';
-      form.action = url.origin + url.pathname;
+      // Round 401 : PrestaShop 9 (route Symfony de configuration du module) lit le jeton CSRF dans l'URL, pas dans le
+      // corps du POST : sans lui « Invalid token » sur tout lien POST (envoi de test, suppressions confirmées...).
+      var keepQuery = [];
+      ['_token', 'token', 'controller', 'configure'].forEach(function (k) {
+        var v = url.searchParams.get(k);
+        if (v !== null) { keepQuery.push(encodeURIComponent(k) + '=' + encodeURIComponent(v)); }
+      });
+      form.action = url.origin + url.pathname + (keepQuery.length ? '?' + keepQuery.join('&') : '');
       url.searchParams.forEach(function (value, key) {
         var input = document.createElement('input');
         input.type  = 'hidden';

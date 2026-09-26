@@ -5,10 +5,13 @@
  * Campagnes saisonnières automatiques
  *}
 
-{assign var="base_url" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''|escape:'html'}
+{* Round 402 : tous les retraits de paramètres se font sur l'URL BRUTE, l'échappement HTML une seule fois à la fin —
+   auparavant échappée d'abord (« &amp; »), les retraits suivants ne trouvaient rien, puis {$tab_url|escape} échappait
+   une 2e fois : « &amp;amp; » s'accumulait à chaque enregistrement et le lien « Modifier » cessait de fonctionner. *}
+{assign var="base_url" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''}
 {assign var="base_url" value=$base_url|regex_replace:'/&id_campaign=[^&]*/':''}
 {assign var="base_url" value=$base_url|regex_replace:'/&edit_campaign=[^&]*/':''}
-{assign var="base_url" value=$base_url|regex_replace:'/&neria_tab=[^&]*/':''}
+{assign var="base_url" value=$base_url|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}
 {assign var="tab_url"  value="{$base_url}&neria_tab=seasonal"}
 
 {* Noms des mois traduits directement au point d'usage via
@@ -120,7 +123,7 @@
     </div>
   </div>
 
-  <form method="post" action="{$tab_url|escape:'html'}&neria_action=save_seasonal_campaign">
+  <form method="post" action="{$tab_url}&neria_action=save_seasonal_campaign">
     {if $is_edit}
       <input type="hidden" name="id_campaign" value="{$seasonal_edit.id_campaign|intval}">
     {/if}
@@ -286,7 +289,7 @@
         {if $is_edit}✓ {neria_admin key='seasonal.save_edit_btn'}{else}＋ {neria_admin key='seasonal.create_btn'}{/if}
       </button>
       {if $is_edit}
-        <a href="{$tab_url|escape:'html'}" class="neria-btn neria-btn--ghost">✕ {neria_admin key='common.cancel'}</a>
+        <a href="{$tab_url}" class="neria-btn neria-btn--ghost">✕ {neria_admin key='common.cancel'}</a>
       {/if}
     </div>
 
@@ -358,7 +361,7 @@
             {/if}
           </td>
           <td style="text-align:center;">
-            <form method="post" action="{$tab_url|escape:'html'}&neria_action=toggle_seasonal_campaign"
+            <form method="post" action="{$tab_url}&neria_action=toggle_seasonal_campaign"
                   style="display:inline;">
               <input type="hidden" name="id_campaign" value="{$c.id_campaign|intval}">
               <button type="submit"
@@ -369,16 +372,16 @@
             </form>
           </td>
           <td style="text-align:center;white-space:nowrap;">
-            <a href="{$tab_url|escape:'html'}&edit_campaign={$c.id_campaign|intval}"
+            <a href="{$tab_url}&edit_campaign={$c.id_campaign|intval}"
                class="neria-btn neria-btn--sm neria-btn--ghost" title="{neria_admin key='seasonal.edit_btn'}">
               ✏ {neria_admin key='seasonal.edit_btn'}
             </a>
             <form method="post"
-                  action="{$tab_url|escape:'html'}&neria_action=delete_seasonal_campaign"
+                  action="{$tab_url}&neria_action=delete_seasonal_campaign"
                   style="display:inline;margin-left:4px;">
               <input type="hidden" name="id_campaign" value="{$c.id_campaign|intval}">
               <button type="button" class="neria-btn neria-btn--sm neria-btn--danger"
-                      data-confirm="{neria_admin key='seasonal.delete_confirm_pre'} {$c.name|escape:'html'} {neria_admin key='seasonal.delete_confirm_post'}"
+                      data-confirm="{neria_admin key='seasonal.delete_confirm_pre' esc='html'} {$c.name|escape:'html'} {neria_admin key='seasonal.delete_confirm_post' esc='html'}"
                       onclick="neriaConfirmDelete(this);"
                       title="{neria_admin key='seasonal.delete_title'}">✕</button>
             </form>

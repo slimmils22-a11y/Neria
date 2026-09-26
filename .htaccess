@@ -1,7 +1,8 @@
-# Autorise getpreview.php (nécessaire pour la prévisualisation multi-client Neria).
+# Autorise getpreview.php (nécessaire pour la prévisualisation multi-client Neria) et
+# neria-emergency.php (page d'urgence protégée par jeton, indépendante de PrestaShop).
 # Le modules/.htaccess de PrestaShop bloque tous les .php ; cette règle le lève
-# pour ce seul fichier au niveau du répertoire neria/.
-<FilesMatch "^getpreview\.php$">
+# pour ces deux fichiers seulement, au niveau du répertoire neria/.
+<FilesMatch "^(getpreview|neria-emergency)\.php$">
     <IfModule !mod_authz_core.c>
         Order allow,deny
         Allow from all

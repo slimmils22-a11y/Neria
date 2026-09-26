@@ -5438,16 +5438,16 @@ class Neria extends Module
 
             // Détection des anomalies pour le résumé affiché au clic sur le badge ⚠
             $diffChecks = [
-                'Balises <style> supprimées'            => function ($r, $t) { return (bool) preg_match('/<style\b/i', $r) && !preg_match('/<style\b/i', $t); },
-                'Liens <link> CSS externes supprimés'   => function ($r, $t) { return substr_count($r, 'rel="stylesheet"') > substr_count($t, 'rel="stylesheet"'); },
-                'background-image supprimé'             => function ($r, $t) { return substr_count($r, 'background-image') > substr_count($t, 'background-image'); },
-                'border-radius supprimé'                => function ($r, $t) { return substr_count($r, 'border-radius') > substr_count($t, 'border-radius'); },
-                'text-shadow / box-shadow supprimés'    => function ($r, $t) { return substr_count($r, '-shadow') > substr_count($t, '-shadow'); },
-                'display:flex neutralisé (→ block)'     => function ($r, $t) { return substr_count($r, 'flex') > substr_count($t, 'flex'); },
-                'gap (flexbox) supprimé'                => function ($r, $t) { return substr_count($r, 'gap:') > substr_count($t, 'gap:'); },
-                'position supprimée'                    => function ($r, $t) { return substr_count($r, 'position:') > substr_count($t, 'position:'); },
-                '@media queries supprimées'             => function ($r, $t) { return substr_count($r, '@media') > substr_count($t, '@media'); },
-                'Attributs style="" en ligne supprimés' => function ($r, $t) { return substr_count($r, ' style=') > substr_count($t, ' style='); },
+                AdminTranslator::t('multipreview.issue_style_tags') => function ($r, $t) { return (bool) preg_match('/<style\b/i', $r) && !preg_match('/<style\b/i', $t); },
+                AdminTranslator::t('multipreview.issue_link_css') => function ($r, $t) { return substr_count($r, 'rel="stylesheet"') > substr_count($t, 'rel="stylesheet"'); },
+                AdminTranslator::t('multipreview.issue_background_image') => function ($r, $t) { return substr_count($r, 'background-image') > substr_count($t, 'background-image'); },
+                AdminTranslator::t('multipreview.issue_border_radius') => function ($r, $t) { return substr_count($r, 'border-radius') > substr_count($t, 'border-radius'); },
+                AdminTranslator::t('multipreview.issue_shadows') => function ($r, $t) { return substr_count($r, '-shadow') > substr_count($t, '-shadow'); },
+                AdminTranslator::t('multipreview.issue_flex') => function ($r, $t) { return substr_count($r, 'flex') > substr_count($t, 'flex'); },
+                AdminTranslator::t('multipreview.issue_gap') => function ($r, $t) { return substr_count($r, 'gap:') > substr_count($t, 'gap:'); },
+                AdminTranslator::t('multipreview.issue_position') => function ($r, $t) { return substr_count($r, 'position:') > substr_count($t, 'position:'); },
+                AdminTranslator::t('multipreview.issue_media_queries') => function ($r, $t) { return substr_count($r, '@media') > substr_count($t, '@media'); },
+                AdminTranslator::t('multipreview.issue_inline_styles') => function ($r, $t) { return substr_count($r, ' style=') > substr_count($t, ' style='); },
             ];
 
             foreach (array_keys(MultiClientPreviewManager::CLIENTS) as $clientId) {
