@@ -4262,6 +4262,29 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 400 (2026-09-26) : le contrôle des clés BO orphelines reconnaît les clés dynamiques.
+        $hcSrc400 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcSrc400 === '' || strpos($hcSrc400, 'private function isDynamicallyReferencedTradKey(string $key, string $haystack): bool') === false
+            || strpos($hcSrc400, '&& !$this->isDynamicallyReferencedTradKey((string) $key, $haystack)') === false) {
+            $offenders[] = "Le contrôle des clés BO orphelines ne reconnaît plus les clés dynamiques — régression du défaut corrigé le 26/09/2026 (round 400) : ~330 fausses « orphelines » et bandeau « anomalies détectées » permanent sur une installation saine";
+        }
+
+        // Round 399 (2026-09-26) : les phrases d'exemple des aperçus du back-office suivent la langue prévisualisée.
+        $erSrc399 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $psSrc399 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/preview_samples.json');
+        if ($erSrc399 === '' || $psSrc399 === '' || strpos($erSrc399, 'return $this->localizePreviewSamples($fakes, $lang);') === false
+            || strpos($psSrc399, '"voucher_usage"') === false) {
+            $offenders[] = "Les phrases d'exemple des aperçus du back-office ne suivent plus la langue prévisualisée (EmailRenderer::localizePreviewSamples, data/preview_samples.json) — régression du défaut corrigé le 26/09/2026 (round 399) : aperçu japonais avec des phrases françaises";
+        }
+
+        // Round 398 (2026-09-26) : les aperçus multi-clients doivent utiliser les API documentées (Email on Acid v5, Litmus Instant).
+        $mcSrc398 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php');
+        if ($mcSrc398 === '' || strpos($mcSrc398, 'emailonacid.com/v6') !== false || strpos($mcSrc398, 'https://api.litmus.com') !== false
+            || strpos($mcSrc398, "const EOA_API_BASE    = 'https://api.emailonacid.com/v5';") === false
+            || strpos($mcSrc398, "const LITMUS_API_BASE = 'https://instant-api.litmus.com/v1';") === false) {
+            $offenders[] = "MultiClientPreviewManager utilise de nouveau des points d'entrée Email on Acid / Litmus non documentés — régression du bug corrigé le 26/09/2026 (round 398) : avec une vraie clé API, l'envoi vers Email on Acid ou Litmus échouerait";
+        }
+
         // Round 397 (2026-09-26) : bandeau du scan de code et erreur d'envoi du journal Watchdog traduits (plus de français en dur).
         $mainSrc397 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
         if ($mainSrc397 === '' || strpos($mainSrc397, 'Scan de code termin') !== false || strpos($mainSrc397, 'La fonction mail() a retourn') !== false
@@ -4610,7 +4633,7 @@ class HealthCheckManager
             $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 134 : submitTo*() capturent curl_error())';
         } else {
             $curlErrCount = substr_count($mcpSrc, '$curlErr  = curl_error($ch);');
-            if ($curlErrCount < 4) {
+            if ($curlErrCount < 3) { // round 398 : pollLitmus() ne fait plus d appel HTTP (URL d aperçu Instant)
                 $offenders[] = "MultiClientPreviewManager : submitToLitmus()/submitToEmailOnAcid() ne capturent plus curl_error(\$ch) — régression du bug corrigé le 08/08/2026 (round 134) : un échec transport redeviendrait indiscernable d'une simple erreur HTTP inexploitable (attendu 4 occurrences avec pollLitmus()/pollEmailOnAcid(), trouvé {$curlErrCount})";
             }
         }
@@ -15614,6 +15637,33 @@ class HealthCheckManager
      * fragment de code non lié — risque jugé acceptable face au risque
      * inverse (suppression d'une clé encore utilisée).
      */
+    /**
+     * Round 400 : une clé construite dynamiquement n'apparaît jamais en entier dans le code — 'report.' . $k,
+     * 'common.month_' . $n, 'gdpr.reg.' . $table . '.label'. Elle est considérée comme utilisée si un préfixe de la clé
+     * (coupé à un « . » ou un « _ ») apparaît comme littéral fermé puis concaténé, ou — à partir de deux séparateurs —
+     * comme début de littéral. Sans cela, le diagnostic signalait ~300 « orphelines » sur une installation saine.
+     */
+    private function isDynamicallyReferencedTradKey(string $key, string $haystack): bool
+    {
+        $len  = strlen($key);
+        $seps = 0;
+        for ($i = 0; $i < $len - 1; $i++) {
+            if ($key[$i] !== '.' && $key[$i] !== '_') {
+                continue;
+            }
+            $seps++;
+            $prefix = substr($key, 0, $i + 1);
+            if (preg_match('/[\'"]' . preg_quote($prefix, '/') . '[\'"]\s*\./', $haystack) === 1) {
+                return true;
+            }
+            if ($seps >= 2 && (strpos($haystack, "'" . $prefix) !== false || strpos($haystack, '"' . $prefix) !== false)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function checkOrphanedAdminTranslationKeys(): array
     {
         $root = rtrim($this->module->getLocalPath(), '/');
@@ -15641,7 +15691,8 @@ class HealthCheckManager
 
         $orphaned = [];
         foreach (array_keys($dict) as $key) {
-            if (strpos($haystack, "'" . $key . "'") === false && strpos($haystack, '"' . $key . '"') === false) {
+            if (strpos($haystack, "'" . $key . "'") === false && strpos($haystack, '"' . $key . '"') === false
+                && !$this->isDynamicallyReferencedTradKey((string) $key, $haystack)) {
                 $orphaned[] = $key;
             }
         }
