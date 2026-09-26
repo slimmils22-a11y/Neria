@@ -962,7 +962,7 @@
         <div class="neria-upcoming__date">{$event.send_date}</div>
         <div class="neria-upcoming__source">
           <span class="neria-badge neria-badge--{if $event.date_source === 'manuel'}accent{else}neutral{/if}">
-            {$event.date_source}
+            {if $event.date_source === 'manuel'}{neria_admin key='calendar.source_manual'}{elseif $event.date_source === 'calcule'}{neria_admin key='calendar.source_computed'}{else}{neria_admin key='calendar.source_precomputed'}{/if}
           </span>
         </div>
       </div>
