@@ -12,10 +12,12 @@ function run_test(): array
     neria_test_module();
     $help = str_replace("\r\n", "\n", (string) file_get_contents(_PS_MODULE_DIR_ . 'neria/views/templates/admin/help.tpl'));
     neria_assert(!str_contains($help, 'neria.io/docs'), 'help.tpl renvoie de nouveau vers le domaine parqué neria.io');
-    neria_assert(str_contains($help, 'neria_notice_file'), 'help.tpl ne lie plus la notice du module');
-    neria_assert(\Neria::noticeFileForLang('fr') === 'Neria_Notice_Utilisation_FR.pdf', 'notice FR');
-    neria_assert(\Neria::noticeFileForLang('zz') === 'Neria_Notice_Utilisation_EN.pdf', 'repli EN');
-    neria_assert(\Neria::noticeFileForLang('') !== '' && is_file(_PS_MODULE_DIR_ . 'neria/docs/' . \Neria::noticeFileForLang('br')), 'notice BR absente');
+    neria_assert(str_contains($help, 'neria_notice_url'), 'help.tpl ne lie plus la notice hébergée');
+    neria_assert(\Neria::noticeUrlForLang('fr') === 'https://neriasoftware.com/docs/Neria_Notice_Utilisation_FR.pdf', 'notice FR');
+    neria_assert(\Neria::noticeUrlForLang('zz') === 'https://neriasoftware.com/docs/Neria_Notice_Utilisation_EN.pdf', 'repli EN');
+    foreach (\TranslationEngine::SUPPORTED_LANGS as $l) {
+        neria_assert(str_ends_with(\Neria::noticeUrlForLang($l), '_' . strtoupper($l) . '.pdf'), 'notice ' . $l);
+    }
     $bm = str_replace("\r\n", "\n", (string) file_get_contents(_PS_MODULE_DIR_ . 'neria/src/BounceManager.php'));
     neria_assert(str_contains($bm, "self::REASON_MANUAL_BO, 'manual'") && !str_contains($bm, "recordBounce(\$email, \$type, 'Ajout manuel"), 'raison manuelle de nouveau stockée en français');
     $tpl = (string) file_get_contents(_PS_MODULE_DIR_ . 'neria/views/templates/admin/bounces.tpl');
