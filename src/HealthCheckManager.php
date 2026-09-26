@@ -4265,7 +4265,7 @@ class HealthCheckManager
         // Round 406 (2026-09-26) : lien Documentation vers la notice du module (pas de domaine parqué) ; raison de rejet manuel neutre et traduite.
         $hlpSrc406 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/help.tpl');
         $bmSrc406  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
-        if ($hlpSrc406 === '' || $bmSrc406 === '' || strpos($hlpSrc406, 'neria.io/docs') !== false || strpos($hlpSrc406, 'neria_notice_file') === false
+        if ($hlpSrc406 === '' || $bmSrc406 === '' || strpos($hlpSrc406, 'neria.io/docs') !== false || strpos($hlpSrc406, 'neria_notice_url') === false
             || strpos($bmSrc406, "self::REASON_MANUAL_BO, 'manual'") === false) {
             $offenders[] = "Le bouton Documentation renvoie de nouveau vers un domaine externe ou la raison des rejets manuels est de nouveau stockée en français — régression du bug corrigé le 26/09/2026 (round 406)";
         }
