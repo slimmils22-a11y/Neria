@@ -4262,6 +4262,12 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 408 (2026-09-26) : create_abtest doit refuser un modèle hors liste d'éligibilité (test fantôme sinon).
+        $nrSrc408 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($nrSrc408 === '' || strpos($nrSrc408, '!array_key_exists($tplKey, (new ABTestManager($this))->getEligibleTemplates())') === false) {
+            $offenders[] = "create_abtest n'exige plus un modèle éligible — régression du bug corrigé le 26/09/2026 (round 408) : un POST forgé créerait un test A/B « actif » fantôme sur un modèle transactionnel";
+        }
+
         // Round 407 (2026-09-26) : la source de date des occasions à venir doit être traduite (pas la valeur interne française).
         $cfgSrc407 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/configure.tpl');
         if ($cfgSrc407 === '' || strpos($cfgSrc407, "key='calendar.source_precomputed'") === false) {
