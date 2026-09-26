@@ -4262,6 +4262,31 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 405 (2026-09-26) : le formulaire GET du filtre des rejets doit reprendre le jeton CSRF de l'URL (champs cachés).
+        $bncSrc405 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/bounces.tpl');
+        if ($bncSrc405 === '' || strpos($bncSrc405, '{foreach from=$smarty.get key=k item=v}') === false || strpos($bncSrc405, 'configure=AdminModules&module_name=neria') !== false) {
+            $offenders[] = "Le formulaire GET du filtre des rejets ne conserve plus le jeton CSRF — régression du bug corrigé le 26/09/2026 (round 405) : « Invalid token » au clic sur Filtrer avec PrestaShop 9";
+        }
+
+        // Round 404 (2026-09-26) : la page d'urgence (neria-emergency.php) doit rester accessible malgré le blocage des .php de modules/.
+        $htSrc404 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/.htaccess');
+        if ($htSrc404 === '' || strpos($htSrc404, '<FilesMatch "^(getpreview|neria-emergency)\.php$">') === false) {
+            $offenders[] = "Le .htaccess de Neria n'autorise plus neria-emergency.php — régression du bug corrigé le 26/09/2026 (round 404) : la page d'urgence renverrait HTTP 404 sur Apache (le modules/.htaccess de PrestaShop bloque les .php)";
+        }
+
+        // Rounds 401-403 (2026-09-26, pilotage du vrai back-office) : liens POST avec jeton CSRF dans l'URL (PS 9), URL de la campagne
+        // saisonnière sans double échappement + confirmation de suppression complète, libellés de l'aperçu multi-clients traduits.
+        $navSrc401 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl');
+        $seaSrc401 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/seasonal.tpl');
+        $mpSrc401  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php');
+        if ($navSrc401 === '' || $seaSrc401 === '' || $mpSrc401 === ''
+            || strpos($navSrc401, "['_token', 'token', 'controller', 'configure'].forEach(function (k) {") === false
+            || strpos($seaSrc401, "{\$tab_url|escape:'html'}") !== false
+            || strpos($seaSrc401, "{neria_admin key='seasonal.delete_confirm_pre' esc='html'}") === false
+            || strpos($mpSrc401, 'public static function supportLabel(string $client, string $fallback): string') === false) {
+            $offenders[] = "Un correctif du back-office (jeton des liens POST neriaPostLink, URL seasonal.tpl sans double échappement, confirmation de suppression saisonnière, libellés multi-aperçu traduits) a disparu — régression du 26/09/2026 (rounds 401-403) : « Invalid token » au clic sur TEST EMAIL en PrestaShop 9, lien « Modifier » cassé, confirmation tronquée";
+        }
+
         // Round 400 (2026-09-26) : le contrôle des clés BO orphelines reconnaît les clés dynamiques.
         $hcSrc400 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
         if ($hcSrc400 === '' || strpos($hcSrc400, 'private function isDynamicallyReferencedTradKey(string $key, string $haystack): bool') === false
