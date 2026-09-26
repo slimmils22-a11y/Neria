@@ -4262,6 +4262,19 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 397 (2026-09-26) : bandeau du scan de code et erreur d'envoi du journal Watchdog traduits (plus de français en dur).
+        $mainSrc397 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($mainSrc397 === '' || strpos($mainSrc397, 'Scan de code termin') !== false || strpos($mainSrc397, 'La fonction mail() a retourn') !== false
+            || strpos($mainSrc397, "AdminTranslator::t('help.code_scan_done_ok')") === false) {
+            $offenders[] = "Le bandeau du scan de code ou l'erreur d'envoi du journal Watchdog est de nouveau écrit en français dans neria.php — régression du défaut corrigé le 26/09/2026 (round 397) : message non traduit dans les 18 autres langues";
+        }
+
+        // Round 396 (2026-09-26) : le contrôle des références de classes ignore les classes Swift Mailer (absentes sur PS9).
+        $hcSrc396 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcSrc396 === '' || strpos($hcSrc396, "if (strpos(\$class, 'Swift_') === 0) {") === false) {
+            $offenders[] = "checkClassReferencesIntegrity() ne l'exempte plus les classes Swift_* — régression du bug corrigé le 26/09/2026 (round 396) : erreur « classe introuvable : Swift_Message » affichée sur toute installation PrestaShop 9";
+        }
+
         // Round 395 (2026-09-25, décision utilisateur) : un e-mail sans modèle Neria (nouveau mail PrestaShop, module tiers) part
         // sans traduction ni design — le marchand en est averti par le Watchdog (watchdog.template_not_covered, 19 langues).
         $adminTr395 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/admin_translations.json');
@@ -20451,6 +20464,12 @@ class HealthCheckManager
 
         $broken = [];
         foreach (array_keys($referenced) as $class) {
+            // Round 396 : classes Swift Mailer (PrestaShop 8) — référencées derrière class_exists() pour rester
+            // compatibles, mais ABSENTES sur PrestaShop 9 (Symfony Mailer) : les signaler faisait afficher une erreur
+            // « classe introuvable » sur toute installation PS9 (constaté sur ps-test).
+            if (strpos($class, 'Swift_') === 0) {
+                continue;
+            }
             // Les classes système PHP/PrestaShop ne vivent pas dans src/
             if (!is_file($root . '/src/' . $class . '.php')) {
                 // Peut être une classe autoloadée ailleurs (ex: coeur PrestaShop) — on

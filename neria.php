@@ -3073,8 +3073,8 @@ class Neria extends Module
             }
             $this->context->smarty->assign(
                 $anyIssue ? 'neria_error' : 'neria_success',
-                $anyIssue ? 'Scan de code terminé — des anomalies ont été détectées, voir le détail ci-dessous.'
-                          : 'Scan de code terminé — aucune anomalie détectée.'
+                $anyIssue ? AdminTranslator::t('help.code_scan_done_issues')
+                          : AdminTranslator::t('help.code_scan_done_ok')
             );
         }
 
@@ -7891,7 +7891,7 @@ class Neria extends Module
               . "--{$boundary}--";
 
         $sent = @mail($to, $subject, $body, $headers);
-        return $sent ? '' : 'La fonction mail() a retourné false. Vérifiez la configuration SMTP.';
+        return $sent ? '' : AdminTranslator::t('help.log_email_mail_false');
     }
 
     private function sendTestEmail(): void
