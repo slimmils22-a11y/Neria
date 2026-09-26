@@ -982,7 +982,7 @@
     <div class="neria-doc-card">
       <h3 class="neria-doc-card__title">?&nbsp;{neria_admin key='help.support_title'}</h3>
       <p>{neria_admin key='help.support_desc'}</p>
-      <a href="https://www.neria.io/docs" target="_blank" rel="noopener"
+      <a href="{$neria_module_dir|escape:'html':'UTF-8'}docs/{$neria_notice_file|escape:'html':'UTF-8'}" target="_blank" rel="noopener"
          class="neria-btn neria-btn--ghost neria-btn--sm">
         {neria_admin key='help.documentation'}
       </a>

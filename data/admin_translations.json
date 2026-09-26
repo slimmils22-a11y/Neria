@@ -1028,6 +1028,27 @@
         "nl": "Reden",
         "gb": "Reason"
     },
+    "bounces.reason_manual": {
+        "fr": "Ajout manuel depuis le back-office",
+        "en": "Added manually from the back office",
+        "de": "Manuell im Backoffice hinzugefügt",
+        "it": "Aggiunto manualmente dal back office",
+        "es": "Añadido manualmente desde el back office",
+        "pt": "Adicionado manualmente a partir do back office",
+        "br": "Adicionado manualmente pelo back office",
+        "ar": "أُضيف يدويًا من لوحة الإدارة",
+        "ja": "管理画面から手動で追加",
+        "ko": "백오피스에서 수동으로 추가됨",
+        "zh": "从后台手动添加",
+        "tw": "從後台手動新增",
+        "ru": "Добавлено вручную из панели администратора",
+        "tr": "Yönetim panelinden elle eklendi",
+        "sv": "Tillagd manuellt från administrationen",
+        "no": "Lagt til manuelt fra administrasjonen",
+        "da": "Tilføjet manuelt fra administrationen",
+        "nl": "Handmatig toegevoegd via de back-office",
+        "gb": "Added manually from the back office"
+    },
     "bounces.col_source": {
         "fr": "Source",
         "en": "Source",

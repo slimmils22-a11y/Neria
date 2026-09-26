@@ -928,9 +928,12 @@ class BounceManager
         return (int) \Db::getInstance()->Affected_Rows() > 0;
     }
 
+    /** Marqueur neutre : traduit à l'affichage (les anciennes lignes portent le texte français). */
+    public const REASON_MANUAL_BO = 'neria:manual_bo';
+
     public function addManualBounce(string $email, string $type = 'hard'): void
     {
-        $this->recordBounce($email, $type, 'Ajout manuel depuis le back-office', 'manual');
+        $this->recordBounce($email, $type, self::REASON_MANUAL_BO, 'manual');
     }
 
     /**

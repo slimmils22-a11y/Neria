@@ -511,7 +511,7 @@
             <td style="white-space:nowrap;color:#777;font-size:11px;">{if $b.shop_name}{$b.shop_name|escape:'html'}{else}{neria_admin key='bounces.shop_all'}{/if}</td>
             <td><span class="nb-badge nb-badge--{$b.type}">{$b.type}</span></td>
             <td><span class="nb-badge nb-badge--{$b.source}">{$b.source}</span></td>
-            <td style="max-width:280px;color:#777;font-size:11px;">{$b.reason|truncate:80:'…'|escape:'html'}</td>
+            <td style="max-width:280px;color:#777;font-size:11px;">{if $b.reason == 'neria:manual_bo' || $b.reason == 'Ajout manuel depuis le back-office'}{neria_admin key='bounces.reason_manual'}{else}{$b.reason|truncate:80:'…'|escape:'html'}{/if}</td>
             <td style="text-align:center;">{$b.bounce_count|intval}</td>
             <td style="white-space:nowrap;">{$b.last_bounce_at|escape:'html'|date_format:'%d/%m/%Y'}</td>
             <td><span class="nb-badge nb-badge--{$b.status}">{$b.status}</span></td>
