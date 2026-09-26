@@ -4397,7 +4397,10 @@ class Neria extends Module
             $variantBName = trim((string) Tools::getValue('variant_b_name', 'Variante B'));
             $splitPercent = (int) Tools::getValue('split_percent', 50);
 
-            if ($tplKey !== '') {
+            if ($tplKey !== '' && !array_key_exists($tplKey, (new ABTestManager($this))->getEligibleTemplates())) {
+                // Constaté le 26/09/2026 (P8) : un modèle hors liste (POST forgé) créait un test « actif » fantôme.
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.error'));
+            } elseif ($tplKey !== '') {
                 $ab = new ABTestManager($this);
 
                 // Contrairement à deactivate_abtest, ce chemin appelait
