@@ -39,3 +39,7 @@ mails/sv/   export-ignore
 mails/tr/   export-ignore
 mails/tw/   export-ignore
 mails/zh/   export-ignore
+
+# Le zip ne contient que la notice anglaise (poids) ; les 19 langues seront en ligne sur neriasoftware.com.
+docs/*                                 export-ignore
+docs/Neria_Notice_Utilisation_EN.pdf   -export-ignore
