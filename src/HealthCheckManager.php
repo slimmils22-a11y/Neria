@@ -4262,6 +4262,14 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 406 (2026-09-26) : lien Documentation vers la notice du module (pas de domaine parqué) ; raison de rejet manuel neutre et traduite.
+        $hlpSrc406 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/help.tpl');
+        $bmSrc406  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($hlpSrc406 === '' || $bmSrc406 === '' || strpos($hlpSrc406, 'neria.io/docs') !== false || strpos($hlpSrc406, 'neria_notice_file') === false
+            || strpos($bmSrc406, "self::REASON_MANUAL_BO, 'manual'") === false) {
+            $offenders[] = "Le bouton Documentation renvoie de nouveau vers un domaine externe ou la raison des rejets manuels est de nouveau stockée en français — régression du bug corrigé le 26/09/2026 (round 406)";
+        }
+
         // Round 405 (2026-09-26) : le formulaire GET du filtre des rejets doit reprendre le jeton CSRF de l'URL (champs cachés).
         $bncSrc405 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/bounces.tpl');
         if ($bncSrc405 === '' || strpos($bncSrc405, '{foreach from=$smarty.get key=k item=v}') === false || strpos($bncSrc405, 'configure=AdminModules&module_name=neria') !== false) {
