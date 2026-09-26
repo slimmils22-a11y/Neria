@@ -4262,6 +4262,12 @@ class HealthCheckManager
             $offenders[] = "Les statistiques, webhooks, liens de désabonnement/List-Unsubscribe et de suivi n'utilisent plus la boutique réelle de l'envoi — régression du bug corrigé le 25/09/2026 (round 389, P10) : en multi-boutique, les envois de la boutique 2 seraient comptés dans la boutique 1 et le lien « Se désabonner » désabonnerait dans la mauvaise boutique";
         }
 
+        // Round 407 (2026-09-26) : la source de date des occasions à venir doit être traduite (pas la valeur interne française).
+        $cfgSrc407 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/configure.tpl');
+        if ($cfgSrc407 === '' || strpos($cfgSrc407, "key='calendar.source_precomputed'") === false) {
+            $offenders[] = "La source de date des occasions à venir (Configuration) s'affiche de nouveau en français brut (« pre-calcule ») — régression du bug corrigé le 26/09/2026 (round 407)";
+        }
+
         // Round 406 (2026-09-26) : lien Documentation vers la notice du module (pas de domaine parqué) ; raison de rejet manuel neutre et traduite.
         $hlpSrc406 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/help.tpl');
         $bmSrc406  = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
