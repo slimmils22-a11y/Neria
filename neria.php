@@ -490,17 +490,13 @@ class Neria extends Module
      */
     private static $currentSendShopId = 0;
 
-    /** Notice PDF fournie avec le module, dans la langue du back-office (repli : anglais, puis version de base). */
-    public static function noticeFileForLang(string $lang): string
+    /** Notice PDF hébergée sur neriasoftware.com, dans la langue du back-office (repli : anglais). */
+    public static function noticeUrlForLang(string $lang): string
     {
-        $dir = _PS_MODULE_DIR_ . 'neria/docs/';
-        foreach ([strtoupper(preg_replace('/[^a-z]/', '', strtolower($lang))), 'EN'] as $suffix) {
-            if ($suffix !== '' && is_file($dir . 'Neria_Notice_Utilisation_' . $suffix . '.pdf')) {
-                return 'Neria_Notice_Utilisation_' . $suffix . '.pdf';
-            }
-        }
+        $lang = strtolower($lang);
+        $suffix = in_array($lang, TranslationEngine::SUPPORTED_LANGS, true) ? strtoupper($lang) : 'EN';
 
-        return 'Neria_Notice_Utilisation.pdf';
+        return 'https://neriasoftware.com/docs/Neria_Notice_Utilisation_' . $suffix . '.pdf';
     }
 
     private function hookActionEmailSendBeforeImpl(array &$params): bool
@@ -6766,7 +6762,7 @@ class Neria extends Module
             'link'             => $this->context->link,
             'neria_version'    => self::VERSION,
             'neria_module_dir' => $this->_path,
-            'neria_notice_file' => self::noticeFileForLang(AdminTranslator::currentLang()),
+            'neria_notice_url' => self::noticeUrlForLang(AdminTranslator::currentLang()),
             'neria_active_tab' => $activeTab,
             'neria_msg_action' => (string) Tools::getValue('neria_action'),
             'neria_bo_lang'    => AdminTranslator::currentLang(),
