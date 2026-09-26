@@ -18,6 +18,25 @@ class MultiClientPreviewManager
     const CONFIG_LITMUS_KEY = 'NERIA_LITMUS_KEY';
     const CONFIG_EOA_KEY    = 'NERIA_EOA_KEY';
 
+    const EOA_API_BASE    = 'https://api.emailonacid.com/v5';
+    const LITMUS_API_BASE = 'https://instant-api.litmus.com/v1';
+    /** Clients Litmus Instant testés (identifiants documentés). */
+    const LITMUS_CLIENTS = ['GMAIL', 'OL2019', 'APPMAIL8', 'YAHOO'];
+
+    /**
+     * URL de base d'une API externe ; surchargeable par un réglage global (tests avec un serveur factice),
+     * uniquement en https.
+     */
+    private static function apiBase(string $configKey, string $default): string
+    {
+        $override = trim((string) \Configuration::getGlobalValue($configKey));
+        if ($override !== '' && preg_match('#^https://[^\s]+$#i', $override) === 1) {
+            return rtrim($override, '/');
+        }
+
+        return $default;
+    }
+
     const CLIENTS = [
         'apple_mail' => [
             'name'    => 'Apple Mail',
@@ -445,17 +464,19 @@ class MultiClientPreviewManager
             return ['error' => AdminTranslator::t('msg.curl_unavailable')];
         }
 
+        // Round 398 : API « Instant » de Litmus (https://docs.litmus.com/instant) — l'ancien point d'entrée
+        // api.litmus.com/v1/tests (API historique) n'est plus la voie documentée.
+        $configurations = [];
+        foreach (self::LITMUS_CLIENTS as $litmusClient) {
+            $configurations[] = ['client' => $litmusClient, 'images' => 'allowed'];
+        }
         $payload = json_encode([
-            'email_source' => ['html_text' => $html],
-            'applications' => [
-                ['application' => 'gmailnew'],
-                ['application' => 'ol2019'],
-                ['application' => 'appmail14'],
-                ['application' => 'yahoo_mail_'],
-            ],
+            'html_text'      => $html,
+            'subject'        => 'Neria Preview',
+            'configurations' => $configurations,
         ]);
 
-        $ch = curl_init('https://api.litmus.com/v1/tests');
+        $ch = curl_init(self::apiBase('NERIA_LITMUS_API_BASE', self::LITMUS_API_BASE) . '/emails');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
@@ -497,7 +518,7 @@ class MultiClientPreviewManager
         }
 
         $data = json_decode((string) $response, true);
-        return ['id' => $data['id'] ?? null, 'share_url' => $data['share_url'] ?? null];
+        return ['id' => is_array($data) ? ($data['email_guid'] ?? null) : null, 'share_url' => null];
     }
 
     /**
@@ -519,54 +540,15 @@ class MultiClientPreviewManager
             return [];
         }
 
-        $ch = curl_init("https://api.litmus.com/v1/tests/{$testId}/results");
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER     => [
-                'Authorization: Basic ' . base64_encode($key . ':'),
-            ],
-            CURLOPT_TIMEOUT        => 15,
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlErr  = curl_error($ch);
-        curl_close($ch);
-
-        // Contrairement à submitToLitmus() ci-dessus, cette méthode ignorait
-        // totalement le code HTTP et les erreurs cURL — une API indisponible,
-        // une clé expirée en cours de route, ou un timeout réseau pendant le
-        // sondage (interrogé toutes les 4s pendant 60s côté BO) retournait
-        // silencieusement [], indiscernable d'un test simplement "pas encore
-        // prêt". Le marchand ne voyait que "délai dépassé" sans jamais
-        // savoir que le service avait répondu une erreur. On journalise
-        // désormais l'échec (diagnostic Watchdog) — la structure de retour
-        // (tableau vide) reste inchangée pour ne pas casser le contrat JS
-        // existant (multipreview.tpl itère un tableau de previews).
-        if ($curlErr !== '' || $httpCode < 200 || $httpCode >= 300) {
-            if (class_exists('WatchdogManager') && class_exists('Module')) {
-                $module = \Module::getInstanceByName('neria');
-                if ($module) {
-                    (new \WatchdogManager($module))->warning(
-                        \WatchdogManager::i18nMsg('watchdog.multipreview_poll_failed', [
-                            'provider' => 'Litmus',
-                            'code'     => $httpCode,
-                            'error'    => $curlErr !== '' ? $curlErr : mb_substr((string) $response, 0, 200),
-                        ]),
-                        '', 'MultiClientPreviewManager'
-                    );
-                }
-            }
-            return [];
-        }
-
-        $data   = json_decode((string) $response, true);
+        // Les captures sont servies par l'URL de prévisualisation Instant (redirection vers l'image, aucune
+        // authentification requise, générée à la première requête) : aucun appel HTTP ici.
+        $base   = self::apiBase('NERIA_LITMUS_API_BASE', self::LITMUS_API_BASE);
         $result = [];
-        foreach ($data['previews'] ?? [] as $p) {
+        foreach (self::LITMUS_CLIENTS as $litmusClient) {
             $result[] = [
-                'client'  => $p['application'] ?? '',
-                'image'   => $p['full_screenshot_url'] ?? '',
-                'ready'   => !empty($p['full_screenshot_url']),
+                'client' => $litmusClient,
+                'image'  => $base . '/emails/' . $testId . '/previews/' . $litmusClient . '/full',
+                'ready'  => true,
             ];
         }
         return $result;
@@ -594,12 +576,15 @@ class MultiClientPreviewManager
             return ['error' => AdminTranslator::t('msg.curl_unavailable')];
         }
 
+        // Round 398 : API Email on Acid v5 (https://api.emailonacid.com/docs/latest) — POST /email/tests ; sans
+        // « clients », les clients par défaut du compte sont utilisés. L'ancien /v6/emails n'existe pas.
         $payload = json_encode([
-            'subject' => 'Neria Preview',
-            'html'    => $html,
+            'subject'        => 'Neria Preview',
+            'html'           => $html,
+            'image_blocking' => false,
         ]);
 
-        $ch = curl_init('https://api.emailonacid.com/v6/emails');
+        $ch = curl_init(self::apiBase('NERIA_EOA_API_BASE', self::EOA_API_BASE) . '/email/tests');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
@@ -657,7 +642,7 @@ class MultiClientPreviewManager
             return [];
         }
 
-        $ch = curl_init("https://api.emailonacid.com/v6/emails/{$testId}/results");
+        $ch = curl_init(self::apiBase('NERIA_EOA_API_BASE', self::EOA_API_BASE) . "/email/tests/{$testId}/results");
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER     => [
@@ -691,11 +676,17 @@ class MultiClientPreviewManager
 
         $data   = json_decode((string) $response, true);
         $result = [];
-        foreach ($data['results'] ?? [] as $r) {
+        // v5 : objet indexé par identifiant de client {client_id: {display_name, screenshots: {default, no_images},
+        // thumbnail, full_thumbnail, status}} — prêt quand le statut est « Complete » et la capture disponible.
+        foreach (is_array($data) ? $data : [] as $clientId => $r) {
+            if (!is_array($r)) {
+                continue;
+            }
+            $image = (string) ($r['screenshots']['default'] ?? $r['full_thumbnail'] ?? '');
             $result[] = [
-                'client' => $r['client_id'] ?? '',
-                'image'  => $r['image'] ?? '',
-                'ready'  => !empty($r['image']),
+                'client' => (string) ($r['display_name'] ?? $clientId),
+                'image'  => $image,
+                'ready'  => $image !== '' && strcasecmp((string) ($r['status'] ?? ''), 'Complete') === 0,
             ];
         }
         return $result;

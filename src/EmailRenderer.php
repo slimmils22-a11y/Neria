@@ -2918,7 +2918,7 @@ class EmailRenderer
      */
     private function buildPreviewFakes(string $template = '', string $lang = 'fr'): array
     {
-        return [
+        $fakes = [
             // ── Contexte client / boutique / commande ──────────────
             '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME'),
             // getBaseLink() (pas getShopDomainSsl seul) : inclut le sous-répertoire
@@ -3052,6 +3052,61 @@ class EmailRenderer
             '{bankwire_details}'   => 'IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP',
             '{bankwire_address}'   => '12 rue de la Paix, 75001 Paris, France',
         ];
+
+        return $this->localizePreviewSamples($fakes, $lang);
+    }
+
+    /**
+     * Round 399 : les phrases d'exemple des aperçus du back-office (mode d'emploi d'un code, message client, statut de
+     * douane...) étaient écrites en français quelle que soit la langue prévisualisée. Elles viennent maintenant de
+     * data/preview_samples.json (19 langues) ; les noms propres, adresses et produits d'exemple restent tels quels.
+     *
+     * @param array<string,string> $fakes
+     * @return array<string,string>
+     */
+    private function localizePreviewSamples(array $fakes, string $lang): array
+    {
+        static $samples = null;
+        if ($samples === null) {
+            $raw = @file_get_contents($this->module->getModulePath('data/preview_samples.json'));
+            $samples = is_string($raw) ? json_decode($raw, true) : null;
+            $samples = is_array($samples) ? $samples : [];
+        }
+        $t = static function (string $key) use ($samples, $lang): string {
+            return (string) ($samples[$key][$lang] ?? $samples[$key]['fr'] ?? '');
+        };
+        if ($samples === []) {
+            return $fakes;
+        }
+
+        $simple = [
+            '{voucher_usage}' => 'voucher_usage', '{gift_card_usage}' => 'gift_card_usage', '{product_materials}' => 'product_materials',
+            '{care_instructions}' => 'care_instructions', '{craftsmanship_stage}' => 'craftsmanship_stage',
+            '{alteration_status}' => 'alteration_status', '{certificate_origin}' => 'certificate_origin',
+            '{certificate_materials}' => 'certificate_materials', '{certificate_artisan}' => 'certificate_artisan',
+            '{apology_reason}' => 'apology_reason', '{customs_status}' => 'customs_status', '{customs_action}' => 'customs_action',
+            '{delivery_status}' => 'delivery_status', '{hold_reason}' => 'hold_reason', '{state_order_return}' => 'return_state',
+            '{return_state_name}' => 'return_state', '{order_return_state}' => 'return_state', '{message}' => 'message',
+            '{reply}' => 'reply', '{comment}' => 'comment', '{gift_message}' => 'gift_message',
+            '{invitation_dates}' => 'invitation_dates', '{subject}' => 'subject',
+        ];
+        foreach ($simple as $var => $key) {
+            if (isset($fakes[$var]) && $t($key) !== '') {
+                $fakes[$var] = $t($key);
+            }
+        }
+
+        $ref = $t('ref_abbr');
+        $parcel = $t('parcel');
+        $fakes['{messages}'] = '<p><strong>' . $t('label_client') . ' :</strong> ' . $t('msg_question') . '</p><p><strong>' . $t('label_support') . ' :</strong> ' . $t('msg_answer') . '</p>';
+        $fakes['{virtualProducts}'] = '<p>Neria Vol.1 — <a href="#">' . $t('download') . '</a></p>';
+        $fakes['{virtualProductsTxt}'] = 'Neria Vol.1 — ' . $t('download') . ' : https://exemple.test/download/abc123';
+        $fakes['{shipped_items}'] = '<p><strong>' . $parcel . ' 1 / 2</strong> — Montre Élégance Neria · Colissimo 6A1234567890</p>';
+        $fakes['{shipped_items_txt}'] = $parcel . ' 1 / 2 — Montre Élégance Neria · Colissimo 6A1234567890';
+        $fakes['{meta_products}'] = '<p>' . $ref . ' NER-001 — Montre Élégance Neria × 1</p><p>' . $ref . ' NER-014 — Bracelet Cuir Atelier × 1</p>';
+        $fakes['{items}'] = '<p>' . $ref . ' NER-001 — Montre Élégance Neria × 1 — 89,00 €</p>';
+
+        return $fakes;
     }
 
     /**
